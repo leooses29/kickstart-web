@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acceso agencias — Kickstart Marketing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div class="page-frame" style="min-height:100vh; background:radial-gradient(circle at 20% 20%, #171710 0%, #0A0A0A 55%); display:flex; align-items:center; justify-content:center; padding:40px 20px;">
+  <div style="width:100%; max-width:440px; display:flex; flex-direction:column; gap:32px;">
+
+    <a href="../index.html" class="reveal-1" style="display:flex; flex-direction:column; align-items:center; gap:14px;">
+      <img src="../images/icono-kick.png" alt="Kickstart" style="width:56px; height:56px; object-fit:contain;">
+      <div style="font-family:'Poppins'; font-size:20px; letter-spacing:.04em; text-align:center; color:var(--white);">KICKSTART <span style="color:var(--yellow)">MARKETING</span></div>
+    </a>
+
+    <form id="login-form" class="reveal-2" style="background:var(--bg-card); border:1px solid var(--line); border-radius:20px; padding:40px; position:relative;">
+      <img class="floaty" src="../images/kicki-megafono.png" alt="Kicki" style="position:absolute; top:-64px; right:24px; width:88px; height:auto;">
+      <h1 style="font-size:30px; margin-bottom:8px;">Acceso agencias</h1>
+      <p style="font-size:14px; color:var(--muted); margin:0 0 32px; line-height:1.5;">Ingresá con el código de acceso de tu agencia para ver tus reportes, contenido y herramientas.</p>
+
+      <div style="margin-bottom:20px;">
+        <label for="agencia">Agencia</label>
+        <select id="agencia">
+          <option>Seleccioná tu agencia</option>
+          <option>[Agencia ejemplo]</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom:28px;">
+        <label for="codigo">Código de acceso</label>
+        <input id="codigo" type="password" placeholder="••••••••">
+      </div>
+
+      <button type="submit" class="cta-pulse" style="width:100%; padding:16px; border-radius:10px; background:var(--yellow); color:#0A0A0A; text-align:center; font-weight:600; font-size:15px; cursor:pointer; border:none; font-family:'Poppins',sans-serif;">Ingresar</button>
+
+      <div class="mono" style="text-align:center; font-size:12px; color:var(--muted); margin-top:22px;">¿No tenés tu código? <span style="color:var(--yellow);">Escribinos por WhatsApp</span></div>
+    </form>
+
+    <div class="mono" style="text-align:center; font-size:11px; color:var(--muted); line-height:1.6;">[Mockup de diseño — acceso por código individual de agencia, no usuario/contraseña con recuperación. La validación real se construye después. Por ahora, cualquier click en "Ingresar" te lleva al panel.]</div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('login-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    window.location.href = 'dashboard.html';
+  });
+</script>
+
+</body>
+</html>
