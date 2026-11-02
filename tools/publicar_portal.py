@@ -8,8 +8,8 @@ Cada <dump> es una carpeta con el volcado de un planificador: <dump>/<colección
 el campo "portalCodigo" en el planificador. El archivo de cada agencia queda encriptado con
 AES-GCM y una clave derivada de su código (PBKDF2-SHA256), igual que lo lee portal/js/portal.js.
 
-Incluye solo datos aptos para el cliente: título, formato, fecha, pilar, objetivo, copy, link final,
-estado, guiones, objetivos y reportes. Nunca responsables, comentarios internos ni propuesta de edición.
+Incluye solo datos aptos para el cliente: título, formato, fecha, pilar, objetivo, propuesta de edición, copy, link final,
+estado por paso, guiones, objetivos y reportes. Nunca responsables, comentarios internos ni links de Drive.
 """
 import argparse, base64, datetime, glob, json, os, re, unicodedata
 
@@ -20,7 +20,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 ITER = 200000
 MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 TRIM = ['T1 · enero – marzo', 'T2 · abril – junio', 'T3 · julio – septiembre', 'T4 · octubre – diciembre']
-KEEP = ['id', 'titulo', 'tipo', 'fecha', 'pilar', 'objetivo', 'copy', 'contenidoOk', 'planificacion', 'diseno', 'programacion']
+KEEP = ['id', 'titulo', 'tipo', 'fecha', 'pilar', 'objetivo', 'edicion', 'copy', 'contenidoOk', 'planificacion', 'diseno', 'programacion']
 
 
 def slugify(s):

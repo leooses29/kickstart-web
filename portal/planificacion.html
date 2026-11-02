@@ -85,6 +85,8 @@ h1{margin:4px 0 0;font-size:clamp(26px,4.5vw,40px);line-height:1.1;font-weight:8
 .blk h3{margin:0 0 6px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .blk p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;max-width:65ch}
 .copybox{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px}
+.pasos{display:grid;gap:6px}
+.paso{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13.5px}
 .pl-btn{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:var(--on-accent);border-radius:8px;padding:9px 14px;font-weight:700;text-decoration:none;align-self:flex-start}
 @media (max-width:700px){
     .grid-wrap{display:none}
@@ -239,6 +241,11 @@ function extra(){
   if (rs.length) h += `<div class="sec"><h2>Reportes trimestrales</h2><div class="reps">${rs.map(r => `<a class="rep" href="${esc(safeUrl(r.link))}" target="_blank" rel="noopener"><b>${esc(r.titulo||'Reporte')}</b> ${esc(r.periodo)}<span>Abrir ↗</span></a>`).join('')}</div></div>`;
   document.getElementById('extra').innerHTML = h;
 }
+const PASOS = [['planificacion','Planificación'],['diseno','Diseño'],['programacion','Programación']];
+const EST = {listo:['p3','Listo'], progreso:['p1','En progreso']};
+function pasos(p){
+  return `<div class="blk"><h3>Estado</h3><div class="pasos">${PASOS.map(([k,n]) => { const [c,l] = EST[p[k]] || ['','Sin empezar']; return `<div class="paso"><span>${n}</span><span class="st ${c}"><i></i>${l}</span></div>`; }).join('')}</div></div>`;
+}
 function open(id){
   const p = P.find(x => x.id === id); if (!p) return;
   const T = TIPOS[p.tipo] || TIPOS.historia; const [c,l] = estado(p);
@@ -249,6 +256,8 @@ function open(id){
       <h2>${esc(p.titulo || T.l)}</h2>
       <div class="meta"><span>${fmtDay(p.fecha)}</span><span class="st ${c}"><i></i>${l}</span>${p.pilar?`<span>${esc(p.pilar)}</span>`:''}</div>
       ${p.objetivo ? `<div class="blk"><h3>Objetivo</h3><p>${esc(p.objetivo)}</p></div>` : ''}
+      ${pasos(p)}
+      ${p.edicion ? `<div class="blk"><h3>Propuesta de edición</h3><p>${esc(p.edicion)}</p></div>` : ''}
       ${p.copy ? `<div class="blk"><h3>Copy</h3><div class="copybox"><p>${esc(p.copy)}</p></div></div>` : ''}
       ${gOf(p.id).map(g => `<div class="blk"><h3>Guion${g.titulo && g.titulo !== p.titulo ? ' · ' + esc(g.titulo) : ''}</h3><div class="copybox"><p>${esc(g.guion)}</p></div></div>`).join('')}
       ${p.contenidoOk ? `<a class="pl-btn" href="${esc(safeUrl(p.contenidoOk))}" target="_blank" rel="noopener">Ver pieza final ↗</a>` : ''}
