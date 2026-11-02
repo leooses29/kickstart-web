@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reportes — Portal de Agencias · Kickstart Marketing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.rp-sec{margin-bottom:40px}
+.rp-sec h2{font-size:20px;margin:0 0 4px}
+.rp-sub{font-size:13px;color:var(--muted);margin:0 0 16px}
+.rp-list{display:flex;flex-direction:column;gap:10px;max-width:820px}
+.rp{display:flex;align-items:center;gap:16px;background:#141412;border:1px solid var(--line);border-radius:14px;padding:16px 18px;color:var(--white);text-decoration:none}
+.rp:hover{border-color:var(--yellow)}
+.rp .q{flex:none;min-width:74px;text-align:center;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;font-weight:600;color:var(--yellow)}
+.rp .t{flex:1;min-width:0;font-size:15px;font-weight:500;overflow-wrap:anywhere}
+.rp .t small{display:block;color:var(--muted);font-size:12px;font-weight:400}
+.rp .go{flex:none;font-size:13px;color:var(--yellow)}
+.rp-empty{border:1px dashed var(--line);border-radius:14px;padding:22px;color:var(--muted);font-size:14px;max-width:820px}
+.rp-new{display:inline-block;margin-left:8px;font-size:10px;letter-spacing:.08em;background:var(--yellow);color:#0A0A0A;border-radius:999px;padding:2px 8px;vertical-align:middle}
+@media (max-width:640px){.rp{flex-wrap:wrap;gap:10px}.rp .go{width:100%}}
+</style>
+</head>
+<body>
+
+<div class="page-frame" style="max-width:none;">
+<div class="portal-shell">
+
+  <div class="portal-sidebar"></div>
+
+  <div class="portal-main">
+    <div style="margin-bottom:36px;">
+      <div class="mono" style="color:var(--yellow); font-size:12px; letter-spacing:.1em; margin-bottom:6px;">REPORTES TRIMESTRALES</div>
+      <h1 class="js-agencia" style="font-size:34px;"></h1>
+    </div>
+    <div id="app"><div class="rp-empty">Cargando tus reportes…</div></div>
+  </div>
+
+</div>
+</div>
+
+<script src="js/portal.js"></script>
+<script>
+(async function(){
+  const s = Portal.requerirSesion(); if (!s) return;
+  Portal.sidebar('reportes');
+  document.querySelectorAll('.js-agencia').forEach(el => el.textContent = s.nombre || '');
+  const app = document.getElementById('app');
+  let d;
+  try { d = await Portal.abrir(s.slug, s.code); Portal.sidebar('reportes', d); }
+  catch (e) {
+    if (e.message === 'codigo') { Portal.salir(); return; }
+    app.innerHTML = '<div class="rp-empty">No pudimos cargar tus reportes. Recargá la página en un momento.</div>'; return;
+  }
+  const esc = Portal.esc;
+  const reps = (d.reportes || []).filter(r => Portal.urlSegura(r.link));
+  const SECS = [
+    ['anuncios', 'Anuncios', 'Resultados de las campañas de Meta Ads: inversión, consultas y costo por resultado.'],
+    ['organico', 'Contenido orgánico', 'Cómo crecieron las redes: alcance, interacción, seguidores y las publicaciones que mejor funcionaron.']
+  ];
+  app.innerHTML = SECS.map(([tipo, titulo, sub]) => {
+    const rs = reps.filter(r => (r.tipo || 'organico') === tipo).sort((a,b) => (b.periodo||'').localeCompare(a.periodo||''));
+    const items = rs.length ? rs.map((r, i) => `<a class="rp" href="${esc(Portal.urlSegura(r.link))}" target="_blank" rel="noopener">
+        <span class="q">${esc(r.periodoLabel || r.periodo)}</span>
+        <span class="t">${esc(r.titulo || ('Reporte de ' + titulo.toLowerCase()))}${i === 0 ? '<span class="rp-new">ÚLTIMO</span>' : ''}<small>${esc(r.periodoTexto || '')}</small></span>
+        <span class="go">Abrir ↗</span></a>`).join('')
+      : `<div class="rp-empty">Todavía no hay reportes de ${titulo.toLowerCase()} publicados. Te avisamos cuando esté el próximo.</div>`;
+    return `<section class="rp-sec"><h2>${titulo}</h2><p class="rp-sub">${sub}</p><div class="rp-list">${items}</div></section>`;
+  }).join('');
+})();
+</script>
+</body>
+</html>

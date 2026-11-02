@@ -9,7 +9,7 @@ el campo "portalCodigo" en el planificador. El archivo de cada agencia queda enc
 AES-GCM y una clave derivada de su código (PBKDF2-SHA256), igual que lo lee portal/js/portal.js.
 
 Incluye solo datos aptos para el cliente: título, formato, fecha, pilar, objetivo, propuesta de edición, copy, link final,
-estado por paso, guiones, objetivos y reportes. Nunca responsables, comentarios internos ni links de Drive.
+estado por paso, guiones, objetivos, reportes (anuncios y orgánico) y el Drive para el cliente (portalDrive). Nunca responsables, comentarios internos ni el Drive interno de trabajo.
 """
 import argparse, base64, datetime, glob, json, os, re, unicodedata
 
@@ -49,8 +49,17 @@ def payload(dump, emp, now):
         if '__trim__' in k and (v.get('general') or v.get('especificos')):
             y, q = k.split('__')[2].split('-T')
             obj_trim.append({'label': f"{TRIM[int(q) - 1]} {y}", 'general': v.get('general', ''), 'especificos': v.get('especificos', '')})
-    reps = [{'titulo': r.get('titulo', ''), 'periodo': r.get('periodoLabel', r.get('periodo', '')), 'link': r.get('link', '')}
-            for r in load(dump, 'reportes') if r.get('empresaId') == eid and r.get('link')]
+    reps = []
+    for r in load(dump, 'reportes'):
+        if r.get('empresaId') != eid or not r.get('link'):
+            continue  # los archivos subidos al planificador no son públicos: el portal solo muestra reportes con link
+        per = r.get('periodo', '')
+        texto = ''
+        if re.fullmatch(r'\d{4}-T[1-4]', per):
+            y, q = per.split('-T')
+            texto = TRIM[int(q) - 1].split(' · ')[1] + ' ' + y
+        reps.append({'titulo': r.get('titulo', ''), 'tipo': r.get('tipo') or 'organico', 'periodo': per,
+                     'periodoLabel': r.get('periodoLabel', per), 'periodoTexto': texto, 'link': r.get('link', '')})
     reps.sort(key=lambda r: r['periodo'], reverse=True)
     guiones = [{'id': g['id'], 'titulo': g.get('titulo', ''), 'guion': g.get('guion', ''), 'postId': g.get('postId', ''), 'mes': g.get('mes', '')}
                for g in load(dump, 'guiones') if g.get('empresaId') == eid and (g.get('guion') or g.get('titulo'))]
@@ -58,6 +67,7 @@ def payload(dump, emp, now):
     guion_rec = {k.split('__')[2]: v.get('texto', '') for k, v in notas.items() if '__guionrec__' in k and v.get('texto')}
     return {
         'empresa': {k: emp.get(k, '') for k in ['nombre', 'cuotaReels', 'cuotaHistorias', 'cuotaCarruseles', 'cuotaPosteos']},
+        'drive': (emp.get('portalDrive') or '').strip(),
         'posts': posts, 'guiones': guiones, 'guionRec': guion_rec, 'objMes': obj_mes, 'objTrim': obj_trim, 'reportes': reps,
         'actualizado': f"{now.day} de {MESES[now.month - 1]} de {now.year}",
     }
