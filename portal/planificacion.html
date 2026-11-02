@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planificación — Portal de Agencias · Kickstart Marketing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+/* Layout: cabecera de marca Kickstart + resumen del mes + calendario mensual (lista por día en el celular) + detalle de cada pieza */
+:root{
+  --bg:#0A0A0A; --surface:#141413; --surface-2:#1C1C1A; --line:#2A2A26;
+  --fg:#F4F2EA; --muted:#9A978C; --accent:#FFD000; --on-accent:#0A0A0A;
+  --historia:#E0B23C; --carrusel:#E0566B; --reel:#E07B3C; --posteo:#3FB8A8;
+  --ok:#3DD68C; --prog:#5B9BFF;
+  color-scheme:dark;
+}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mark{width:30px;height:30px;border-radius:8px;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-weight:800;flex:none}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+h1{margin:4px 0 0;font-size:clamp(26px,4.5vw,40px);line-height:1.1;font-weight:800;text-wrap:balance}
+.monthnav{display:flex;align-items:center;gap:8px}
+.monthnav .m{font-size:18px;font-weight:700;min-width:150px;text-align:center;text-transform:capitalize}
+.nb{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;width:34px;height:34px;font-size:16px}
+.nb:disabled{opacity:.35;cursor:default}
+.stats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.stat b{color:var(--fg);font-size:16px;font-variant-numeric:tabular-nums}
+.sw{width:9px;height:9px;border-radius:3px;display:inline-block;flex:none}
+.note{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:14px 16px;margin-bottom:18px;white-space:pre-wrap;max-width:80ch}
+.note h3,.sec h2{margin:0 0 6px;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.grid-wrap{overflow-x:auto}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(110px,1fr));border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--line);gap:1px;min-width:770px}
+.dow{background:var(--surface);padding:8px 10px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:right}
+.day{background:var(--bg);min-height:118px;padding:6px;display:flex;flex-direction:column;gap:5px}
+.day.out{background:var(--surface)}
+.day.out .dn{opacity:.35}
+.dn{align-self:flex-end;font-size:12px;font-weight:600;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;font-variant-numeric:tabular-nums}
+.day.today .dn{background:var(--accent);color:var(--on-accent)}
+.chip{display:flex;flex-direction:column;align-items:flex-start;gap:3px;width:100%;text-align:left;background:color-mix(in srgb,var(--tc) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--tc) 30%,var(--line));border-radius:7px;padding:6px 7px;font-size:12px;line-height:1.3}
+.chip:hover{border-color:var(--tc)}
+.chip .t{font-weight:600;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.chip .k{font-size:11px;font-weight:700;color:var(--tc)}
+.st{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;padding:1px 8px 1px 6px;border-radius:999px;background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.st i{width:6px;height:6px;border-radius:50%;background:currentColor}
+.st.p1{color:var(--prog);background:color-mix(in srgb,var(--prog) 18%,var(--surface))}
+.st.p2{color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,var(--surface))}
+.st.p3{color:var(--ok);background:color-mix(in srgb,var(--ok) 18%,var(--surface))}
+.list{display:none;flex-direction:column;gap:10px}
+.lday{display:flex;flex-direction:column;gap:6px}
+.lday h4{margin:6px 0 0;font-size:13px;font-weight:600;color:var(--muted)}
+.lday .chip{padding:10px 12px;font-size:14px}
+.empty{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:32px 20px;text-align:center;color:var(--muted)}
+.sec{margin-top:32px}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;white-space:pre-wrap;min-width:0}
+.q b{display:block;margin-bottom:4px}
+.reps{display:flex;flex-direction:column;gap:8px}
+.rep{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;text-decoration:none}
+.rep:hover{border-color:var(--accent)}
+.rep span{margin-left:auto;color:var(--muted);font-size:12px}
+.gsec{margin-top:28px}
+.gsec h2{margin:0 0 10px;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.gl{display:flex;flex-direction:column;gap:10px}
+.g{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0}
+.g summary{list-style:none;cursor:pointer;padding:12px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.g summary::-webkit-details-marker{display:none}
+.g summary::before{content:'▸';color:var(--muted);transition:transform .15s}
+.g[open] summary::before{transform:rotate(90deg)}
+.g summary b{flex:1;min-width:200px}
+.g summary .when{color:var(--muted);font-size:12px}
+.g .gt{padding:0 16px 14px;white-space:pre-wrap;overflow-wrap:anywhere;max-width:75ch;margin:0}
+.g .open{background:none;border:1px solid var(--line);border-radius:7px;padding:3px 10px;font-size:12px;font-weight:600}
+.foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:20}
+.panel{position:fixed;top:0;right:0;bottom:0;width:min(540px,100%);background:var(--surface);border-left:1px solid var(--line);z-index:21;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.ph{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.ph .k{font-size:12px;font-weight:700;color:var(--tc);flex:1}
+.close{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-weight:600;font-size:13px}
+.pb{flex:1;overflow-y:auto;padding:20px 18px;display:flex;flex-direction:column;gap:18px}
+.pb h2{margin:0;font-size:22px;line-height:1.25;text-wrap:balance}
+.meta{color:var(--muted);font-size:13px;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}
+.blk h3{margin:0 0 6px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.blk p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;max-width:65ch}
+.copybox{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px}
+.pl-btn{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:var(--on-accent);border-radius:8px;padding:9px 14px;font-weight:700;text-decoration:none;align-self:flex-start}
+@media (max-width:700px){
+    .grid-wrap{display:none}
+  .list{display:flex}
+  .monthnav .m{min-width:120px}
+}
+@media (prefers-reduced-motion:no-preference){.panel{animation:sl .18s ease-out}@keyframes sl{from{transform:translateX(24px);opacity:.6}to{transform:none;opacity:1}}}
+
+.pb h2{text-transform:none;letter-spacing:0}
+.pl-head{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.pl-head h1{font-size:30px}
+.pl-load{color:var(--muted);padding:40px 0}
+@media (max-width:700px){.cal{min-width:0}}
+</style>
+</head>
+<body>
+
+<div class="page-frame" style="max-width:none;">
+<div class="portal-shell">
+
+  <div class="portal-sidebar">
+    <a href="dashboard.html" style="display:flex; align-items:center; gap:10px; padding:0 6px;">
+      <img src="../images/icono-kick.png" alt="Kickstart" style="width:34px; height:34px; object-fit:contain;">
+      <div style="font-family:'Poppins'; font-size:16px; letter-spacing:.03em; color:var(--white);">PORTAL AGENCIAS</div>
+    </a>
+    <div style="display:flex; flex-direction:column; gap:4px;">
+      <a href="dashboard.html" class="navitem">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Panel
+      </a>
+      <div class="navitem disabled" title="Se conecta a Meta Ads — próximamente">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>
+        Reportes de anuncios
+      </div>
+      <a href="planificacion.html" class="navitem active">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Planificación
+      </a>
+      <div class="navitem disabled" title="Se conecta a Drive — próximamente">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Drive
+      </div>
+      <div class="mono" style="font-size:11px; color:var(--muted); padding:16px 16px 6px; letter-spacing:.08em;">HERRAMIENTAS IA</div>
+      <a href="guiones-ads.html" class="navitem">Guiones para anuncios</a>
+      <a href="guiones-reels.html" class="navitem">Guiones para reels</a>
+      <a href="flyers.html" class="navitem">Generador de flyers</a>
+    </div>
+    <div style="margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px; border-top:1px solid var(--line);">
+      <div class="js-agencia" style="font-size:13px; color:var(--white);"></div>
+      <a href="login.html" class="mono js-salir" style="font-size:11px; color:var(--muted);">Salir</a>
+    </div>
+  </div>
+
+  <div class="portal-main">
+    <div class="pl-head">
+      <div>
+        <div class="mono" style="color:var(--yellow); font-size:12px; letter-spacing:.1em; margin-bottom:6px;">PLANIFICACIÓN DE CONTENIDO</div>
+        <h1 id="nombre"></h1>
+      </div>
+      <div class="monthnav"><button class="nb" id="prev" aria-label="Mes anterior">‹</button><div class="m" id="mes"></div><button class="nb" id="next" aria-label="Mes siguiente">›</button></div>
+    </div>
+    <div id="app"><div class="pl-load">Cargando tu planificación…</div></div>
+    <div id="extra"></div>
+    <div class="foot"><span>Planificación preparada por Kickstart Marketing</span><span id="upd"></span></div>
+  </div>
+
+</div>
+</div>
+<div id="host"></div>
+
+<script src="js/portal.js"></script>
+<script>
+(async () => {
+const S = Portal.requerirSesion(); if (!S) return;
+document.querySelectorAll('.js-agencia').forEach(el => el.textContent = S.nombre || '');
+document.querySelectorAll('.js-salir').forEach(el => el.addEventListener('click', e => { e.preventDefault(); Portal.salir(); }));
+let D;
+try { D = await Portal.abrir(S.slug, S.code); }
+catch (e) {
+  if (e.message === 'codigo') { Portal.salir(); return; }
+  document.getElementById('app').innerHTML = '<div class="empty">No pudimos cargar tu planificación. Recargá la página en un momento.</div>'; return;
+}
+
+const TIPOS = {historia:{l:'Historia',p:'historias',c:'var(--historia)',q:'cuotaHistorias'}, reel:{l:'Reel',p:'reels',c:'var(--reel)',q:'cuotaReels'}, carrusel:{l:'Carrusel',p:'carruseles',c:'var(--carrusel)',q:'cuotaCarruseles'}, posteo:{l:'Posteo',p:'posteos',c:'var(--posteo)',q:'cuotaPosteos'}};
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DIAS = ['dom','lun','mar','mié','jue','vie','sáb'], DIAS_L = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2,'0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y,m-1,d); };
+const fmtDay = s => { const d = parse(s); const t = `${DIAS_L[d.getDay()]} ${d.getDate()} de ${MESES[d.getMonth()]}`; return t[0].toUpperCase() + t.slice(1); };
+const safeUrl = u => /^https?:\/\//i.test(u||'') ? u : (u ? 'https://' + u : '');
+const TODAY = ymd(new Date());
+const E = D.empresa, P = D.posts, G = D.guiones || [];
+const gOf = id => G.filter(g => g.postId === id);
+
+function estado(p){
+  if (p.programacion === 'listo') return ['p3','Programada'];
+  if (p.diseno === 'listo') return ['p2','Diseño listo'];
+  if (p.planificacion === 'listo' || p.diseno === 'progreso') return ['p1','En producción'];
+  return ['','En planificación'];
+}
+document.getElementById('nombre').textContent = E.nombre;
+document.getElementById('upd').textContent = 'Actualizado el ' + D.actualizado;
+
+const months = [...new Set(P.map(p => p.fecha.slice(0,7)))].sort();
+let cur = TODAY.slice(0,7);
+if (months.length && !months.includes(cur)) cur = months.find(m => m > cur) || months[months.length-1];
+const bounds = months.length ? [months[0] < TODAY.slice(0,7) ? months[0] : months[0], months[months.length-1]] : [cur, cur];
+
+function chip(p, big){
+  const T = TIPOS[p.tipo] || TIPOS.historia; const [c,l] = estado(p);
+  return `<button class="chip" style="--tc:${T.c}" data-id="${esc(p.id)}"><span class="k">${T.l}${gOf(p.id).length ? ' · Con guion' : ''}</span><span class="t">${esc(p.titulo||T.l)}</span><span class="st ${c}"><i></i>${l}</span></button>`;
+}
+function render(){
+  const [y,m] = cur.split('-').map(Number);
+  document.getElementById('mes').textContent = `${MESES[m-1]} ${y}`;
+  document.getElementById('prev').disabled = cur <= bounds[0];
+  document.getElementById('next').disabled = cur >= bounds[1];
+  const del = P.filter(p => p.fecha.startsWith(cur)).sort((a,b) => a.fecha.localeCompare(b.fecha));
+  const by = {}; del.forEach(p => (by[p.fecha] = by[p.fecha] || []).push(p));
+  const stats = Object.entries(TIPOS).map(([k,t]) => { const n = del.filter(p => p.tipo===k).length; const q = Number(E[t.q])||0; return (n||q) ? `<span class="stat"><i class="sw" style="background:${t.c}"></i><b>${n}${q?' / '+q:''}</b>${t.p}</span>` : ''; }).join('');
+  const prog = del.filter(p => p.programacion==='listo').length;
+  const obj = (D.objMes||{})[cur];
+  const first = new Date(y, m-1, 1); const d = new Date(first); d.setDate(1 - first.getDay());
+  const cells = []; do { for (let i=0;i<7;i++){ cells.push(new Date(d)); d.setDate(d.getDate()+1); } } while (d.getMonth() === m-1);
+  document.getElementById('app').innerHTML = `
+    <div class="stats">${stats}<span class="stat"><b>${prog} / ${del.length}</b>programadas</span></div>
+    ${obj ? `<div class="note"><h3>Objetivos del mes</h3>${esc(obj)}</div>` : ''}
+    ${del.length ? '' : '<div class="empty">Todavía no hay publicaciones planificadas para este mes.</div>'}
+    ${del.length ? `<div class="grid-wrap"><div class="cal">${DIAS.map(x => `<div class="dow">${x}</div>`).join('')}
+      ${cells.map(c => { const k = ymd(c); return `<div class="day ${c.getMonth()!==m-1?'out':''} ${k===TODAY?'today':''}"><span class="dn">${c.getDate()}</span>${(by[k]||[]).map(p => chip(p)).join('')}</div>`; }).join('')}
+    </div></div>
+    <div class="list">${Object.keys(by).map(k => `<div class="lday"><h4>${fmtDay(k)}</h4>${by[k].map(p => chip(p,true)).join('')}</div>`).join('')}</div>` : ''}
+    ${guionesMes(cur)}`;
+}
+function guionesMes(ym){
+  const gs = G.filter(g => (g.postId && P.find(p => p.id === g.postId) ? P.find(p => p.id === g.postId).fecha.slice(0,7) : g.mes) === ym);
+  const rec = (D.guionRec || {})[ym];
+  if (!gs.length && !rec) return '';
+  const fecha = g => { const p = P.find(x => x.id === g.postId); return p ? p.fecha : ''; };
+  gs.sort((a,b) => (fecha(a)||'9').localeCompare(fecha(b)||'9'));
+  return `<div class="gsec"><h2>Guiones del mes</h2>
+    ${rec ? `<details class="g" style="margin-bottom:10px;border-left:3px solid var(--accent)"><summary><b>Recomendaciones para grabar</b></summary><p class="gt">${esc(rec)}</p></details>` : ''}
+    <div class="gl">${gs.map(g => { const f = fecha(g); return `<details class="g"><summary><b>${esc(g.titulo || 'Guion')}</b>${f ? `<span class="when">${fmtDay(f)}</span><button class="open" data-id="${esc(g.postId)}">Ver publicación</button>` : ''}</summary><p class="gt">${esc(g.guion)}</p></details>`; }).join('')}</div></div>`;
+}
+function extra(){
+  const qs = D.objTrim || [];
+  const rs = D.reportes || [];
+  let h = '';
+  if (qs.length) h += `<div class="sec"><h2>Objetivos trimestrales</h2><div class="qgrid">${qs.map(q => `<div class="q"><b>${esc(q.label)}</b>${q.general?esc(q.general):''}${q.especificos?'\n\n'+esc(q.especificos):''}</div>`).join('')}</div></div>`;
+  if (rs.length) h += `<div class="sec"><h2>Reportes trimestrales</h2><div class="reps">${rs.map(r => `<a class="rep" href="${esc(safeUrl(r.link))}" target="_blank" rel="noopener"><b>${esc(r.titulo||'Reporte')}</b> ${esc(r.periodo)}<span>Abrir ↗</span></a>`).join('')}</div></div>`;
+  document.getElementById('extra').innerHTML = h;
+}
+function open(id){
+  const p = P.find(x => x.id === id); if (!p) return;
+  const T = TIPOS[p.tipo] || TIPOS.historia; const [c,l] = estado(p);
+  document.getElementById('host').innerHTML = `<div class="scrim" data-close></div>
+  <aside class="panel" role="dialog" aria-label="Publicación" style="--tc:${T.c}">
+    <div class="ph"><span class="k">${T.l}</span><button class="close" data-close>Cerrar ✕</button></div>
+    <div class="pb">
+      <h2>${esc(p.titulo || T.l)}</h2>
+      <div class="meta"><span>${fmtDay(p.fecha)}</span><span class="st ${c}"><i></i>${l}</span>${p.pilar?`<span>${esc(p.pilar)}</span>`:''}</div>
+      ${p.objetivo ? `<div class="blk"><h3>Objetivo</h3><p>${esc(p.objetivo)}</p></div>` : ''}
+      ${p.copy ? `<div class="blk"><h3>Copy</h3><div class="copybox"><p>${esc(p.copy)}</p></div></div>` : ''}
+      ${gOf(p.id).map(g => `<div class="blk"><h3>Guion${g.titulo && g.titulo !== p.titulo ? ' · ' + esc(g.titulo) : ''}</h3><div class="copybox"><p>${esc(g.guion)}</p></div></div>`).join('')}
+      ${p.contenidoOk ? `<a class="pl-btn" href="${esc(safeUrl(p.contenidoOk))}" target="_blank" rel="noopener">Ver pieza final ↗</a>` : ''}
+    </div>
+  </aside>`;
+  setTimeout(() => document.querySelector('.close')?.focus(), 20);
+}
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-id]'); if (c) { open(c.dataset.id); return; }
+  if (e.target.closest('[data-close]')) document.getElementById('host').innerHTML = '';
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.getElementById('host').innerHTML = ''; });
+const shift = n => { let [y,m] = cur.split('-').map(Number); m += n; if (m<1){m=12;y--;} if (m>12){m=1;y++;} cur = `${y}-${pad(m)}`; render(); };
+document.getElementById('prev').onclick = () => shift(-1);
+document.getElementById('next').onclick = () => shift(1);
+render(); extra();
+
+})();
+</script>
+</body>
+</html>

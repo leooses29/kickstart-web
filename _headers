@@ -1,0 +1,6 @@
+/portal/data/*
+  Cache-Control: no-cache
+  X-Robots-Tag: noindex
+
+/portal/*
+  X-Robots-Tag: noindex

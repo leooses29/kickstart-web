@@ -25,31 +25,59 @@
 
       <div style="margin-bottom:20px;">
         <label for="agencia">Agencia</label>
-        <select id="agencia">
-          <option>Seleccioná tu agencia</option>
-          <option>[Agencia ejemplo]</option>
+        <select id="agencia" required>
+          <option value="">Cargando agencias…</option>
         </select>
       </div>
 
       <div style="margin-bottom:28px;">
         <label for="codigo">Código de acceso</label>
-        <input id="codigo" type="password" placeholder="••••••••">
+        <input id="codigo" type="password" placeholder="••••••••" autocomplete="current-password" required>
       </div>
 
-      <button type="submit" class="cta-pulse" style="width:100%; padding:16px; border-radius:10px; background:var(--yellow); color:#0A0A0A; text-align:center; font-weight:600; font-size:15px; cursor:pointer; border:none; font-family:'Poppins',sans-serif;">Ingresar</button>
+      <div id="login-error" role="alert" style="display:none; margin:-12px 0 18px; font-size:13px; color:#FF7A7A;"></div>
+
+      <button id="login-btn" type="submit" class="cta-pulse" style="width:100%; padding:16px; border-radius:10px; background:var(--yellow); color:#0A0A0A; text-align:center; font-weight:600; font-size:15px; cursor:pointer; border:none; font-family:'Poppins',sans-serif;">Ingresar</button>
 
       <div class="mono" style="text-align:center; font-size:12px; color:var(--muted); margin-top:22px;">¿No tenés tu código? <span style="color:var(--yellow);">Escribinos por WhatsApp</span></div>
     </form>
 
-    <div class="mono" style="text-align:center; font-size:11px; color:var(--muted); line-height:1.6;">[Mockup de diseño — acceso por código individual de agencia, no usuario/contraseña con recuperación. La validación real se construye después. Por ahora, cualquier click en "Ingresar" te lleva al panel.]</div>
   </div>
 </div>
 
+<script src="js/portal.js"></script>
 <script>
-  document.getElementById('login-form').addEventListener('submit', function(e){
-    e.preventDefault();
-    window.location.href = 'dashboard.html';
-  });
+  (async function(){
+    const sel = document.getElementById('agencia');
+    const err = document.getElementById('login-error');
+    const btn = document.getElementById('login-btn');
+    const showErr = t => { err.textContent = t; err.style.display = t ? 'block' : 'none'; };
+    try {
+      const lista = await Portal.agencias();
+      sel.innerHTML = '<option value="">Seleccioná tu agencia</option>';
+      lista.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(a => {
+        const o = document.createElement('option'); o.value = a.slug; o.textContent = a.nombre; sel.appendChild(o);
+      });
+    } catch (e) {
+      sel.innerHTML = '<option value="">No se pudo cargar la lista</option>';
+      showErr('No pudimos cargar las agencias. Recargá la página en un momento.');
+    }
+    document.getElementById('login-form').addEventListener('submit', async function(e){
+      e.preventDefault(); showErr('');
+      const slug = sel.value, code = document.getElementById('codigo').value;
+      if (!slug) { showErr('Elegí tu agencia.'); return; }
+      if (!code.trim()) { showErr('Escribí tu código de acceso.'); return; }
+      btn.disabled = true; btn.textContent = 'Ingresando…';
+      try {
+        const data = await Portal.abrir(slug, code);
+        Portal.guardar({ slug, code: code.trim(), nombre: data.empresa.nombre });
+        location.href = 'dashboard.html';
+      } catch (ex) {
+        showErr(ex.message === 'codigo' ? 'El código no es correcto. Revisalo o escribinos por WhatsApp.' : 'No encontramos los datos de tu agencia. Escribinos por WhatsApp.');
+        btn.disabled = false; btn.textContent = 'Ingresar';
+      }
+    });
+  })();
 </script>
 
 </body>
