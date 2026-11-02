@@ -54,6 +54,12 @@
     const showErr = t => { err.textContent = t; err.style.display = t ? 'block' : 'none'; };
     try {
       const lista = await Portal.agencias();
+      if (!lista.length) {
+        sel.innerHTML = '<option value="">Todavía no hay agencias habilitadas</option>';
+        sel.disabled = true; btn.disabled = true;
+        showErr('El portal se está configurando. Si ya tenés tu código, escribinos por WhatsApp.');
+        return;
+      }
       sel.innerHTML = '<option value="">Seleccioná tu agencia</option>';
       lista.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(a => {
         const o = document.createElement('option'); o.value = a.slug; o.textContent = a.nombre; sel.appendChild(o);
