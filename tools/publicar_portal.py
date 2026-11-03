@@ -20,7 +20,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 ITER = 200000
 MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 TRIM = ['T1 · enero – marzo', 'T2 · abril – junio', 'T3 · julio – septiembre', 'T4 · octubre – diciembre']
-KEEP = ['id', 'titulo', 'tipo', 'fecha', 'pilar', 'objetivo', 'edicion', 'copy', 'contenidoOk', 'planificacion', 'diseno', 'programacion']
+KEEP = ['id', 'titulo', 'tipo', 'fecha', 'pilar', 'objetivo', 'edicion', 'copy', 'contenidoOk', 'portada', 'planificacion', 'diseno', 'programacion']
 
 
 def slugify(s):

@@ -228,6 +228,7 @@ function open(id){
       ${p.edicion ? `<div class="blk"><h3>Propuesta de edición</h3><p>${esc(p.edicion)}</p></div>` : ''}
       ${p.copy ? `<div class="blk"><h3>Copy</h3><div class="copybox"><p>${esc(p.copy)}</p></div></div>` : ''}
       ${gOf(p.id).map(g => `<div class="blk"><h3>Guion${g.titulo && g.titulo !== p.titulo ? ' · ' + esc(g.titulo) : ''}</h3><div class="copybox"><p>${esc(g.guion)}</p></div></div>`).join('')}
+      ${p.portada && /^https?:\/\//i.test(p.portada) ? `<div class="blk"><h3>Portada del reel</h3><a class="pl-btn" style="background:var(--surface-2);color:var(--fg)" href="${esc(safeUrl(p.portada))}" target="_blank" rel="noopener">Ver portada ↗</a></div>` : ''}
       ${p.contenidoOk ? `<a class="pl-btn" href="${esc(safeUrl(p.contenidoOk))}" target="_blank" rel="noopener">Ver pieza final ↗</a>` : ''}
     </div>
   </aside>`;
