@@ -5,9 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kickstart Marketing — Marketing para agencias de viajes</title>
 <meta name="description" content="Kickstart Marketing potencia agencias de viajes que quieren crecer: estrategia digital, campañas y ventas trabajando juntas.">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="icon" type="image/svg+xml" href="images/logo-2026/kickstart-icono.svg">
+<link rel="apple-touch-icon" href="images/logo-2026/kickstart-icono.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/style.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
+<link rel="stylesheet" href="css/style.css?v=20261103a">
+<link rel="preload" as="image" href="images/kicki/kicki-confiando.png">
+<script>document.documentElement.classList.add('js');</script>
+<script src="js/sitio.js?v=20261103a" defer></script>
 </head>
 <body>
 
@@ -15,10 +22,7 @@
 
   <!-- NAV -->
   <nav class="site-nav">
-    <div class="brand">
-      <img src="images/icono-kick.png" alt="Kickstart">
-      <div class="brand-name">KICKSTART <span style="color:var(--yellow)">MARKETING</span></div>
-    </div>
+    <a href="#inicio" class="brand"><img src="images/logo-2026/kickstart-logo-nav.svg" alt="Kickstart Marketing" width="466" height="88"></a>
     <div class="nav-links">
       <a href="#inicio" class="active">Inicio</a>
       <a href="quienes-somos.html">Nosotros</a>
@@ -28,7 +32,7 @@
     </div>
     <a href="portal/login.html" class="acceso-agencias mono">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      ACCESO AGENCIAS
+      <span>ACCESO<span class="long"> AGENCIAS</span></span>
     </a>
     <button class="nav-toggle" aria-label="Abrir menú" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.parentElement.querySelector('.nav-links').classList.toggle('open'));">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -36,228 +40,266 @@
   </nav>
 
   <!-- HERO -->
-  <div id="inicio" class="hero-row" style="padding:clamp(56px,10vw,96px) clamp(20px,6vw,64px) clamp(60px,10vw,100px); border-bottom:1px solid var(--line);">
-    <div class="hero-copy">
-      <div class="eyebrow" style="margin-bottom:20px;">KickStart Travel System</div>
-      <h1 class="reveal-1" style="font-size:clamp(32px,8vw,76px); color:var(--white);">Marketing y <span style="color:var(--yellow);">crecimiento</span><br>para agencias<br>de viajes</h1>
-      <p class="reveal-2" style="font-size:19px; color:var(--muted); max-width:520px; margin:28px 0 40px; line-height:1.6;">Nuestro sistema KickStart Travel System integra marketing, campañas, contenido, ventas y Kicki CRM para impulsar el crecimiento de tu agencia.</p>
-      <div class="reveal-3" style="display:flex; gap:16px; flex-wrap:wrap;">
-        <a href="https://wa.me/5493541635868?text=Hola%20Kickstart!%20Quiero%20agendar%20mi%20auditor%C3%ADa%20gratis" target="_blank" rel="noopener" class="btn btn-primary">Agendar auditoría gratis</a>
-        <a href="#servicios" class="btn btn-ghost">Ver el Sistema KTS</a>
+  <header id="inicio" class="hero" data-hero>
+    <div class="light l" aria-hidden="true"></div>
+    <div class="light r" aria-hidden="true"></div>
+
+    <div class="stage">
+      <div class="badge" aria-hidden="true"></div>
+      <div class="word" aria-hidden="true">
+        <div class="w split"><span class="k">K</span><span class="k">I</span><span class="k">C</span><span class="k">K</span></div>
+        <div class="w split"><span class="s">S</span><span class="s">T</span><span class="s">A</span><span class="s">R</span><span class="s">T</span></div>
+        <div class="w full"><span class="k">K</span><span class="k">I</span><span class="k">C</span><span class="k">K</span><span class="s">S</span><span class="s">T</span><span class="s">A</span><span class="s">R</span><span class="s">T</span></div>
+        <div class="tagline">LÍDERES EN MARKETING TURÍSTICO</div>
+      </div>
+      <div class="kicki-hero"><img src="images/kicki/kicki-confiando.png" alt="Kicki, la mascota de Kickstart Marketing" width="361" height="621" fetchpriority="high"></div>
+    </div>
+
+    <div class="hero-text">
+      <span class="eyebrow" data-hero-in>KickStart Travel System</span>
+      <h1 data-words><span class="sr-only">Kickstart Marketing: </span>El puntapié que tu <em>agencia de viajes</em> necesita para crecer</h1>
+      <p class="lead" data-hero-in>Desarrollamos estrategias de marketing, publicidad, contenido y gestión comercial para que tu agencia consiga más consultas, convierta más oportunidades en ventas y esté preparada para crecer.</p>
+      <div class="ctas" data-hero-in>
+        <a href="https://wa.me/5493541635868?text=Hola%20Kickstart!%20Quiero%20agendar%20mi%20auditor%C3%ADa%20gratis" target="_blank" rel="noopener" class="btn btn-primary has-ico"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17 17 7M8 7h9v9"/></svg></span>Agendá tu auditoría gratuita</a>
+        <a href="#servicios" class="btn has-ico"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17 17 7M8 7h9v9"/></svg></span>Conocé nuestro sistema</a>
+      </div>
+      <p class="slogan" data-hero-in>Dejamos agencias mejor de lo que las encontramos</p>
+      <div class="bubble" data-hero-in>
+        <img src="images/kicki/kicki-feliz-avatar.png" alt="" width="77" height="110">
+        <div>
+          <span class="who">Hola, soy Kicki</span>
+          <p>Mi misión es ayudarte a conseguir, con el KickStart Travel System, consultas reales, un comercial completo y posicionamiento para tu agencia.</p>
+        </div>
       </div>
     </div>
-    <div class="hero-card">
-      <div class="card" style="padding:32px; display:flex; flex-direction:column; gap:20px; align-items:center;">
-        <div class="floaty" style="width:180px; height:180px; border-radius:50%; background:#1E1E1A; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-          <img src="images/kicki-parado.png" alt="Kicki" style="width:150%; height:150%; object-fit:contain;">
-        </div>
-        <div style="width:100%; background:var(--bg-card-2); border:1px solid var(--line); border-radius:16px; padding:20px;">
-          <div style="font-family:'Poppins'; font-size:22px; color:var(--yellow); margin-bottom:8px;">Hola, soy Kicky</div>
-          <div style="font-size:14px; color:var(--muted); line-height:1.6;">Mi misión es ayudarte a conseguir, con el KickStart Travel System, consultas reales, un comercial completo y posicionamiento para tu agencia.</div>
-        </div>
-      </div>
-    </div>
-  </div>
+  </header>
 
   <!-- EL PROBLEMA REAL -->
-  <div id="problema-real" style="padding:clamp(60px,10vw,100px) clamp(20px,6vw,64px); border-bottom:1px solid var(--line);">
-    <div style="max-width:760px; margin:0 auto 56px;">
-      <div class="eyebrow" style="margin-bottom:14px;">El problema real</div>
-      <h2 class="reveal-1" style="font-size:clamp(28px,7vw,44px);">¿Tu agencia se <span style="color:var(--yellow);">identifica</span><br>con alguno de estos?</h2>
-      <p class="reveal-2" style="font-size:18px; color:var(--muted); margin-top:14px;">Estos son los errores más comunes que frenan el crecimiento de las agencias de viajes.</p>
+  <section id="problema-real" class="section">
+    <div class="wrap problem-layout">
+      <div class="sec-head">
+        <span class="eyebrow">El problema real</span>
+        <h2 data-reveal>¿Tu agencia se <em>identifica</em> con alguno de estos?</h2>
+        <p data-reveal>Estos son los errores más comunes que frenan el crecimiento de las agencias de viajes.</p>
+        <img class="sec-kicki" data-reveal src="images/kicki/kicki-pregunta.png" alt="Kicki preguntándose" width="439" height="460" loading="lazy">
+      </div>
+      <div class="pcards" data-stagger>
+        <div class="card pcard" data-glow data-reveal>
+          <span class="num">01</span>
+          <h3 class="quote">"No tengo tiempo para las redes"</h3>
+          <p>El equipo está ocupado atendiendo clientes. El marketing siempre queda para después — y así se pierde venta todos los días.</p>
+        </div>
+        <div class="card pcard" data-glow data-reveal>
+          <span class="num">02</span>
+          <h3 class="quote">"Gasto en publicidad pero no veo reservas"</h3>
+          <p>Los anuncios corren solos, sin estrategia de neuroventas detrás. Plata gastada en clics que nunca se convierten en ventas.</p>
+        </div>
+        <div class="card pcard" data-glow data-reveal>
+          <span class="num">03</span>
+          <h3 class="quote">"Publico pero no sé si sirve de algo"</h3>
+          <p>Contenido sin dirección ni métricas. Sin saber qué funciona, el esfuerzo no genera resultados medibles.</p>
+        </div>
+        <div class="card pcard" data-glow data-reveal>
+          <span class="num">04</span>
+          <h3 class="quote">"Mi competencia crece y yo me quedo atrás"</h3>
+          <p>Otras agencias ya tienen un sistema digital que trabaja todos los días. Sin ese sistema, cada día que pasa es ventas perdidas.</p>
+        </div>
+      </div>
     </div>
-    <div class="grid-3" style="max-width:1100px; margin:0 auto;">
-      <div class="card" style="padding:28px; display:flex; flex-direction:column; gap:14px;">
-        <div style="width:48px; height:48px; border-radius:12px; background:rgba(255,90,70,.12); border:1px solid rgba(255,90,70,.25); display:flex; align-items:center; justify-content:center; font-size:22px;">😤</div>
-        <div style="font-weight:600; font-size:17px; line-height:1.35;">"No tengo tiempo para las redes"</div>
-        <p style="font-size:14px; color:var(--muted); line-height:1.6; margin:0;">El equipo está ocupado atendiendo clientes. El marketing siempre queda para después — y así se pierde venta todos los días.</p>
-      </div>
-      <div class="card" style="padding:28px; display:flex; flex-direction:column; gap:14px;">
-        <div style="width:48px; height:48px; border-radius:12px; background:rgba(255,90,70,.12); border:1px solid rgba(255,90,70,.25); display:flex; align-items:center; justify-content:center; font-size:22px;">💸</div>
-        <div style="font-weight:600; font-size:17px; line-height:1.35;">"Gasto en publicidad pero no veo reservas"</div>
-        <p style="font-size:14px; color:var(--muted); line-height:1.6; margin:0;">Los anuncios corren solos, sin estrategia de neuroventas detrás. Plata gastada en clics que nunca se convierten en ventas.</p>
-      </div>
-      <div class="card" style="padding:28px; display:flex; flex-direction:column; gap:14px;">
-        <div style="width:48px; height:48px; border-radius:12px; background:rgba(255,90,70,.12); border:1px solid rgba(255,90,70,.25); display:flex; align-items:center; justify-content:center; font-size:22px;">🤷</div>
-        <div style="font-weight:600; font-size:17px; line-height:1.35;">"Publico pero no sé si sirve de algo"</div>
-        <p style="font-size:14px; color:var(--muted); line-height:1.6; margin:0;">Contenido sin dirección ni métricas. Sin saber qué funciona, el esfuerzo no genera resultados medibles.</p>
-      </div>
-      <div class="card" style="padding:28px; display:flex; flex-direction:column; gap:14px;">
-        <div style="width:48px; height:48px; border-radius:12px; background:rgba(255,90,70,.12); border:1px solid rgba(255,90,70,.25); display:flex; align-items:center; justify-content:center; font-size:22px;">📉</div>
-        <div style="font-weight:600; font-size:17px; line-height:1.35;">"Mi competencia crece y yo me quedo atrás"</div>
-        <p style="font-size:14px; color:var(--muted); line-height:1.6; margin:0;">Otras agencias ya tienen un sistema digital que trabaja todos los días. Sin ese sistema, cada día que pasa es ventas perdidas.</p>
-      </div>
-    </div>
-  </div>
+  </section>
 
   <!-- CLIENTES (teaser) -->
-  <div id="casos" style="padding:88px 0; border-bottom:1px solid var(--line);">
-    <div style="text-align:center; margin-bottom:48px; padding:0 clamp(20px,6vw,64px);">
-      <h2 style="font-size:clamp(24px,5vw,32px);">Agencias que confiaron en nosotros</h2>
-    </div>
+  <section id="casos" class="clients">
+    <h2 data-reveal>Agencias que confiaron en nosotros</h2>
     <div class="marquee-wrap">
       <div class="marquee-track">
-        <div class="card marquee-item"><span style="font-family:'Poppins'; font-size:22px; letter-spacing:.03em;">Aterrizar</span></div>
-        <div class="card marquee-item"><span style="font-family:'Poppins'; font-size:22px; letter-spacing:.03em;">Planisferio</span></div>
-        <div class="card marquee-item"><span style="font-family:'Poppins'; font-size:22px; letter-spacing:.03em;">Babel Viajes</span></div>
-        <div class="card marquee-item"><span style="font-family:'Poppins'; font-size:22px; letter-spacing:.03em;">Destínate</span></div>
-        <div class="card marquee-item"><span style="font-family:'Poppins'; font-size:22px; letter-spacing:.03em;">Low Travel</span></div>
-        <div class="card marquee-item"><span style="font-family:'Poppins'; font-size:22px; letter-spacing:.03em;">Huinca Travel</span></div>
-        <div class="card marquee-item"><span style="font-family:'Poppins'; font-size:22px; letter-spacing:.03em;">El Cairo Egresados</span></div>
-        <div class="card marquee-item" aria-hidden="true"><span style="font-family:'Poppins'; font-size:22px; letter-spacing:.03em;">Aterrizar</span></div>
-        <div class="card marquee-item" aria-hidden="true"><span style="font-family:'Poppins'; font-size:22px; letter-spacing:.03em;">Planisferio</span></div>
-        <div class="card marquee-item" aria-hidden="true"><span style="font-family:'Poppins'; font-size:22px; letter-spacing:.03em;">Babel Viajes</span></div>
-        <div class="card marquee-item" aria-hidden="true"><span style="font-family:'Poppins'; font-size:22px; letter-spacing:.03em;">Destínate</span></div>
-        <div class="card marquee-item" aria-hidden="true"><span style="font-family:'Poppins'; font-size:22px; letter-spacing:.03em;">Low Travel</span></div>
-        <div class="card marquee-item" aria-hidden="true"><span style="font-family:'Poppins'; font-size:22px; letter-spacing:.03em;">Huinca Travel</span></div>
-        <div class="card marquee-item" aria-hidden="true"><span style="font-family:'Poppins'; font-size:22px; letter-spacing:.03em;">El Cairo Egresados</span></div>
+        <div class="card marquee-item"><span>Aterrizar</span></div>
+        <div class="card marquee-item"><span>Planisferio</span></div>
+        <div class="card marquee-item"><span>Babel Viajes</span></div>
+        <div class="card marquee-item"><span>Destínate</span></div>
+        <div class="card marquee-item"><span>Low Travel</span></div>
+        <div class="card marquee-item"><span>Huinca Travel</span></div>
+        <div class="card marquee-item"><span>El Cairo Egresados</span></div>
+        <div class="card marquee-item" aria-hidden="true"><span>Aterrizar</span></div>
+        <div class="card marquee-item" aria-hidden="true"><span>Planisferio</span></div>
+        <div class="card marquee-item" aria-hidden="true"><span>Babel Viajes</span></div>
+        <div class="card marquee-item" aria-hidden="true"><span>Destínate</span></div>
+        <div class="card marquee-item" aria-hidden="true"><span>Low Travel</span></div>
+        <div class="card marquee-item" aria-hidden="true"><span>Huinca Travel</span></div>
+        <div class="card marquee-item" aria-hidden="true"><span>El Cairo Egresados</span></div>
       </div>
     </div>
-    <div style="text-align:center; margin-top:36px;">
-      <a href="clientes.html" class="mono" style="font-size:14px;">Ver todos los casos de éxito →</a>
+    <div class="more">
+      <a href="clientes.html" class="mono link-arrow">Ver todos los casos de éxito →</a>
     </div>
-  </div>
+  </section>
 
   <!-- QUE ES SISTEMA KTS — 4 PILARES -->
-  <div id="servicios" style="padding:clamp(60px,10vw,100px) clamp(20px,6vw,64px); border-bottom:1px solid var(--line);">
-    <div style="max-width:760px; margin:0 auto 56px;">
-      <div class="eyebrow" style="margin-bottom:16px;">KickStart Travel System</div>
-      <h2 style="font-size:clamp(26px,6vw,40px); margin-bottom:24px;">Cuatro pilares. <span style="color:var(--yellow);">Un sistema integrado.</span></h2>
-      <p style="font-size:17px; color:#C7C7C1; line-height:1.75;">Todo lo que tu agencia necesita para generar consultas de forma constante — contenido, publicidad, CRM y acompañamiento comercial, trabajando juntos.</p>
+  <section id="servicios" class="section">
+    <div class="wrap">
+      <div class="pillars-head">
+        <div class="sec-head">
+          <span class="eyebrow">KickStart Travel System</span>
+          <h2 data-reveal>Cuatro pilares. <em>Un sistema integrado.</em></h2>
+          <p data-reveal>Todo lo que tu agencia necesita para generar consultas de forma constante — contenido, publicidad, CRM y acompañamiento comercial, trabajando juntos.</p>
+        </div>
+        <img class="sec-kicki" data-reveal src="images/kicki/kicki-idea.png" alt="Kicki con una idea" width="400" height="460" loading="lazy">
+      </div>
+
+      <div class="pillars" data-stagger>
+
+        <article class="card pillar" data-glow data-reveal>
+          <span class="ghost-n" aria-hidden="true">01</span>
+          <span class="tag mono">PILAR 01</span>
+          <h3>Gestión Estratégica de Redes Sociales</h3>
+          <p>Creamos y publicamos todo el contenido de tu agencia. Cada pieza está pensada para generar deseo de viaje y convertir seguidores en consultas reales.</p>
+          <ul class="checks">
+            <li><span>Reels, carruseles e historias planificados según los <b>paquetes vigentes</b> de tu agencia</span></li>
+            <li><span><b>3 planes</b> según la etapa de tu agencia: Despegue, Embarque y En Vuelo</span></li>
+            <li><span><b>Reportes periódicos</b> de resultados</span></li>
+          </ul>
+          <a href="#planes" class="btn btn-primary has-ico sm"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17 17 7M8 7h9v9"/></svg></span>Ver los 3 planes</a>
+        </article>
+
+        <article class="card pillar" data-glow data-reveal>
+          <span class="ghost-n" aria-hidden="true">02</span>
+          <span class="tag mono">PILAR 02</span>
+          <h3>Administración Profesional de Meta Ads</h3>
+          <p>Gestionamos tus campañas en Facebook e Instagram con estrategia de neuroventas para que cada peso invertido genere consultas calificadas.</p>
+          <ul class="checks">
+            <li><span><b>Gancho emocional</b> + oferta clara + cierre con urgencia</span></li>
+            <li><span><b>Creativos publicitarios</b> que convierten</span></li>
+            <li><span><b>Segmentación estratégica</b> por perfil</span></li>
+            <li><span><b>Optimización constante</b> del presupuesto</span></li>
+            <li><span><b>Reportes mensuales</b> de rendimiento</span></li>
+          </ul>
+          <div class="mono note-box">🎯 No clics caros — leads calificados listos para comprar.</div>
+        </article>
+
+        <article class="card pillar" data-glow data-reveal>
+          <span class="ghost-n" aria-hidden="true">03</span>
+          <span class="tag mono">PILAR 03</span>
+          <h3>Kicki CRM</h3>
+          <p>El CRM pensado para equipos comerciales de agencias de viajes: centraliza tus leads, tu equipo se loguea desde el celu o la PC, y vos ves cómo se desenvuelve cada vendedor.</p>
+          <ul class="checks">
+            <li><span><b>Centralización</b> de todos los leads en un solo lugar</span></li>
+            <li><span><b>Acceso</b> desde celular o PC para todo el equipo</span></li>
+            <li><span><b>Seguimiento</b> del desempeño de cada vendedor</span></li>
+          </ul>
+          <a href="https://kicki.ar" target="_blank" rel="noopener" class="btn btn-primary has-ico sm"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17 17 7M8 7h9v9"/></svg></span>Ver Kicki CRM</a>
+        </article>
+
+        <article class="card pillar" data-glow data-reveal>
+          <span class="ghost-n" aria-hidden="true">04</span>
+          <span class="tag mono">PILAR 04</span>
+          <h3>Acompañamiento Comercial</h3>
+          <p>1 encuentro mensual con el equipo de ventas sobre procesos y cierre de ventas.</p>
+          <div class="mono note-box">📈 Tu equipo comercial mejora mes a mes, no solo tu marketing.</div>
+        </article>
+
+      </div>
     </div>
-    <div class="grid-2" style="max-width:1100px; margin:0 auto;">
-
-      <div class="card" style="padding:32px; display:flex; flex-direction:column; gap:16px;">
-        <div class="mono" style="display:inline-flex; align-self:flex-start; color:var(--yellow); font-size:11px; letter-spacing:.08em; border:1px solid var(--yellow); border-radius:999px; padding:5px 14px;">PILAR 01</div>
-        <h3 style="font-size:22px; text-transform:none;">Gestión Estratégica de Redes Sociales</h3>
-        <p style="font-size:14px; color:var(--muted); line-height:1.6; margin:0;">Creamos y publicamos todo el contenido de tu agencia. Cada pieza está pensada para generar deseo de viaje y convertir seguidores en consultas reales.</p>
-        <div style="display:flex; flex-direction:column; gap:8px; font-size:14px; color:#D8D8D2;">
-          <div>• Reels, carruseles e historias planificados según los <b>paquetes vigentes</b> de tu agencia</div>
-          <div>• <b>3 planes</b> según la etapa de tu agencia: Despegue, Embarque y En Vuelo</div>
-          <div>• <b>Reportes periódicos</b> de resultados</div>
-        </div>
-        <a href="#planes" class="btn btn-primary" style="margin-top:8px; align-self:flex-start; padding:12px 24px; font-size:14px;">Ver los 3 planes</a>
-      </div>
-
-      <div class="card" style="padding:32px; display:flex; flex-direction:column; gap:16px;">
-        <div class="mono" style="display:inline-flex; align-self:flex-start; color:var(--yellow); font-size:11px; letter-spacing:.08em; border:1px solid var(--yellow); border-radius:999px; padding:5px 14px;">PILAR 02</div>
-        <h3 style="font-size:22px; text-transform:none;">Administración Profesional de Meta Ads</h3>
-        <p style="font-size:14px; color:var(--muted); line-height:1.6; margin:0;">Gestionamos tus campañas en Facebook e Instagram con estrategia de neuroventas para que cada peso invertido genere consultas calificadas.</p>
-        <div style="display:flex; flex-direction:column; gap:8px; font-size:14px; color:#D8D8D2;">
-          <div>• <b>Gancho emocional</b> + oferta clara + cierre con urgencia</div>
-          <div>• <b>Creativos publicitarios</b> que convierten</div>
-          <div>• <b>Segmentación estratégica</b> por perfil</div>
-          <div>• <b>Optimización constante</b> del presupuesto</div>
-          <div>• <b>Reportes mensuales</b> de rendimiento</div>
-        </div>
-        <div class="mono" style="margin-top:8px; font-size:13px; color:var(--yellow); background:#1a1a12; border:1px solid rgba(255,208,0,.3); border-radius:12px; padding:14px 16px;">🎯 No clics caros — leads calificados listos para comprar.</div>
-      </div>
-
-      <div class="card" style="padding:32px; display:flex; flex-direction:column; gap:16px;">
-        <div class="mono" style="display:inline-flex; align-self:flex-start; color:var(--yellow); font-size:11px; letter-spacing:.08em; border:1px solid var(--yellow); border-radius:999px; padding:5px 14px;">PILAR 03</div>
-        <h3 style="font-size:22px; text-transform:none;">Kicki CRM</h3>
-        <p style="font-size:14px; color:var(--muted); line-height:1.6; margin:0;">El CRM pensado para equipos comerciales de agencias de viajes: centraliza tus leads, tu equipo se loguea desde el celu o la PC, y vos ves cómo se desenvuelve cada vendedor.</p>
-        <div style="display:flex; flex-direction:column; gap:8px; font-size:14px; color:#D8D8D2;">
-          <div>• <b>Centralización</b> de todos los leads en un solo lugar</div>
-          <div>• <b>Acceso</b> desde celular o PC para todo el equipo</div>
-          <div>• <b>Seguimiento</b> del desempeño de cada vendedor</div>
-        </div>
-        <a href="https://kicki.ar" target="_blank" rel="noopener" class="btn btn-primary" style="margin-top:8px; align-self:flex-start; padding:12px 24px; font-size:14px;">Ver Kicki CRM</a>
-      </div>
-
-      <div class="card" style="padding:32px; display:flex; flex-direction:column; gap:16px;">
-        <div class="mono" style="display:inline-flex; align-self:flex-start; color:var(--yellow); font-size:11px; letter-spacing:.08em; border:1px solid var(--yellow); border-radius:999px; padding:5px 14px;">PILAR 04</div>
-        <h3 style="font-size:22px; text-transform:none;">Acompañamiento Comercial</h3>
-        <p style="font-size:14px; color:var(--muted); line-height:1.6; margin:0;">1 encuentro mensual con el equipo de ventas sobre procesos y cierre de ventas.</p>
-        <div class="mono" style="margin-top:auto; font-size:13px; color:var(--yellow); background:#1a1a12; border:1px solid rgba(255,208,0,.3); border-radius:12px; padding:14px 16px;">📈 Tu equipo comercial mejora mes a mes, no solo tu marketing.</div>
-      </div>
-
-    </div>
-  </div>
+  </section>
 
   <!-- PLANES DE REDES SOCIALES -->
-  <div id="planes" style="padding:clamp(60px,10vw,100px) clamp(20px,6vw,64px); border-bottom:1px solid var(--line);">
-    <div style="max-width:760px; margin:0 auto 56px;">
-      <div class="eyebrow" style="margin-bottom:16px;">Pilar 01 — Redes Sociales</div>
-      <h2 style="font-size:clamp(26px,6vw,40px); margin-bottom:24px;">Un plan para cada etapa de tu agencia</h2>
-      <p style="font-size:17px; color:#C7C7C1; line-height:1.75;">Los 3 planes incluyen una reunión previa de diagnóstico y se adaptan al ritmo de contenido que tu agencia necesita hoy.</p>
-    </div>
-    <div class="grid-3" style="max-width:1100px; margin:0 auto;">
-
-      <div class="card" style="padding:28px; display:flex; flex-direction:column; gap:14px;">
-        <div class="mono" style="display:inline-flex; align-self:flex-start; color:var(--yellow); font-size:11px; letter-spacing:.08em; border:1px solid var(--yellow); border-radius:999px; padding:5px 14px;">PLAN DESPEGUE</div>
-        <h3 style="font-size:20px; text-transform:none;">Para empezar con el pie derecho</h3>
-        <div style="display:flex; flex-direction:column; gap:8px; font-size:14px; color:#D8D8D2;">
-          <div>• Asesoría de 20 min de procesos de marketing</div>
-          <div>• 3 reels por mes</div>
-          <div>• 1 carrusel por mes</div>
-          <div>• Historias de paquetes vigentes</div>
-          <div>• Planing y promoción</div>
-          <div>• 1 campaña publicitaria (objetivo a definir)</div>
-        </div>
+  <section id="planes" class="section">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Pilar 01 — Redes Sociales</span>
+        <h2 data-reveal>Un plan para cada etapa de tu agencia</h2>
+        <p data-reveal>Los 3 planes incluyen una reunión previa de diagnóstico y se adaptan al ritmo de contenido que tu agencia necesita hoy.</p>
       </div>
+      <div class="plans" data-stagger>
 
-      <div class="card" style="padding:28px; display:flex; flex-direction:column; gap:14px;">
-        <div class="mono" style="display:inline-flex; align-self:flex-start; color:var(--yellow); font-size:11px; letter-spacing:.08em; border:1px solid var(--yellow); border-radius:999px; padding:5px 14px;">PLAN EMBARQUE</div>
-        <h3 style="font-size:20px; text-transform:none;">Para sostener un ritmo constante</h3>
-        <div style="display:flex; flex-direction:column; gap:8px; font-size:14px; color:#D8D8D2;">
-          <div>• Programación y planificación incluida</div>
-          <div>• 4 reels por mes</div>
-          <div>• 4 carruseles (máx. 6 placas)</div>
-          <div>• 8 historias con call to action</div>
-          <div>• Paquetes vigentes todos los días</div>
-          <div>• Efemérides y fechas especiales en historias</div>
-          <div>• Reunión mensual + tutorial de grabación</div>
-        </div>
+        <article class="card plan" data-glow data-reveal>
+          <span class="ghost-n" aria-hidden="true">01</span>
+          <span class="tag mono">PLAN DESPEGUE</span>
+          <h3>Para empezar con el pie derecho</h3>
+          <ul class="checks">
+            <li>Asesoría de 20 min de procesos de marketing</li>
+            <li>3 reels por mes</li>
+            <li>1 carrusel por mes</li>
+            <li>Historias de paquetes vigentes</li>
+            <li>Planing y promoción</li>
+            <li>1 campaña publicitaria (objetivo a definir)</li>
+          </ul>
+        </article>
+
+        <article class="card plan" data-glow data-reveal>
+          <span class="ghost-n" aria-hidden="true">02</span>
+          <span class="tag mono">PLAN EMBARQUE</span>
+          <h3>Para sostener un ritmo constante</h3>
+          <ul class="checks">
+            <li>Programación y planificación incluida</li>
+            <li>4 reels por mes</li>
+            <li>4 carruseles (máx. 6 placas)</li>
+            <li>8 historias con call to action</li>
+            <li>Paquetes vigentes todos los días</li>
+            <li>Efemérides y fechas especiales en historias</li>
+            <li>Reunión mensual + tutorial de grabación</li>
+          </ul>
+        </article>
+
+        <article class="card plan" data-glow data-reveal>
+          <span class="ghost-n" aria-hidden="true">03</span>
+          <span class="tag mono">PLAN EN VUELO</span>
+          <h3>Para crecer a máxima velocidad</h3>
+          <ul class="checks">
+            <li>Programación y planificación incluida</li>
+            <li>8 reels por mes (4 guionados + 4 de banco)</li>
+            <li>8 carruseles (máx. 6 placas)</li>
+            <li>16 historias con call to action</li>
+            <li>Paquetes vigentes todos los días</li>
+            <li>Efemérides y fechas especiales en historias</li>
+            <li>Reunión mensual + tutorial de grabación</li>
+          </ul>
+        </article>
+
       </div>
-
-      <div class="card" style="padding:28px; display:flex; flex-direction:column; gap:14px;">
-        <div class="mono" style="display:inline-flex; align-self:flex-start; color:var(--yellow); font-size:11px; letter-spacing:.08em; border:1px solid var(--yellow); border-radius:999px; padding:5px 14px;">PLAN EN VUELO</div>
-        <h3 style="font-size:20px; text-transform:none;">Para crecer a máxima velocidad</h3>
-        <div style="display:flex; flex-direction:column; gap:8px; font-size:14px; color:#D8D8D2;">
-          <div>• Programación y planificación incluida</div>
-          <div>• 8 reels por mes (4 guionados + 4 de banco)</div>
-          <div>• 8 carruseles (máx. 6 placas)</div>
-          <div>• 16 historias con call to action</div>
-          <div>• Paquetes vigentes todos los días</div>
-          <div>• Efemérides y fechas especiales en historias</div>
-          <div>• Reunión mensual + tutorial de grabación</div>
-        </div>
+      <div class="plans-cta" data-reveal>
+        <a href="https://wa.me/5493541635868?text=Hola%20Kickstart!%20Quiero%20conocer%20m%C3%A1s%20sobre%20los%20planes%20de%20redes%20sociales" target="_blank" rel="noopener" class="btn btn-primary has-ico"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17 17 7M8 7h9v9"/></svg></span>Quiero saber más</a>
       </div>
-
     </div>
-    <div style="text-align:center; margin-top:40px;">
-      <a href="https://wa.me/5493541635868?text=Hola%20Kickstart!%20Quiero%20conocer%20m%C3%A1s%20sobre%20los%20planes%20de%20redes%20sociales" target="_blank" rel="noopener" class="btn btn-primary">Quiero saber más</a>
-    </div>
-  </div>
+  </section>
 
   <!-- OBJETIVO / CIERRE -->
-  <div style="padding:clamp(60px,10vw,100px) clamp(20px,6vw,64px); text-align:center; border-bottom:1px solid var(--line);">
-    <div class="eyebrow" style="margin-bottom:18px;">Nuestro objetivo es</div>
-    <h2 style="font-size:clamp(28px,4.5vw,40px); max-width:820px; margin:0 auto; line-height:1.15;">Que tu agencia se vuelva una marca más sólida, profesional y preparada para crecer</h2>
-    <p style="font-size:17px; color:var(--muted); max-width:640px; margin:24px auto 40px; line-height:1.7;">Con un buen producto, contenido y estrategia lográs mejores condiciones: más autoridad, más organización y más oportunidades reales de venta.</p>
-    <a href="https://wa.me/5493541635868?text=Hola%20Kickstart!%20Quiero%20agendar%20mi%20auditor%C3%ADa%20gratis" target="_blank" rel="noopener" class="btn btn-primary">Agendar auditoría gratis</a>
-  </div>
+  <section class="section goal">
+    <img class="sec-kicki" data-reveal src="images/kicki/kicki-megafono-2026.png" alt="Kicki con un megáfono" width="521" height="460" loading="lazy">
+    <span class="eyebrow">Nuestro objetivo es</span>
+    <h2 data-reveal>Que tu agencia se vuelva una marca más <em>sólida, profesional y preparada para crecer</em></h2>
+    <p data-reveal>Con un buen producto, contenido y estrategia lográs mejores condiciones: más autoridad, más organización y más oportunidades reales de venta.</p>
+    <div data-reveal>
+      <a href="https://wa.me/5493541635868?text=Hola%20Kickstart!%20Quiero%20agendar%20mi%20auditor%C3%ADa%20gratis" target="_blank" rel="noopener" class="btn btn-primary has-ico"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17 17 7M8 7h9v9"/></svg></span>Agendar auditoría gratis</a>
+    </div>
+  </section>
 
   <!-- CROSS-PROMO KICKI CRM -->
-  <div style="padding:clamp(28px,8vw,64px); border-bottom:1px solid var(--line);">
-    <div class="card two-col" style="padding:clamp(24px,6vw,44px) clamp(20px,6vw,48px); justify-content:space-between; background:linear-gradient(120deg,#141414,#1a1a12);">
-      <div>
-        <div class="eyebrow" style="margin-bottom:12px;">Otro producto de Kickstart</div>
-        <h2 style="font-size:30px; margin-bottom:12px;">¿Tenés un equipo de ventas grande? Conocé Kicki CRM</h2>
-        <p style="font-size:15px; color:var(--muted); max-width:560px; line-height:1.6; margin:0;">El CRM pensado para equipos comerciales de agencias de viajes: centraliza tus leads, tu equipo se loguea desde el celu o la PC, y vos ves cómo se desenvuelve cada vendedor.</p>
+  <section class="section crm">
+    <div class="wrap">
+      <div class="card crm-card" data-reveal>
+        <div>
+          <span class="eyebrow">Otro producto de Kickstart</span>
+          <h2>¿Tenés un equipo de ventas grande? Conocé Kicki CRM</h2>
+          <p>El CRM pensado para equipos comerciales de agencias de viajes: centraliza tus leads, tu equipo se loguea desde el celu o la PC, y vos ves cómo se desenvuelve cada vendedor.</p>
+          <a href="https://kicki.ar" target="_blank" rel="noopener" class="btn btn-primary has-ico"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17 17 7M8 7h9v9"/></svg></span>Ver Kicki CRM</a>
+        </div>
+        <img class="sec-kicki" src="images/kicki/kicki-sillon.png" alt="Kicki sentado en un sillón" width="376" height="480" loading="lazy">
       </div>
-      <a href="https://kicki.ar" target="_blank" rel="noopener" class="btn btn-primary" style="flex:none; align-self:center;">Ver Kicki CRM</a>
     </div>
-  </div>
+  </section>
 
   <!-- FOOTER -->
-  <div id="contacto" style="padding:clamp(32px,8vw,56px) clamp(20px,6vw,64px); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;">
-    <img src="images/logo-kickstart.png" alt="Kickstart Marketing" style="height:34px; width:auto;">
-    <div class="mono" style="font-size:13px; color:var(--muted); display:flex; gap:28px; flex-wrap:wrap;">
-      <span>WhatsApp</span><span>Instagram</span><span>YouTube</span><a href="mailto:hola@kickstartmarketing.com.ar">hola@kickstartmarketing.com.ar</a>
+  <footer id="contacto" class="site-foot">
+    <div class="wrap">
+      <div class="row">
+        <img class="logo" src="images/logo-2026/kickstart-logo-color-oscuro.svg" alt="Kickstart Marketing" width="560" height="150" loading="lazy">
+        <div class="mono channels">
+          <span>WhatsApp</span><span>Instagram</span><span>YouTube</span><a href="mailto:hola@kickstartmarketing.com.ar">hola@kickstartmarketing.com.ar</a>
+        </div>
+      </div>
+      <p class="slogan-foot">Dejamos agencias mejor de lo que las encontramos.</p>
     </div>
-  </div>
+  </footer>
 
 </div>
 </body>

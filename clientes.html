@@ -4,9 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Casos de éxito — Kickstart Marketing</title>
+<meta name="theme-color" content="#0A0A0A">
+<link rel="icon" type="image/svg+xml" href="images/logo-2026/kickstart-icono.svg">
+<link rel="apple-touch-icon" href="images/logo-2026/kickstart-icono.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/style.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
+<link rel="stylesheet" href="css/style.css?v=20261103a">
+<script>document.documentElement.classList.add('js');</script>
+<script src="js/sitio.js?v=20261103a" defer></script>
 </head>
 <body>
 
@@ -14,10 +20,7 @@
 
   <!-- NAV -->
   <nav class="site-nav">
-    <div class="brand">
-      <img src="images/icono-kick.png" alt="Kickstart">
-      <div class="brand-name">KICKSTART <span style="color:var(--yellow)">MARKETING</span></div>
-    </div>
+    <a href="index.html#inicio" class="brand"><img src="images/logo-2026/kickstart-logo-nav.svg" alt="Kickstart Marketing" width="466" height="88"></a>
     <div class="nav-links">
       <a href="index.html#inicio">Inicio</a>
       <a href="quienes-somos.html">Nosotros</a>
@@ -27,72 +30,74 @@
     </div>
     <a href="portal/login.html" class="acceso-agencias mono">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      ACCESO AGENCIAS
+      <span>ACCESO<span class="long"> AGENCIAS</span></span>
     </a>
     <button class="nav-toggle" aria-label="Abrir menú" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.parentElement.querySelector('.nav-links').classList.toggle('open'));">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
   </nav>
 
-  <div style="padding:clamp(48px,10vw,88px) clamp(20px,6vw,64px) clamp(56px,10vw,96px);">
-    <div style="text-align:center; max-width:760px; margin:0 auto 64px;">
-      <div class="eyebrow" style="margin-bottom:16px;">Casos de éxito</div>
-      <h1 class="reveal-1" style="font-size:clamp(30px,7vw,48px); margin-bottom:28px;">Agencias que ya trabajan con nosotros</h1>
-      <a href="https://landingpagekicki.netlify.app/" target="_blank" rel="noopener" class="btn btn-primary">Ver landing de diagnóstico Kicki</a>
-    </div>
-
-    <!-- AGENCIAS DESTACADAS -->
-    <div style="max-width:1100px; margin:0 auto 72px;">
-      <div class="mono" style="text-align:center; color:var(--muted); font-size:13px; letter-spacing:.1em; margin-bottom:24px;">ALGUNAS DE LAS AGENCIAS MÁS GRANDES QUE CONFIARON EN NOSOTROS</div>
-      <div class="grid-4">
-        <div class="card" style="padding:24px; display:flex; align-items:center; justify-content:center; height:84px;"><span style="font-family:'Poppins'; font-weight:600; font-size:21px;">Babel Viajes</span></div>
-        <div class="card" style="padding:24px; display:flex; align-items:center; justify-content:center; height:84px;"><span style="font-family:'Poppins'; font-weight:600; font-size:21px;">Aterrizar</span></div>
-        <div class="card" style="padding:24px; display:flex; align-items:center; justify-content:center; height:84px;"><span style="font-family:'Poppins'; font-weight:600; font-size:21px;">Planisferio</span></div>
-        <div class="card" style="padding:24px; display:flex; align-items:center; justify-content:center; height:84px;"><span style="font-family:'Poppins'; font-weight:600; font-size:21px;">Low Travel</span></div>
-        <div class="card" style="padding:24px; display:flex; align-items:center; justify-content:center; height:84px;"><span style="font-family:'Poppins'; font-weight:600; font-size:21px;">Destínate</span></div>
-        <div class="card" style="padding:24px; display:flex; align-items:center; justify-content:center; height:84px;"><span style="font-family:'Poppins'; font-weight:600; font-size:21px;">Netanya Viajes</span></div>
-        <div class="card" style="padding:24px; display:flex; align-items:center; justify-content:center; height:84px;"><span style="font-family:'Poppins'; font-weight:600; font-size:21px;">Huinca Travel</span></div>
+  <section class="section" style="border-top:none;">
+    <div class="wrap">
+      <div class="cases-hero">
+        <span class="eyebrow">Casos de éxito</span>
+        <h1 class="reveal-1">Agencias que <em>ya trabajan</em> con nosotros</h1>
+        <a href="https://landingpagekicki.netlify.app/" target="_blank" rel="noopener" class="btn btn-primary has-ico reveal-2"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17 17 7M8 7h9v9"/></svg></span>Ver landing de diagnóstico Kicki</a>
       </div>
-    </div>
 
-    <!-- RESULTADOS REALES -->
-    <div style="max-width:1100px; margin:0 auto 72px;">
-      <div class="mono" style="text-align:center; color:var(--yellow); font-size:13px; letter-spacing:.1em; margin-bottom:28px;">ESTO LOGRAN LAS AGENCIAS QUE PASAN POR KTS</div>
-      <div class="grid-4">
-        <div class="card" style="padding:24px; display:flex; flex-direction:column; gap:8px;">
-          <div style="font-family:'Poppins'; font-size:38px; color:var(--yellow);">+30%</div>
-          <div class="mono" style="font-size:11px; letter-spacing:.06em;">MÁS EN VENTAS</div>
-          <p style="font-size:13px; color:var(--muted); line-height:1.5; margin:0;">Implementamos su estrategia publicitaria de punta a punta.</p>
-        </div>
-        <div class="card" style="padding:24px; display:flex; flex-direction:column; gap:8px;">
-          <div style="font-family:'Poppins'; font-size:38px; color:var(--yellow);">30%</div>
-          <div class="mono" style="font-size:11px; letter-spacing:.06em;">ÍNDICE DE CIERRE</div>
-          <p style="font-size:13px; color:var(--muted); line-height:1.5; margin:0;">Arrancaron de cero y hoy sostienen ese número.</p>
-        </div>
-        <div class="card" style="padding:24px; display:flex; flex-direction:column; gap:8px;">
-          <div style="font-family:'Poppins'; font-size:38px; color:var(--yellow);">+50%</div>
-          <div class="mono" style="font-size:11px; letter-spacing:.06em;">ÍNDICE DE CIERRE</div>
-          <p style="font-size:13px; color:var(--muted); line-height:1.5; margin:0;">Ya en el primer mes de trabajo juntos.</p>
-        </div>
-        <div class="card" style="padding:24px; display:flex; flex-direction:column; gap:8px;">
-          <div style="font-family:'Poppins'; font-size:38px; color:var(--yellow);">+35%</div>
-          <div class="mono" style="font-size:11px; letter-spacing:.06em;">ÍNDICE DE CIERRE</div>
-          <p style="font-size:13px; color:var(--muted); line-height:1.5; margin:0;">Trabajamos su contenido y subió el cierre de ventas.</p>
+      <!-- AGENCIAS DESTACADAS -->
+      <div class="block">
+        <div class="mono label-sm">ALGUNAS DE LAS AGENCIAS MÁS GRANDES QUE CONFIARON EN NOSOTROS</div>
+        <div class="grid-4 keep-2" data-stagger>
+          <div class="card agency" data-reveal><span>Babel Viajes</span></div>
+          <div class="card agency" data-reveal><span>Aterrizar</span></div>
+          <div class="card agency" data-reveal><span>Planisferio</span></div>
+          <div class="card agency" data-reveal><span>Low Travel</span></div>
+          <div class="card agency" data-reveal><span>Destínate</span></div>
+          <div class="card agency" data-reveal><span>Netanya Viajes</span></div>
+          <div class="card agency" data-reveal><span>Huinca Travel</span></div>
         </div>
       </div>
-    </div>
 
-    <!-- AGENCIAS -->
-    <div style="max-width:1100px; margin:0 auto;">
-      <div class="mono" style="text-align:center; color:var(--muted); font-size:13px; letter-spacing:.1em; margin-bottom:28px;">AGENCIAS QUE CONFIARON EN KTS</div>
-      <div class="grid-4">
-        <div class="card" style="padding:20px; display:flex; align-items:center; justify-content:center; height:76px;"><span style="font-family:'Poppins'; font-size:18px;">Planisferio Villa María</span></div>
-        <div class="card" style="padding:20px; display:flex; align-items:center; justify-content:center; height:76px;"><span style="font-family:'Poppins'; font-size:18px;">Aterrizar Oliva</span></div>
-        <div class="card" style="padding:20px; display:flex; align-items:center; justify-content:center; height:76px;"><span style="font-family:'Poppins'; font-size:18px;">Babel Viajes Villa Mercedes</span></div>
-        <div class="card" style="padding:20px; display:flex; align-items:center; justify-content:center; height:76px;"><span style="font-family:'Poppins'; font-size:18px;">Aterrizar Villa María</span></div>
+      <!-- RESULTADOS REALES -->
+      <div class="block">
+        <div class="mono label-sm y">ESTO LOGRAN LAS AGENCIAS QUE PASAN POR KTS</div>
+        <div class="grid-4" data-stagger>
+          <div class="card case-stat" data-glow data-reveal>
+            <div class="big" data-count="+30%">+30%</div>
+            <div class="mono what">MÁS EN VENTAS</div>
+            <p>Implementamos su estrategia publicitaria de punta a punta.</p>
+          </div>
+          <div class="card case-stat" data-glow data-reveal>
+            <div class="big" data-count="30%">30%</div>
+            <div class="mono what">ÍNDICE DE CIERRE</div>
+            <p>Arrancaron de cero y hoy sostienen ese número.</p>
+          </div>
+          <div class="card case-stat" data-glow data-reveal>
+            <div class="big" data-count="+50%">+50%</div>
+            <div class="mono what">ÍNDICE DE CIERRE</div>
+            <p>Ya en el primer mes de trabajo juntos.</p>
+          </div>
+          <div class="card case-stat" data-glow data-reveal>
+            <div class="big" data-count="+35%">+35%</div>
+            <div class="mono what">ÍNDICE DE CIERRE</div>
+            <p>Trabajamos su contenido y subió el cierre de ventas.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- AGENCIAS -->
+      <div class="block">
+        <div class="mono label-sm">AGENCIAS QUE CONFIARON EN KTS</div>
+        <div class="grid-4" data-stagger>
+          <div class="card agency sm" data-reveal><span>Planisferio Villa María</span></div>
+          <div class="card agency sm" data-reveal><span>Aterrizar Oliva</span></div>
+          <div class="card agency sm" data-reveal><span>Babel Viajes Villa Mercedes</span></div>
+          <div class="card agency sm" data-reveal><span>Aterrizar Villa María</span></div>
+        </div>
       </div>
     </div>
-  </div>
+  </section>
 
 </div>
 </body>

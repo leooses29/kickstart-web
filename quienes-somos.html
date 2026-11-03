@@ -4,9 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Quiénes somos — Kickstart Marketing</title>
+<meta name="theme-color" content="#0A0A0A">
+<link rel="icon" type="image/svg+xml" href="images/logo-2026/kickstart-icono.svg">
+<link rel="apple-touch-icon" href="images/logo-2026/kickstart-icono.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/style.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
+<link rel="stylesheet" href="css/style.css?v=20261103a">
+<script>document.documentElement.classList.add('js');</script>
+<script src="js/sitio.js?v=20261103a" defer></script>
 </head>
 <body>
 
@@ -14,10 +20,7 @@
 
   <!-- NAV -->
   <nav class="site-nav">
-    <div class="brand">
-      <img src="images/icono-kick.png" alt="Kickstart">
-      <div class="brand-name">KICKSTART <span style="color:var(--yellow)">MARKETING</span></div>
-    </div>
+    <a href="index.html#inicio" class="brand"><img src="images/logo-2026/kickstart-logo-nav.svg" alt="Kickstart Marketing" width="466" height="88"></a>
     <div class="nav-links">
       <a href="index.html#inicio">Inicio</a>
       <a href="quienes-somos.html" class="active">Nosotros</a>
@@ -27,7 +30,7 @@
     </div>
     <a href="portal/login.html" class="acceso-agencias mono">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      ACCESO AGENCIAS
+      <span>ACCESO<span class="long"> AGENCIAS</span></span>
     </a>
     <button class="nav-toggle" aria-label="Abrir menú" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.parentElement.querySelector('.nav-links').classList.toggle('open'));">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -35,49 +38,53 @@
   </nav>
 
   <!-- HERO QUIENES SOMOS -->
-  <div class="two-col" style="padding:clamp(48px,10vw,88px) clamp(20px,6vw,64px) clamp(40px,8vw,64px); align-items:flex-start; border-bottom:1px solid var(--line);">
-    <div>
-      <div class="eyebrow" style="margin-bottom:16px;">Quiénes somos</div>
-      <h1 class="reveal-1" style="font-size:clamp(34px,8vw,52px); margin-bottom:28px;">Sobre mí</h1>
-      <div class="reveal-2" style="display:flex; flex-direction:column; gap:18px; max-width:600px; font-size:15px; color:#C7C7C1; line-height:1.75;">
-        <p style="margin:0;">Soy Leo, fundador de Kickstart Marketing. Desde muy chico tuve una fuerte mentalidad emprendedora, acompañada por mi formación Scout, que me enseñó a dejar siempre el mundo un poco mejor de cómo lo encontré.</p>
-        <p style="margin:0;">En 2015, mientras estudiaba locución y trabajaba en medios de comunicación de Villa Carlos Paz, comencé a formarme de manera constante en marketing digital, redes sociales y comunicación, mientras desarrollaba distintos proyectos propios.</p>
-        <p style="margin:0;">Con el tiempo, mi experiencia en medios, comunicación y gestión de equipos se fue combinando con una especialización cada vez mayor en marketing, ventas y publicidad digital.</p>
-        <p style="margin:0;">En 2022 me sumé al equipo de marketing de Babel Viajes, donde pude aplicar todo ese conocimiento directamente al sector turístico. Esa experiencia me llevó a profundizar en marketing turístico, ventas, técnicas de cierre, algoritmos, liderazgo y gestión de equipos, logrando excelentes resultados comerciales.</p>
-        <p style="margin:0;">A partir de esa experiencia nació Kickstart Marketing: primero como un proyecto freelance y hoy como un equipo especializado en marketing para agencias de viajes.</p>
-        <p style="margin:0;">Nuestro objetivo es simple: ayudar a transformar agencias de viajes en marcas más sólidas, profesionales y preparadas para crecer.</p>
+  <section class="section" style="border-top:none;">
+    <div class="wrap about">
+      <div>
+        <span class="eyebrow">Quiénes somos</span>
+        <h1 class="reveal-1">Sobre <em>mí</em></h1>
+        <div class="story reveal-2">
+          <p>Soy Leo, fundador de Kickstart Marketing. Desde muy chico tuve una fuerte mentalidad emprendedora, acompañada por mi formación Scout, que me enseñó a dejar siempre el mundo un poco mejor de cómo lo encontré.</p>
+          <p>En 2015, mientras estudiaba locución y trabajaba en medios de comunicación de Villa Carlos Paz, comencé a formarme de manera constante en marketing digital, redes sociales y comunicación, mientras desarrollaba distintos proyectos propios.</p>
+          <p>Con el tiempo, mi experiencia en medios, comunicación y gestión de equipos se fue combinando con una especialización cada vez mayor en marketing, ventas y publicidad digital.</p>
+          <p>En 2022 me sumé al equipo de marketing de Babel Viajes, donde pude aplicar todo ese conocimiento directamente al sector turístico. Esa experiencia me llevó a profundizar en marketing turístico, ventas, técnicas de cierre, algoritmos, liderazgo y gestión de equipos, logrando excelentes resultados comerciales.</p>
+          <p>A partir de esa experiencia nació Kickstart Marketing: primero como un proyecto freelance y hoy como un equipo especializado en marketing para agencias de viajes.</p>
+          <p>Nuestro objetivo es simple: ayudar a transformar agencias de viajes en marcas más sólidas, profesionales y preparadas para crecer.</p>
+        </div>
+      </div>
+      <div class="photo reveal-3">
+        <img src="images/leo-foto-nueva.png" alt="Leo" width="1080" height="1080">
       </div>
     </div>
-    <div class="reveal-3" style="flex:0 1 340px; min-width:240px;">
-      <img src="images/leo-foto-nueva.png" alt="Leo" style="width:100%; height:auto; display:block;">
-    </div>
-  </div>
+  </section>
 
   <!-- EQUIPO -->
-  <div style="padding:clamp(48px,9vw,80px) clamp(20px,6vw,64px) clamp(56px,10vw,96px);">
-    <div style="text-align:center; margin-bottom:48px;">
-      <div class="eyebrow" style="margin-bottom:14px;">El equipo</div>
-      <h2 style="font-size:clamp(26px,6vw,38px);">Quiénes trabajan en Kickstart</h2>
+  <section class="section">
+    <div class="wrap">
+      <div class="sec-head center">
+        <span class="eyebrow">El equipo</span>
+        <h2 data-reveal>Quiénes trabajan en <em>Kickstart</em></h2>
+      </div>
+      <div class="team" data-stagger>
+        <div class="card member" data-glow data-reveal>
+          <div class="pic"><img src="images/leo-foto-team.jpg" alt="Leo" loading="lazy"></div>
+          <div><div class="name">Leo</div><div class="mono role">FOUNDER / ANUNCIOS</div></div>
+        </div>
+        <div class="card member" data-glow data-reveal>
+          <div class="pic"><img src="images/team-photo-2.jpg" alt="Lara" loading="lazy"></div>
+          <div><div class="name">Lara</div><div class="mono role">DISEÑO</div></div>
+        </div>
+        <div class="card member" data-glow data-reveal>
+          <div class="pic"><img src="images/team-photo-3.jpg" alt="Sofi" loading="lazy"></div>
+          <div><div class="name">Sofi</div><div class="mono role">ANUNCIOS</div></div>
+        </div>
+        <div class="card member" data-glow data-reveal>
+          <div class="pic"><img src="images/team-photo-1.png" alt="Euge" loading="lazy"></div>
+          <div><div class="name">Euge</div><div class="mono role">ÁREA ORGÁNICA</div></div>
+        </div>
+      </div>
     </div>
-    <div class="grid-4" style="max-width:1200px; margin:0 auto;">
-      <div class="card" style="padding:20px; display:flex; flex-direction:column; gap:14px; align-items:center; text-align:center;">
-        <div style="width:100%; aspect-ratio:1/1; border-radius:14px; overflow:hidden;"><img src="images/leo-foto-team.jpg" alt="Leo" style="width:100%; height:100%; object-fit:cover;"></div>
-        <div><div style="font-weight:600; font-size:16px;">Leo</div><div class="mono" style="font-size:12px; color:var(--yellow); margin-top:4px;">FOUNDER / ANUNCIOS</div></div>
-      </div>
-      <div class="card" style="padding:20px; display:flex; flex-direction:column; gap:14px; align-items:center; text-align:center;">
-        <div style="width:100%; aspect-ratio:1/1; border-radius:14px; overflow:hidden;"><img src="images/team-photo-2.jpg" alt="Lara" style="width:100%; height:100%; object-fit:cover;"></div>
-        <div><div style="font-weight:600; font-size:16px;">Lara</div><div class="mono" style="font-size:12px; color:var(--yellow); margin-top:4px;">DISEÑO</div></div>
-      </div>
-      <div class="card" style="padding:20px; display:flex; flex-direction:column; gap:14px; align-items:center; text-align:center;">
-        <div style="width:100%; aspect-ratio:1/1; border-radius:14px; overflow:hidden;"><img src="images/team-photo-3.jpg" alt="Sofi" style="width:100%; height:100%; object-fit:cover;"></div>
-        <div><div style="font-weight:600; font-size:16px;">Sofi</div><div class="mono" style="font-size:12px; color:var(--yellow); margin-top:4px;">ANUNCIOS</div></div>
-      </div>
-      <div class="card" style="padding:20px; display:flex; flex-direction:column; gap:14px; align-items:center; text-align:center;">
-        <div style="width:100%; aspect-ratio:1/1; border-radius:14px; overflow:hidden;"><img src="images/team-photo-1.png" alt="Euge" style="width:100%; height:100%; object-fit:cover;"></div>
-        <div><div style="font-weight:600; font-size:16px;">Euge</div><div class="mono" style="font-size:12px; color:var(--yellow); margin-top:4px;">ÁREA ORGÁNICA</div></div>
-      </div>
-    </div>
-  </div>
+  </section>
 
 </div>
 </body>
