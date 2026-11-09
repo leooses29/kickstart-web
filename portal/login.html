@@ -4,42 +4,42 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Acceso agencias — Kickstart Marketing</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/svg+xml" href="../images/logo-2026/kickstart-icono.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
 <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
-<div class="page-frame" style="min-height:100vh; background:radial-gradient(circle at 20% 20%, #171710 0%, #0A0A0A 55%); display:flex; align-items:center; justify-content:center; padding:40px 20px;">
-  <div style="width:100%; max-width:440px; display:flex; flex-direction:column; gap:32px;">
+<div class="page-frame" style="min-height:100vh; background:radial-gradient(60% 50% at 18% 12%, rgba(255,193,7,.14) 0%, transparent 60%), radial-gradient(50% 40% at 90% 100%, rgba(255,193,7,.08) 0%, transparent 70%), #0A0A0A; display:flex; align-items:center; justify-content:center; padding:48px 16px;">
+  <div style="width:100%; max-width:440px; display:flex; flex-direction:column; gap:clamp(48px,13vw,56px);">
 
-    <a href="../index.html" class="reveal-1" style="display:flex; flex-direction:column; align-items:center; gap:14px;">
-      <img src="../images/icono-kick.png" alt="Kickstart" style="width:56px; height:56px; object-fit:contain;">
-      <div style="font-family:'Poppins'; font-size:20px; letter-spacing:.04em; text-align:center; color:var(--white);">KICKSTART <span style="color:var(--yellow)">MARKETING</span></div>
+    <a href="../index.html" class="reveal-1" style="display:flex; justify-content:center; line-height:0;">
+      <img src="../images/logo-2026/kickstart-logo-nav.svg" alt="Kickstart Marketing" width="466" height="88" style="height:44px; width:auto;">
     </a>
 
-    <form id="login-form" class="reveal-2" style="background:var(--bg-card); border:1px solid var(--line); border-radius:20px; padding:40px; position:relative;">
-      <img class="floaty" src="../images/kicki-megafono.png" alt="Kicki" style="position:absolute; top:-64px; right:24px; width:88px; height:auto;">
-      <h1 style="font-size:30px; margin-bottom:8px;">Acceso agencias</h1>
-      <p style="font-size:14px; color:var(--muted); margin:0 0 32px; line-height:1.5;">Ingresá con el código de acceso de tu agencia para ver tus reportes, contenido y herramientas.</p>
+    <form id="login-form" class="reveal-2" novalidate style="background:linear-gradient(180deg,#1A1A1A,#141414); border:1px solid var(--line); border-radius:var(--r-lg); padding:clamp(28px,7vw,40px); position:relative; box-shadow:0 40px 80px -40px rgba(0,0,0,.8);">
+      <img class="floaty" src="../images/kicki/kicki-megafono-2026.png" alt="Kicki" style="position:absolute; top:clamp(-70px,-15vw,-50px); right:10px; width:clamp(84px,24vw,118px); height:auto; filter:drop-shadow(0 14px 20px rgba(0,0,0,.6));">
+      <span class="eyebrow">Portal de agencias</span>
+      <h1 style="font-size:clamp(28px,7vw,34px); letter-spacing:-.03em; margin:14px 0 8px;">Acceso agencias</h1>
+      <p style="font-size:14px; color:var(--muted); margin:0 0 30px; line-height:1.6;">Ingresá con el usuario y la contraseña de tu agencia para ver tus reportes, contenido y herramientas.</p>
 
       <div style="margin-bottom:20px;">
-        <label for="agencia">Agencia</label>
-        <select id="agencia" required>
-          <option value="">Cargando agencias…</option>
-        </select>
+        <label for="usuario">Usuario</label>
+        <input id="usuario" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Tu usuario" required>
       </div>
 
       <div style="margin-bottom:28px;">
-        <label for="codigo">Código de acceso</label>
+        <label for="codigo">Contraseña</label>
         <input id="codigo" type="password" placeholder="••••••••" autocomplete="current-password" required>
       </div>
 
       <div id="login-error" role="alert" style="display:none; margin:-12px 0 18px; font-size:13px; color:#FF7A7A;"></div>
 
-      <button id="login-btn" type="submit" class="cta-pulse" style="width:100%; padding:16px; border-radius:10px; background:var(--yellow); color:#0A0A0A; text-align:center; font-weight:600; font-size:15px; cursor:pointer; border:none; font-family:'Poppins',sans-serif;">Ingresar</button>
+      <button id="login-btn" type="submit" class="cta-pulse" style="width:100%; min-height:54px; padding:16px; border-radius:var(--r-md); background:var(--yellow); color:#0A0A0A; text-align:center; font-weight:600; font-size:15px; cursor:pointer; border:none; font-family:'Poppins',sans-serif;">Ingresar</button>
 
-      <div class="mono" style="text-align:center; font-size:12px; color:var(--muted); margin-top:22px;">¿No tenés tu código? <span style="color:var(--yellow);">Escribinos por WhatsApp</span></div>
+      <div class="mono" style="text-align:center; font-size:12px; color:var(--muted); margin-top:22px;">¿No tenés tu usuario o contraseña? <a href="https://wa.me/5493541635868?text=Hola%20Kickstart!%20Necesito%20mi%20usuario%20del%20portal%20de%20agencias" target="_blank" rel="noopener" style="color:var(--yellow);">Escribinos por WhatsApp</a></div>
     </form>
 
   </div>
@@ -47,39 +47,28 @@
 
 <script src="js/portal.js"></script>
 <script>
-  (async function(){
-    const sel = document.getElementById('agencia');
+  (function(){
+    const form = document.getElementById('login-form');
     const err = document.getElementById('login-error');
     const btn = document.getElementById('login-btn');
     const showErr = t => { err.textContent = t; err.style.display = t ? 'block' : 'none'; };
-    try {
-      const lista = await Portal.agencias();
-      if (!lista.length) {
-        sel.innerHTML = '<option value="">Todavía no hay agencias habilitadas</option>';
-        sel.disabled = true; btn.disabled = true;
-        showErr('El portal se está configurando. Si ya tenés tu código, escribinos por WhatsApp.');
-        return;
-      }
-      sel.innerHTML = '<option value="">Seleccioná tu agencia</option>';
-      lista.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(a => {
-        const o = document.createElement('option'); o.value = a.slug; o.textContent = a.nombre; sel.appendChild(o);
-      });
-    } catch (e) {
-      sel.innerHTML = '<option value="">No se pudo cargar la lista</option>';
-      showErr('No pudimos cargar las agencias. Recargá la página en un momento.');
-    }
-    document.getElementById('login-form').addEventListener('submit', async function(e){
+    // Si ya hay sesión abierta, entra directo
+    const s = Portal.leer();
+    if (s && s.slug && s.code) location.replace(Portal.soloAnuncios(s) ? 'reportes.html' : 'dashboard.html');
+    form.addEventListener('submit', async function(e){
       e.preventDefault(); showErr('');
-      const slug = sel.value, code = document.getElementById('codigo').value;
-      if (!slug) { showErr('Elegí tu agencia.'); return; }
-      if (!code.trim()) { showErr('Escribí tu código de acceso.'); return; }
+      const usuario = document.getElementById('usuario').value, code = document.getElementById('codigo').value;
+      if (!Portal.normUsuario(usuario)) { showErr('Escribí tu usuario.'); return; }
+      if (!code.trim()) { showErr('Escribí tu contraseña.'); return; }
       btn.disabled = true; btn.textContent = 'Ingresando…';
       try {
-        const data = await Portal.abrir(slug, code);
-        Portal.guardar({ slug, code: code.trim(), nombre: data.empresa.nombre });
-        location.href = 'dashboard.html';
+        const data = await Portal.ingresar(usuario, code);
+        location.href = (data.tipo === 'anuncios') ? 'reportes.html' : 'dashboard.html';
       } catch (ex) {
-        showErr(ex.message === 'codigo' ? 'El código no es correcto. Revisalo o escribinos por WhatsApp.' : 'No encontramos los datos de tu agencia. Escribinos por WhatsApp.');
+        // Mismo mensaje si el usuario no existe o la contraseña no abre: así no se puede averiguar qué agencias trabajan con Kickstart
+        showErr(ex.message === 'usuario' || ex.message === 'codigo'
+          ? 'El usuario o la contraseña no son correctos. Revisalos o escribinos por WhatsApp.'
+          : 'No pudimos conectarnos. Revisá tu conexión y probá de nuevo.');
         btn.disabled = false; btn.textContent = 'Ingresar';
       }
     });

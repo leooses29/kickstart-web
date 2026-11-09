@@ -130,11 +130,12 @@ h1{margin:4px 0 0;font-size:clamp(26px,4.5vw,40px);line-height:1.1;font-weight:8
 <script>
 (async () => {
 const S = Portal.requerirSesion(); if (!S) return;
+if (Portal.soloAnuncios(S)) { location.replace('reportes.html'); return; }
 Portal.sidebar('plan');
 let D;
 try { D = await Portal.abrir(S.slug, S.code); Portal.sidebar('plan', D); }
 catch (e) {
-  if (e.message === 'codigo') { Portal.salir(); return; }
+  if (e.message === 'codigo' || e.message === 'no-data') { Portal.salir(); return; }
   document.getElementById('app').innerHTML = '<div class="empty">No pudimos cargar tu planificación. Recargá la página en un momento.</div>'; return;
 }
 
@@ -206,7 +207,7 @@ function extra(){
   const rs = D.reportes || [];
   let h = '';
   if (qs.length) h += `<div class="sec"><h2>Objetivos trimestrales</h2><div class="qgrid">${qs.map(q => `<div class="q"><b>${esc(q.label)}</b>${q.general?esc(q.general):''}${q.especificos?'\n\n'+esc(q.especificos):''}</div>`).join('')}</div></div>`;
-  if (rs.length) h += `<div class="sec"><h2>Reportes trimestrales</h2><a class="rep" href="reportes.html"><b>Ver los reportes de anuncios y de contenido</b><span>${rs.length} publicado${rs.length===1?'':'s'} →</span></a></div>`;
+  if (rs.length) h += `<div class="sec"><h2>Reportes</h2><a class="rep" href="reportes.html"><b>Ver los reportes de anuncios y de contenido</b><span>${rs.length} publicado${rs.length===1?'':'s'} →</span></a></div>`;
   document.getElementById('extra').innerHTML = h;
 }
 const PASOS = [['planificacion','Planificación'],['diseno','Diseño'],['programacion','Programación']];

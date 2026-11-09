@@ -1,11 +1,22 @@
-/* Portal de agencias — acceso por código.
-   Los datos de cada agencia están en portal/data/<slug>.json, encriptados con AES-GCM.
-   La clave se deriva del código de acceso de la agencia (PBKDF2-SHA256), así que sin el
-   código correcto el archivo no se puede leer. El código nunca se guarda en el servidor. */
+/* Portal de agencias — acceso por usuario y contraseña.
+   Los datos de cada agencia están en portal/data/<id>.json, encriptados con AES-GCM.
+   El <id> sale de un hash del usuario, así que el nombre de la agencia no aparece en ningún archivo público.
+   La clave se deriva de la contraseña de la agencia (PBKDF2-SHA256), así que sin la contraseña correcta
+   el archivo no se puede leer. La contraseña nunca se guarda en el servidor.
+   Los reportes subidos como archivo están en portal/data/r/<id>.json, encriptados con la misma contraseña. */
 (function () {
   const ITER = 200000;
   const SESSION = 'kickstart.portal';
   const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+
+  // Igual que normalizar_usuario() en tools/publicar_portal.py: sin tildes, minúsculas, solo letras y números
+  function normUsuario(s) {
+    return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+  async function idUsuario(usuario) {
+    const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('kickstart-portal|' + normUsuario(usuario)));
+    return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
+  }
 
   async function deriveKey(code, salt) {
     const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(code.trim()), 'PBKDF2', false, ['deriveKey']);
@@ -18,16 +29,36 @@
     return r.json();
   }
 
-  async function abrir(slug, code) {
-    const box = await fetchJSON('data/' + encodeURIComponent(slug) + '.json');
+  async function descifrar(url, code) {
+    const box = await fetchJSON(url);
     const key = await deriveKey(code, b64(box.salt));
-    let plain;
     try {
-      plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(box.iv) }, key, b64(box.ct));
+      return new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(box.iv) }, key, b64(box.ct)));
     } catch (e) {
       throw new Error('codigo');
     }
+  }
+
+  async function abrir(slug, code) {
+    const plain = await descifrar('data/' + encodeURIComponent(slug) + '.json', code);
     return JSON.parse(new TextDecoder().decode(plain));
+  }
+
+  // Reporte subido como archivo: devuelve {tipo, nombre, datos} con los bytes originales
+  async function abrirArchivo(id, code) {
+    const plain = await descifrar('data/r/' + encodeURIComponent(id) + '.json', code);
+    const obj = JSON.parse(new TextDecoder().decode(plain));
+    return { tipo: obj.tipo || 'text/html', nombre: obj.nombre || '', datos: b64(obj.datos) };
+  }
+
+  // Login: busca la agencia por su usuario y prueba la contraseña. Error 'usuario' si no existe, 'codigo' si no abre.
+  async function ingresar(usuario, code) {
+    const slug = await idUsuario(usuario);
+    let data;
+    try { data = await abrir(slug, code); }
+    catch (e) { throw new Error(e.message === 'no-data' ? 'usuario' : e.message); }
+    guardar({ slug, code: code.trim(), nombre: data.empresa.nombre, tipo: data.tipo || 'completo' });
+    return data;
   }
 
   function guardar(s) { try { sessionStorage.setItem(SESSION, JSON.stringify(s)); } catch (e) {} }
@@ -40,8 +71,10 @@
     if (!s || !s.slug || !s.code) { location.replace('login.html'); return null; }
     return s;
   }
+  // Las agencias de solo anuncios ven únicamente sus reportes
+  const soloAnuncios = s => (s && s.tipo) === 'anuncios';
 
-  // Barra lateral común a todas las páginas del portal. data = planificación desencriptada (opcional).
+  // Barra lateral común a todas las páginas del portal. data = datos desencriptados (opcional).
   const ICON = {
     panel: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
     plan: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
@@ -61,20 +94,24 @@
     const el = document.querySelector('.portal-sidebar'); if (!el) return;
     const s = leer() || {};
     const drive = data && urlSegura(data.drive);
-    el.innerHTML = `
-    <a href="dashboard.html" style="display:flex; align-items:center; gap:10px; padding:0 6px;">
-      <img src="../images/icono-kick.png" alt="Kickstart" style="width:34px; height:34px; object-fit:contain;">
-      <div style="font-family:'Poppins'; font-size:16px; letter-spacing:.03em; color:var(--white);">PORTAL AGENCIAS</div>
-    </a>
-    <nav style="display:flex; flex-direction:column; gap:4px;" aria-label="Portal">
-      ${link('dashboard.html', 'panel', 'Panel', active === 'panel')}
+    const nav = soloAnuncios(s)
+      ? `${link('reportes.html', 'rep', 'Reportes', active === 'reportes')}
+      ${drive ? link(drive, 'drive', 'Drive', false, true) : ''}`
+      : `${link('dashboard.html', 'panel', 'Panel', active === 'panel')}
       ${link('planificacion.html', 'plan', 'Planificación', active === 'plan')}
       ${link('reportes.html', 'rep', 'Reportes', active === 'reportes')}
       ${drive ? link(drive, 'drive', 'Drive', false, true) : off('drive', 'Drive')}
       <div class="mono" style="font-size:11px; color:var(--muted); padding:16px 16px 6px; letter-spacing:.08em;">HERRAMIENTAS IA</div>
       ${off('ads', 'Guiones para anuncios')}
       ${off('reel', 'Guiones para reels')}
-      ${off('flyer', 'Generador de flyers')}
+      ${off('flyer', 'Generador de flyers')}`;
+    el.innerHTML = `
+    <a href="${soloAnuncios(s) ? 'reportes.html' : 'dashboard.html'}" style="display:flex; align-items:center; gap:10px; padding:0 6px;">
+      <img src="../images/logo-2026/kickstart-icono.svg" alt="Kickstart" style="width:34px; height:34px; object-fit:contain;">
+      <div style="font-family:'Poppins'; font-size:16px; letter-spacing:.03em; color:var(--white);">PORTAL AGENCIAS</div>
+    </a>
+    <nav style="display:flex; flex-direction:column; gap:4px;" aria-label="Portal">
+      ${nav}
     </nav>
     <div style="margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px; border-top:1px solid var(--line);">
       <div style="font-size:13px; color:var(--white);">${esc(s.nombre || '')}</div>
@@ -83,5 +120,5 @@
     el.querySelector('.js-salir').addEventListener('click', e => { e.preventDefault(); salir(); });
   }
 
-  window.Portal = { sidebar, urlSegura, esc, abrir, guardar, leer, salir, requerirSesion, agencias: () => fetchJSON('data/agencias.json') };
+  window.Portal = { sidebar, urlSegura, esc, abrir, abrirArchivo, ingresar, guardar, leer, salir, requerirSesion, soloAnuncios, normUsuario, idUsuario };
 })();

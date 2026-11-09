@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Reportes — Portal de Agencias · Kickstart Marketing</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/svg+xml" href="../images/logo-2026/kickstart-icono.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
 <link rel="stylesheet" href="../css/style.css">
@@ -12,15 +14,20 @@
 .rp-sec h2{font-size:20px;margin:0 0 4px}
 .rp-sub{font-size:13px;color:var(--muted);margin:0 0 16px}
 .rp-list{display:flex;flex-direction:column;gap:10px;max-width:820px}
-.rp{display:flex;align-items:center;gap:16px;background:#141412;border:1px solid var(--line);border-radius:14px;padding:16px 18px;color:var(--white);text-decoration:none}
-.rp:hover{border-color:var(--yellow)}
-.rp .q{flex:none;min-width:74px;text-align:center;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;font-weight:600;color:var(--yellow)}
+.rp{display:flex;align-items:center;gap:16px;width:100%;text-align:left;font:inherit;background:linear-gradient(180deg,#1A1A1A,#141414);border:1px solid var(--line);border-radius:var(--r-md);padding:16px 18px;color:var(--white);text-decoration:none;cursor:pointer;transition:border-color .25s,transform .35s var(--ease)}
+.rp:hover{border-color:var(--yellow);transform:translateY(-2px);color:var(--white)}
+.rp .q{flex:none;min-width:96px;text-align:center;border:1px solid rgba(255,193,7,.45);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--yellow);text-transform:capitalize}
 .rp .t{flex:1;min-width:0;font-size:15px;font-weight:500;overflow-wrap:anywhere}
-.rp .t small{display:block;color:var(--muted);font-size:12px;font-weight:400}
-.rp .go{flex:none;font-size:13px;color:var(--yellow)}
-.rp-empty{border:1px dashed var(--line);border-radius:14px;padding:22px;color:var(--muted);font-size:14px;max-width:820px}
-.rp-new{display:inline-block;margin-left:8px;font-size:10px;letter-spacing:.08em;background:var(--yellow);color:#0A0A0A;border-radius:999px;padding:2px 8px;vertical-align:middle}
-@media (max-width:640px){.rp{flex-wrap:wrap;gap:10px}.rp .go{width:100%}}
+.rp .t small{display:block;color:var(--muted);font-size:12px;font-weight:400;margin-top:2px}
+.rp .go{flex:none;font-size:13px;font-weight:600;color:var(--yellow)}
+.rp-empty{border:1px dashed var(--line-2);border-radius:var(--r-md);padding:22px;color:var(--muted);font-size:14px;max-width:820px}
+.rp-new{display:inline-block;margin-left:8px;font-size:10px;font-weight:600;letter-spacing:.08em;background:var(--yellow);color:#0A0A0A;border-radius:999px;padding:2px 8px;vertical-align:middle}
+.vw-bar{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;margin-bottom:16px}
+.vw-bar h2{font-size:18px;margin:0;flex:1;min-width:200px}
+.vw-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:rgba(255,255,255,.03);color:var(--white);font:600 13px var(--f);cursor:pointer;text-decoration:none}
+.vw-btn:hover{border-color:var(--yellow);color:var(--yellow)}
+.vw-frame{display:block;width:100%;height:calc(100vh - 170px);min-height:560px;border:1px solid var(--line);border-radius:var(--r-md);background:#fff}
+@media (max-width:640px){.rp{flex-wrap:wrap;gap:10px}.rp .go{width:100%}.vw-frame{height:calc(100vh - 220px)}}
 </style>
 </head>
 <body>
@@ -31,8 +38,8 @@
   <div class="portal-sidebar"></div>
 
   <div class="portal-main">
-    <div style="margin-bottom:36px;">
-      <div class="mono" style="color:var(--yellow); font-size:12px; letter-spacing:.1em; margin-bottom:6px;">REPORTES TRIMESTRALES</div>
+    <div id="head" style="margin-bottom:36px;">
+      <div class="mono" style="color:var(--yellow); font-size:12px; letter-spacing:.1em; margin-bottom:6px;">TUS REPORTES</div>
       <h1 class="js-agencia" style="font-size:34px;"></h1>
     </div>
     <div id="app"><div class="rp-empty">Cargando tus reportes…</div></div>
@@ -47,28 +54,76 @@
   const s = Portal.requerirSesion(); if (!s) return;
   Portal.sidebar('reportes');
   document.querySelectorAll('.js-agencia').forEach(el => el.textContent = s.nombre || '');
-  const app = document.getElementById('app');
+  const app = document.getElementById('app'), head = document.getElementById('head');
   let d;
   try { d = await Portal.abrir(s.slug, s.code); Portal.sidebar('reportes', d); }
   catch (e) {
-    if (e.message === 'codigo') { Portal.salir(); return; }
+    if (e.message === 'codigo' || e.message === 'no-data') { Portal.salir(); return; }
     app.innerHTML = '<div class="rp-empty">No pudimos cargar tus reportes. Recargá la página en un momento.</div>'; return;
   }
   const esc = Portal.esc;
-  const reps = (d.reportes || []).filter(r => Portal.urlSegura(r.link));
+  const reps = (d.reportes || []).filter(r => r.archivo || Portal.urlSegura(r.link));
   const SECS = [
     ['anuncios', 'Anuncios', 'Resultados de las campañas de Meta Ads: inversión, consultas y costo por resultado.'],
     ['organico', 'Contenido orgánico', 'Cómo crecieron las redes: alcance, interacción, seguidores y las publicaciones que mejor funcionaron.']
   ];
-  app.innerHTML = SECS.map(([tipo, titulo, sub]) => {
-    const rs = reps.filter(r => (r.tipo || 'organico') === tipo).sort((a,b) => (b.periodo||'').localeCompare(a.periodo||''));
-    const items = rs.length ? rs.map((r, i) => `<a class="rp" href="${esc(Portal.urlSegura(r.link))}" target="_blank" rel="noopener">
-        <span class="q">${esc(r.periodoLabel || r.periodo)}</span>
-        <span class="t">${esc(r.titulo || ('Reporte de ' + titulo.toLowerCase()))}${i === 0 ? '<span class="rp-new">ÚLTIMO</span>' : ''}<small>${esc(r.periodoTexto || '')}</small></span>
-        <span class="go">Abrir ↗</span></a>`).join('')
-      : `<div class="rp-empty">Todavía no hay reportes de ${titulo.toLowerCase()} publicados. Te avisamos cuando esté el próximo.</div>`;
-    return `<section class="rp-sec"><h2>${titulo}</h2><p class="rp-sub">${sub}</p><div class="rp-list">${items}</div></section>`;
-  }).join('');
+  const urls = [];
+
+  function lista(){
+    head.hidden = false;
+    const secs = SECS.filter(([tipo]) => !Portal.soloAnuncios(s) || tipo === 'anuncios' || reps.some(r => (r.tipo || 'organico') === tipo));
+    app.innerHTML = secs.map(([tipo, titulo, sub]) => {
+      const rs = reps.filter(r => (r.tipo || 'organico') === tipo).sort((a,b) => (b.periodo||'').localeCompare(a.periodo||''));
+      const items = rs.length ? rs.map((r, i) => {
+        const inner = `<span class="q">${esc(r.periodoLabel || r.periodo)}</span>
+          <span class="t">${esc(r.titulo || ('Reporte de ' + titulo.toLowerCase()))}${i === 0 ? '<span class="rp-new">ÚLTIMO</span>' : ''}<small>${esc(r.periodoTexto || '')}</small></span>`;
+        return r.archivo
+          ? `<button type="button" class="rp" data-r="${esc(r.archivo)}">${inner}<span class="go">Ver reporte →</span></button>`
+          : `<a class="rp" href="${esc(Portal.urlSegura(r.link))}" target="_blank" rel="noopener">${inner}<span class="go">Abrir ↗</span></a>`;
+      }).join('')
+        : `<div class="rp-empty">Todavía no hay reportes de ${titulo.toLowerCase()} publicados. Te avisamos cuando esté el próximo.</div>`;
+      return `<section class="rp-sec"><h2>${titulo}</h2><p class="rp-sub">${sub}</p><div class="rp-list">${items}</div></section>`;
+    }).join('');
+  }
+
+  // Abre un reporte subido como archivo dentro del portal (desencriptado en el navegador)
+  async function ver(id){
+    const r = reps.find(x => x.archivo === id); if (!r) { lista(); return; }
+    head.hidden = true;
+    app.innerHTML = `<div class="rp-empty">Abriendo el reporte de ${esc(r.periodoLabel || r.periodo)}…</div>`;
+    let f;
+    try { f = await Portal.abrirArchivo(id, s.code); }
+    catch (e) { app.innerHTML = `<div class="vw-bar"><a class="vw-btn" href="#">← Todos los reportes</a></div><div class="rp-empty">No pudimos abrir este reporte. Recargá la página o escribinos por WhatsApp.</div>`; return; }
+    const blob = new Blob([f.datos], { type: f.tipo });
+    const url = URL.createObjectURL(blob); urls.push(url);
+    const nombre = f.nombre || `Reporte ${r.periodoLabel || r.periodo}`;
+    app.innerHTML = `<div class="vw-bar">
+        <a class="vw-btn" href="#">← Todos los reportes</a>
+        <h2>${esc(r.titulo || 'Reporte')} · <span style="color:var(--yellow); text-transform:capitalize;">${esc(r.periodoLabel || r.periodo)}</span></h2>
+        <a class="vw-btn" href="${url}" download="${esc(nombre)}">Descargar</a>
+      </div>
+      <iframe class="vw-frame" title="${esc(nombre)}"></iframe>`;
+    const fr = app.querySelector('iframe');
+    if (/html/.test(f.tipo)) {
+      // Aislado: el reporte no puede leer la sesión ni la contraseña del portal
+      fr.setAttribute('sandbox', 'allow-scripts allow-popups allow-popups-to-escape-sandbox');
+      fr.srcdoc = new TextDecoder().decode(f.datos);
+    } else {
+      fr.src = url;
+    }
+    window.scrollTo(0, 0);
+  }
+
+  app.addEventListener('click', e => {
+    const b = e.target.closest('[data-r]'); if (!b) return;
+    location.hash = 'r=' + b.dataset.r;
+  });
+  function ruta(){
+    const m = location.hash.match(/^#r=([\w-]+)$/);
+    if (m) ver(m[1]); else { urls.splice(0).forEach(u => URL.revokeObjectURL(u)); lista(); }
+  }
+  window.addEventListener('hashchange', ruta);
+  ruta();
 })();
 </script>
 </body>
