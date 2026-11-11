@@ -1,0 +1,4 @@
+# Sitio estático (sin build). Funciones del Generador de Guiones en netlify/functions.
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"

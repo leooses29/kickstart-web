@@ -1,0 +1,9 @@
+{
+  "name": "kickstart-web",
+  "private": true,
+  "type": "module",
+  "description": "Sitio de Kickstart Marketing y portal de agencias. Las funciones de Netlify están en netlify/functions.",
+  "dependencies": {
+    "@netlify/blobs": "^11.1.9"
+  }
+}

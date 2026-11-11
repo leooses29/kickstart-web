@@ -138,6 +138,8 @@ def payload(dump, emp, now, code, slug, out, usados_r):
     return {
         'tipo': 'anuncios' if emp.get('portalTipo') == 'anuncios' else 'completo',
         'empresa': {k: emp.get(k, '') for k in ['nombre', 'cuotaReels', 'cuotaHistorias', 'cuotaCarruseles', 'cuotaPosteos']},
+        # Créditos mensuales del Generador de Guiones (campo opcional "iaCreditos"; si no está, se usan los de CREDITOS_MES o 40)
+        'creditosIA': int(emp['iaCreditos']) if str(emp.get('iaCreditos', '')).strip().isdigit() else None,
         'drive': (emp.get('portalDrive') or '').strip(),
         'posts': posts, 'guiones': guiones, 'guionRec': guion_rec, 'objMes': obj_mes, 'objTrim': obj_trim, 'reportes': reps,
         'actualizado': f"{now.day} de {MESES[now.month - 1]} de {now.year}",

@@ -3,9 +3,290 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Próximamente — Portal de Agencias · Kickstart Marketing</title>
-<meta http-equiv="refresh" content="0; url=dashboard.html">
-<style>body{background:#0A0A0A;color:#F6F5F1;font-family:system-ui,sans-serif;padding:40px}</style>
+<title>Guiones para anuncios — Portal de Agencias · Kickstart Marketing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+/* Layout: encabezado con créditos del mes · formulario a la izquierda · guion generado a la derecha · historial del mes abajo */
+.ia-top{display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-bottom:28px;}
+.cred{min-width:240px; border:1px solid var(--line); border-radius:var(--r-md); padding:14px 16px; background:var(--bg-card);}
+.cred .n{font-size:22px; font-weight:700; color:var(--white); font-variant-numeric:tabular-nums;}
+.cred .bar{height:6px; border-radius:99px; background:rgba(255,255,255,.08); margin-top:10px; overflow:hidden;}
+.cred .bar i{display:block; height:100%; background:var(--yellow-grad); border-radius:99px; transition:width .4s;}
+.ia-grid{display:grid; grid-template-columns:minmax(0,5fr) minmax(0,7fr); gap:24px; align-items:start;}
+.ia-form{display:flex; flex-direction:column; gap:16px; padding:24px;}
+.ia-form textarea{min-height:96px; resize:vertical;}
+.hint{font-size:12px; color:var(--muted-2); margin-top:6px; line-height:1.45;}
+.row2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+.res{padding:26px; min-height:320px; display:flex; flex-direction:column; gap:20px;}
+.res .vacio{margin:auto; text-align:center; color:var(--muted); font-size:14px; line-height:1.6; max-width:36ch;}
+.hook{font-size:clamp(20px,2.6vw,26px); font-weight:700; line-height:1.25; color:var(--white);}
+.lineas{display:flex; flex-direction:column; border:1px solid var(--line); border-radius:var(--r-sm); overflow:hidden;}
+.linea{display:grid; grid-template-columns:78px 1fr; gap:14px; padding:12px 14px; border-top:1px solid var(--line);}
+.linea:first-child{border-top:none;}
+.linea .t{font-size:12px; font-weight:600; color:var(--yellow); font-variant-numeric:tabular-nums; padding-top:2px;}
+.linea .d{font-size:15px; color:var(--white); line-height:1.5;}
+.linea .e{font-size:12px; color:var(--muted-2); margin-top:4px;}
+.alts{display:flex; flex-direction:column; gap:8px;}
+.alt{display:flex; gap:12px; align-items:flex-start; justify-content:space-between; border:1px solid var(--line); border-radius:var(--r-sm); padding:10px 12px;}
+.alt b{display:block; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted-2); margin-bottom:3px;}
+.mini{background:none; border:1px solid var(--line-2); color:var(--white); border-radius:10px; padding:7px 12px; font:600 12px var(--f); cursor:pointer; white-space:nowrap;}
+.mini:hover{border-color:var(--yellow);}
+.mini[aria-pressed="true"]{border-color:var(--yellow); background:rgba(255,193,7,.12); color:var(--yellow);}
+.sec-t{font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:8px;}
+.copy{white-space:pre-wrap; font-size:14px; color:#D8D8D8; line-height:1.55; background:#101010; border:1px solid var(--line); border-radius:var(--r-sm); padding:12px 14px;}
+.acciones{display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+.ajuste{display:flex; gap:8px;}
+.ajuste input{padding:10px 12px;}
+.aviso{font-size:13px; line-height:1.5; border-radius:var(--r-sm); padding:12px 14px; border:1px solid rgba(255,193,7,.3); background:rgba(255,193,7,.07); color:var(--yellow);}
+.aviso.err{border-color:rgba(255,99,99,.35); background:rgba(255,99,99,.08); color:#FF9B9B;}
+.cargando{margin:auto; text-align:center; color:var(--muted); font-size:14px;}
+.cargando i{display:block; width:34px; height:34px; margin:0 auto 14px; border-radius:50%; border:3px solid rgba(255,193,7,.2); border-top-color:var(--yellow); animation:gira 1s linear infinite;}
+@keyframes gira{to{transform:rotate(360deg);}}
+.hist{margin-top:32px;}
+.hist ul{list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px;}
+.hist button{width:100%; display:flex; justify-content:space-between; gap:12px; text-align:left; background:var(--bg-card); border:1px solid var(--line); border-radius:var(--r-sm); padding:12px 14px; color:var(--white); font:500 14px var(--f); cursor:pointer;}
+.hist button:hover{border-color:rgba(255,193,7,.4);}
+.hist span{color:var(--muted-2); font-size:12px; white-space:nowrap;}
+.btn[disabled]{opacity:.5; pointer-events:none;}
+@media (max-width:900px){ .ia-grid{grid-template-columns:1fr;} .portal-main{padding:28px 16px;} }
+@media (prefers-reduced-motion:reduce){ .cargando i{animation:none;} }
+</style>
 </head>
-<body><p>Esta herramienta estará disponible próximamente. <a href="dashboard.html" style="color:#FFD000">Volver al panel</a></p></body>
+<body>
+
+<div class="page-frame" style="max-width:none;">
+<div class="portal-shell">
+  <div class="portal-sidebar"></div>
+
+  <div class="portal-main">
+    <div class="ia-top">
+      <div>
+        <div class="mono" style="color:var(--yellow); font-size:12px; letter-spacing:.1em; margin-bottom:6px;">HERRAMIENTAS IA</div>
+        <h1 style="font-size:34px;">Guiones para anuncios</h1>
+        <p style="color:var(--muted); font-size:14px; max-width:60ch; margin-top:8px; line-height:1.55;">Cargá el paquete y te armamos un guion de 20 a 25 segundos con la estrategia de Kickstart: hook, destino, paquete, precio y llamada a la acción. Grabalo vos a cámara en la agencia y mandanos el video para editarlo.</p>
+      </div>
+      <div class="cred" aria-live="polite">
+        <div class="mono" style="font-size:11px; color:var(--muted); letter-spacing:.08em;">CRÉDITOS DE <span class="js-mes">ESTE MES</span></div>
+        <div class="n"><span class="js-rest">–</span> <span style="font-size:14px; font-weight:500; color:var(--muted);">de <span class="js-lim">–</span> disponibles</span></div>
+        <div class="bar"><i class="js-bar" style="width:0%"></i></div>
+        <div class="hint">Cada guion o nueva versión usa 1 crédito. Se renuevan el 1° de cada mes.</div>
+      </div>
+    </div>
+
+    <div class="ia-grid">
+      <form class="card ia-form js-form" novalidate>
+        <div>
+          <label for="f-destino">Destino *</label>
+          <input id="f-destino" name="destino" required maxlength="80" placeholder="Ej: Porto de Galinhas">
+        </div>
+        <div>
+          <label for="f-paquete">Qué incluye el paquete</label>
+          <textarea id="f-paquete" name="paquete" maxlength="900" placeholder="Ej: 7 noches, vuelo desde Córdoba, traslados, hotel con desayuno. Salidas en marzo."></textarea>
+          <div class="hint">Noches, ciudad de salida, fechas, hotel y lo que esté incluido.</div>
+        </div>
+        <div class="row2">
+          <div>
+            <label for="f-precio">Precio</label>
+            <input id="f-precio" name="precio" maxlength="160" placeholder="Ej: USD 1.190 por persona">
+          </div>
+          <div>
+            <label for="f-palabra">Palabra para el CTA</label>
+            <input id="f-palabra" name="palabra" maxlength="24" placeholder="Ej: PORTO">
+          </div>
+        </div>
+        <div>
+          <label for="f-publico">Público (opcional)</label>
+          <select id="f-publico" name="publico">
+            <option value="">General</option>
+            <option>Parejas</option>
+            <option>Familias con chicos</option>
+            <option>Grupos de amigas</option>
+            <option>Luna de miel</option>
+            <option>Adultos mayores</option>
+            <option>Egresados</option>
+          </select>
+        </div>
+        <div>
+          <label for="f-extra">Algo más a tener en cuenta (opcional)</label>
+          <input id="f-extra" name="extra" maxlength="400" placeholder="Ej: quedan pocos lugares, salida especial de Semana Santa">
+        </div>
+        <div class="aviso err js-err" role="alert" hidden></div>
+        <button type="submit" class="btn btn-primary js-gen" style="justify-content:center;">Generar guion · 1 crédito</button>
+      </form>
+
+      <div class="card res js-res" aria-live="polite">
+        <div class="vacio">Tu guion va a aparecer acá, con el hook principal, 3 hooks alternativos y el copy para el anuncio.</div>
+      </div>
+    </div>
+
+    <div class="hist js-hist" hidden>
+      <div class="sec-t">Tus guiones de este mes</div>
+      <ul class="js-hist-list"></ul>
+    </div>
+  </div>
+</div>
+</div>
+
+<script src="js/portal.js"></script>
+<script>
+(async function () {
+  const s = Portal.requerirSesion(); if (!s) return;
+  Portal.sidebar('ads');
+  const $ = q => document.querySelector(q);
+  const esc = Portal.esc;
+  const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  let actual = null;          // {id, resultado, form}
+  let creditos = null;
+  let historial = [];
+  let ocupado = false;
+
+  async function api(body) {
+    const r = await fetch('/api/ia', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: s.slug, code: s.code, ...body }) });
+    let j = {}; try { j = await r.json(); } catch (e) {}
+    if (r.status === 401) { Portal.salir(); throw new Error('sesion'); }
+    if (j.creditos) pintarCreditos(j.creditos);
+    if (!r.ok) { const e = new Error(j.error || 'red'); e.status = r.status; throw e; }
+    return j;
+  }
+
+  function pintarCreditos(c) {
+    creditos = c;
+    $('.js-rest').textContent = c.restantes;
+    $('.js-lim').textContent = c.limite;
+    $('.js-bar').style.width = (c.limite ? Math.round(100 * c.restantes / c.limite) : 0) + '%';
+    const [y, m] = c.mes.split('-');
+    $('.js-mes').textContent = (MESES[Number(m) - 1] || '').toUpperCase();
+    const sin = c.restantes <= 0;
+    $('.js-gen').disabled = sin || ocupado;
+    $('.js-gen').textContent = sin ? 'Sin créditos este mes' : 'Generar guion · 1 crédito';
+    document.querySelectorAll('.js-usa-credito').forEach(b => b.disabled = sin || ocupado);
+  }
+
+  function mensajeError(e) {
+    if (e.message === 'sin_creditos') return 'Usaste todos los créditos de este mes. Se renuevan el 1° del mes que viene. Si necesitás más, escribile a Kickstart.';
+    if (e.message === 'sin_configurar') return 'La herramienta todavía se está configurando. Probá de nuevo en un rato.';
+    if (e.message === 'falta_destino') return 'Escribí el destino para generar el guion.';
+    if (e.message === 'ia') return 'No pudimos generar el guion esta vez. No se descontó ningún crédito: probá de nuevo.';
+    return 'Hubo un problema de conexión. No se descontó ningún crédito: probá de nuevo.';
+  }
+
+  function textoGuion(r) {
+    const l = [r.titulo ? r.titulo.toUpperCase() : '', '', 'HOOK: ' + r.hookPrincipal, ''];
+    r.guion.forEach(g => { l.push(`${g.tiempo}  ${g.texto}`); if (g.edicion) l.push(`   [${g.edicion}]`); });
+    if (r.hooksAlternativos.length) { l.push('', 'HOOKS ALTERNATIVOS'); r.hooksAlternativos.forEach(h => l.push('- ' + h.hook)); }
+    if (r.copy) l.push('', 'COPY', r.copy);
+    return l.join('\n').trim();
+  }
+
+  async function copiar(texto, btn) {
+    try { await navigator.clipboard.writeText(texto); const t = btn.textContent; btn.textContent = 'Copiado ✓'; setTimeout(() => btn.textContent = t, 1600); }
+    catch (e) { btn.textContent = 'No se pudo copiar'; }
+  }
+
+  function pintarResultado() {
+    const r = actual.resultado;
+    const voto = actual.voto || 0;
+    $('.js-res').innerHTML = `
+      <div>
+        <div class="sec-t">${esc(r.titulo || 'Guion')}${r.duracionSegundos ? ' · ' + esc(r.duracionSegundos) + ' s' : ''}</div>
+        <div class="hook">${esc(r.hookPrincipal)}</div>
+      </div>
+      <div>
+        <div class="sec-t">Guion para leer a cámara</div>
+        <div class="lineas">${r.guion.map(g => `<div class="linea"><div class="t">${esc(g.tiempo)}</div><div><div class="d">${esc(g.texto)}</div>${g.edicion ? `<div class="e">Edición: ${esc(g.edicion)}</div>` : ''}</div></div>`).join('')}</div>
+      </div>
+      ${r.hooksAlternativos.length ? `<div>
+        <div class="sec-t">3 hooks alternativos</div>
+        <div class="alts">${r.hooksAlternativos.map((h, i) => `<div class="alt"><div><b>${esc(h.formula || 'Hook ' + (i + 1))}</b>${esc(h.hook)}</div><button type="button" class="mini js-copia-hook" data-i="${i}">Copiar</button></div>`).join('')}</div>
+      </div>` : ''}
+      ${r.copy ? `<div><div class="sec-t">Copy para el anuncio</div><div class="copy">${esc(r.copy)}</div></div>` : ''}
+      ${r.datosFaltantes.length ? `<div class="aviso"><b>Para mejorarlo, sumá:</b> ${r.datosFaltantes.map(esc).join(' · ')}</div>` : ''}
+      <div class="acciones">
+        <button type="button" class="btn btn-primary sm js-copiar" style="min-height:44px;">Copiar guion completo</button>
+        <button type="button" class="btn btn-ghost sm js-otra js-usa-credito" style="min-height:44px;">Otra versión · 1 crédito</button>
+      </div>
+      <div>
+        <div class="sec-t">¿Querés cambiar algo?</div>
+        <form class="ajuste js-ajuste"><input name="ajuste" maxlength="300" placeholder="Ej: más corto, otro hook, para familias" aria-label="Qué querés cambiar"><button class="mini js-usa-credito" type="submit">Ajustar · 1 crédito</button></form>
+      </div>
+      <div>
+        <div class="sec-t">¿Te sirvió este guion?</div>
+        <div class="acciones">
+          <button type="button" class="mini js-voto" data-v="1" aria-pressed="${voto === 1}">👍 Sí</button>
+          <button type="button" class="mini js-voto" data-v="-1" aria-pressed="${voto === -1}">👎 No</button>
+          <input class="js-coment" maxlength="500" placeholder="Contanos qué cambiarías (opcional)" style="flex:1; min-width:180px; padding:9px 12px;" value="${esc(actual.comentario || '')}">
+          <button type="button" class="mini js-enviar-voto">Enviar</button>
+        </div>
+      </div>`;
+    if (creditos) pintarCreditos(creditos);
+    $('.js-copiar').onclick = e => copiar(textoGuion(r), e.currentTarget);
+    document.querySelectorAll('.js-copia-hook').forEach(b => b.onclick = e => copiar(r.hooksAlternativos[+b.dataset.i].hook, e.currentTarget));
+    $('.js-otra').onclick = () => generar({ baseId: actual.id, ajuste: '' });
+    $('.js-ajuste').onsubmit = e => { e.preventDefault(); const v = e.target.ajuste.value.trim(); if (v) generar({ baseId: actual.id, ajuste: v }); };
+    document.querySelectorAll('.js-voto').forEach(b => b.onclick = () => { actual.voto = Number(b.dataset.v); document.querySelectorAll('.js-voto').forEach(x => x.setAttribute('aria-pressed', String(x === b))); enviarVoto(); });
+    $('.js-enviar-voto').onclick = e => enviarVoto(e.currentTarget);
+  }
+
+  async function enviarVoto(btn) {
+    actual.comentario = ($('.js-coment') || {}).value || '';
+    try { await api({ accion: 'voto', id: actual.id, voto: actual.voto || 0, comentario: actual.comentario }); if (btn) { btn.textContent = '¡Gracias!'; } }
+    catch (e) { if (btn) btn.textContent = 'No se pudo enviar'; }
+  }
+
+  function leerForm() {
+    const f = $('.js-form');
+    return { destino: f.destino.value, paquete: f.paquete.value, precio: f.precio.value, palabra: f.palabra.value, publico: f.publico.value, extra: f.extra.value };
+  }
+
+  async function generar(extra) {
+    if (ocupado) return;
+    const err = $('.js-err'); err.hidden = true;
+    const form = extra && extra.baseId && actual ? actual.form : leerForm();
+    if (!form.destino.trim()) { err.textContent = mensajeError({ message: 'falta_destino' }); err.hidden = false; $('#f-destino').focus(); return; }
+    ocupado = true; if (creditos) pintarCreditos(creditos);
+    $('.js-res').innerHTML = '<div class="cargando"><i></i>Escribiendo tu guion… puede tardar unos 15 segundos.</div>';
+    try {
+      const j = await api({ accion: 'generar', form, ...(extra || {}) });
+      actual = { id: j.id, resultado: j.resultado, form, voto: 0, comentario: '' };
+      historial.unshift({ id: j.id, fecha: new Date().toISOString(), destino: form.destino, form, titulo: j.resultado.titulo, resultado: j.resultado, voto: 0 });
+      ocupado = false;
+      pintarResultado(); pintarHistorial();
+      if (window.innerWidth < 900) $('.js-res').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e) {
+      ocupado = false;
+      if (actual) pintarResultado();
+      else $('.js-res').innerHTML = '<div class="vacio">Tu guion va a aparecer acá, con el hook principal, 3 hooks alternativos y el copy para el anuncio.</div>';
+      err.textContent = mensajeError(e); err.hidden = false;
+      if (creditos) pintarCreditos(creditos);
+    }
+  }
+
+  function pintarHistorial() {
+    $('.js-hist').hidden = !historial.length;
+    $('.js-hist-list').innerHTML = historial.map((h, i) => {
+      const d = new Date(h.fecha);
+      return `<li><button type="button" data-i="${i}"><b style="font-weight:600;">${esc(h.titulo || h.destino)}</b><span>${esc(h.destino)} · ${d.getDate()}/${d.getMonth() + 1}</span></button></li>`;
+    }).join('');
+    document.querySelectorAll('.js-hist-list button').forEach(b => b.onclick = () => {
+      const h = historial[+b.dataset.i];
+      actual = { id: h.id, resultado: h.resultado, form: h.form || { destino: h.destino }, voto: h.voto || 0, comentario: '' };
+      pintarResultado(); $('.js-res').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  $('.js-form').addEventListener('submit', e => { e.preventDefault(); generar(); });
+
+  try {
+    const j = await api({ accion: 'estado' });
+    historial = (j.historial || []).filter(h => h.resultado);
+    pintarHistorial();
+  } catch (e) {
+    if (e.message !== 'sesion') { $('.js-err').textContent = 'No pudimos cargar tus créditos. Revisá la conexión y recargá la página.'; $('.js-err').hidden = false; }
+  }
+  try { const d = await Portal.abrir(s.slug, s.code); Portal.sidebar('ads', d); } catch (e) {}
+})();
+</script>
+</body>
 </html>

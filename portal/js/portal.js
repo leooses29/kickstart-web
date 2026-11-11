@@ -96,13 +96,15 @@
     const drive = data && urlSegura(data.drive);
     const nav = soloAnuncios(s)
       ? `${link('reportes.html', 'rep', 'Reportes', active === 'reportes')}
-      ${drive ? link(drive, 'drive', 'Drive', false, true) : ''}`
+      ${drive ? link(drive, 'drive', 'Drive', false, true) : ''}
+      <div class="mono" style="font-size:11px; color:var(--muted); padding:16px 16px 6px; letter-spacing:.08em;">HERRAMIENTAS IA</div>
+      ${link('guiones-ads.html', 'ads', 'Guiones para anuncios', active === 'ads')}`
       : `${link('dashboard.html', 'panel', 'Panel', active === 'panel')}
       ${link('planificacion.html', 'plan', 'Planificación', active === 'plan')}
       ${link('reportes.html', 'rep', 'Reportes', active === 'reportes')}
       ${drive ? link(drive, 'drive', 'Drive', false, true) : off('drive', 'Drive')}
       <div class="mono" style="font-size:11px; color:var(--muted); padding:16px 16px 6px; letter-spacing:.08em;">HERRAMIENTAS IA</div>
-      ${off('ads', 'Guiones para anuncios')}
+      ${link('guiones-ads.html', 'ads', 'Guiones para anuncios', active === 'ads')}
       ${off('reel', 'Guiones para reels')}
       ${off('flyer', 'Generador de flyers')}`;
     el.innerHTML = `

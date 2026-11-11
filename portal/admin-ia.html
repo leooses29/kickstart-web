@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Panel IA — Kickstart Marketing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+/* Panel interno de Kickstart: uso de créditos por agencia + cada guion generado con su voto, para ir puliendo la herramienta */
+body{padding:32px 16px;}
+.wrap{max-width:1100px; margin:0 auto; display:flex; flex-direction:column; gap:24px;}
+.box{padding:22px;}
+table{width:100%; border-collapse:collapse; font-size:14px;}
+th,td{text-align:left; padding:10px 8px; border-bottom:1px solid var(--line); vertical-align:top;}
+th{font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600;}
+td.n{font-variant-numeric:tabular-nums;}
+.reg{border:1px solid var(--line); border-radius:var(--r-sm); padding:14px 16px; display:flex; flex-direction:column; gap:8px;}
+.reg .meta{font-size:12px; color:var(--muted-2);}
+.reg pre{white-space:pre-wrap; font:14px/1.5 var(--f); color:#D8D8D8; margin:0;}
+.fila{display:flex; gap:10px; flex-wrap:wrap; align-items:end;}
+.fila > div{flex:1; min-width:160px;}
+.mini{background:none; border:1px solid var(--line-2); color:var(--white); border-radius:10px; padding:10px 14px; font:600 13px var(--f); cursor:pointer;}
+.filtro{display:flex; gap:8px; flex-wrap:wrap;}
+.filtro .mini[aria-pressed="true"]{border-color:var(--yellow); color:var(--yellow);}
+.scroll{overflow-x:auto;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <div class="mono" style="color:var(--yellow); font-size:12px; letter-spacing:.1em;">KICKSTART · INTERNO</div>
+    <h1 style="font-size:30px;">Panel del Generador de Guiones</h1>
+  </div>
+
+  <form class="card box fila js-login">
+    <div><label for="k">Clave de administrador</label><input id="k" type="password" autocomplete="current-password" required></div>
+    <div style="max-width:180px;"><label for="m">Mes</label><input id="m" type="month"></div>
+    <button class="btn btn-primary sm" type="submit" style="min-height:48px;">Ver</button>
+  </form>
+  <div class="aviso js-msg" role="status" hidden style="font-size:13px; color:var(--yellow);"></div>
+
+  <div class="js-panel" hidden style="display:flex; flex-direction:column; gap:24px;">
+    <div class="card box">
+      <div class="sec-t mono" style="font-size:12px; color:var(--muted); margin-bottom:10px;">USO POR AGENCIA</div>
+      <div class="scroll"><table><thead><tr><th>Agencia</th><th>Créditos usados</th><th>Extra</th><th>Guiones</th><th>👍</th><th>👎</th><th>Costo aprox.</th></tr></thead><tbody class="js-ag"></tbody></table></div>
+    </div>
+
+    <form class="card box fila js-sumar">
+      <div><label for="u">Usuario de la agencia</label><input id="u" required placeholder="Ej: gftravel"></div>
+      <div style="max-width:140px;"><label for="c">Créditos</label><input id="c" type="number" value="10" required></div>
+      <button class="mini" type="submit">Sumar créditos este mes</button>
+    </form>
+
+    <div class="card box" style="display:flex; flex-direction:column; gap:12px;">
+      <div class="mono" style="font-size:12px; color:var(--muted);">GUIONES GENERADOS</div>
+      <div class="filtro">
+        <button type="button" class="mini" data-f="todos" aria-pressed="true">Todos</button>
+        <button type="button" class="mini" data-f="neg" aria-pressed="false">👎 y comentarios</button>
+        <button type="button" class="mini" data-f="pos" aria-pressed="false">👍</button>
+      </div>
+      <div class="js-regs" style="display:flex; flex-direction:column; gap:10px;"></div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  const $ = q => document.querySelector(q);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  // Precio de referencia de Claude Sonnet 5.5 (USD por millón de tokens). Ajustalo si cambia el modelo o el precio.
+  const PRECIO_IN = 2, PRECIO_OUT = 10;
+  let clave = '', datos = null, filtro = 'todos';
+  $('#m').value = new Date().toISOString().slice(0, 7);
+
+  async function api(body) {
+    const r = await fetch('/api/ia-admin', { method: 'POST', headers: { 'content-type': 'application/json', 'x-admin-key': clave }, body: JSON.stringify(body) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || 'red');
+    return j;
+  }
+  function msg(t) { $('.js-msg').textContent = t; $('.js-msg').hidden = !t; }
+
+  async function cargar() {
+    try { datos = await api({ mes: $('#m').value }); msg(''); pintar(); $('.js-panel').hidden = false; }
+    catch (e) { msg(e.message === 'clave' ? 'Clave incorrecta.' : 'No se pudo cargar el panel.'); }
+  }
+
+  function pintar() {
+    $('.js-ag').innerHTML = datos.agencias.length ? datos.agencias.map(a => {
+      const usd = (a.tokensEntrada * PRECIO_IN + a.tokensSalida * PRECIO_OUT) / 1e6;
+      return `<tr><td>${esc(a.agencia)}</td><td class="n">${a.creditos.usados || 0}</td><td class="n">${a.creditos.extra || 0}</td><td class="n">${a.guiones}</td><td class="n">${a.positivos}</td><td class="n">${a.negativos}</td><td class="n">USD ${usd.toFixed(2)}</td></tr>`;
+    }).join('') : '<tr><td colspan="7" style="color:var(--muted);">Todavía no hay guiones este mes.</td></tr>';
+    const regs = datos.registros.filter(r => filtro === 'todos' || (filtro === 'pos' && r.voto === 1) || (filtro === 'neg' && (r.voto === -1 || r.comentario)));
+    $('.js-regs').innerHTML = regs.map(r => {
+      const g = r.salida || {};
+      const guion = (g.guion || []).map(l => `${l.tiempo}  ${l.texto}`).join('\n');
+      const voto = r.voto === 1 ? '👍' : r.voto === -1 ? '👎' : 'sin voto';
+      return `<div class="reg">
+        <div class="meta">${esc(new Date(r.fecha).toLocaleString('es-AR'))} · <b style="color:var(--white);">${esc(r.agencia)}</b> · ${esc(r.form.destino)} · ${voto}${r.ajuste ? ' · ajuste: ' + esc(r.ajuste) : ''}</div>
+        ${r.comentario ? `<div style="color:var(--yellow); font-size:14px;">“${esc(r.comentario)}”</div>` : ''}
+        <div style="font-weight:600; color:var(--white);">${esc(g.hookPrincipal)}</div>
+        <pre>${esc(guion)}</pre>
+        <div class="meta">Paquete: ${esc(r.form.paquete || '—')} · Precio: ${esc(r.form.precio || '—')}${r.form.publico ? ' · Público: ' + esc(r.form.publico) : ''}</div>
+      </div>`;
+    }).join('') || '<div style="color:var(--muted); font-size:14px;">No hay guiones con este filtro.</div>';
+  }
+
+  $('.js-login').addEventListener('submit', e => { e.preventDefault(); clave = $('#k').value; cargar(); });
+  $('.js-sumar').addEventListener('submit', async e => {
+    e.preventDefault();
+    try { await api({ accion: 'sumar', usuario: $('#u').value, cantidad: Number($('#c').value), mes: $('#m').value }); msg('Créditos sumados.'); cargar(); }
+    catch (err) { msg('No se pudieron sumar los créditos.'); }
+  });
+  document.querySelectorAll('.filtro .mini').forEach(b => b.addEventListener('click', () => {
+    filtro = b.dataset.f; document.querySelectorAll('.filtro .mini').forEach(x => x.setAttribute('aria-pressed', String(x === b))); if (datos) pintar();
+  }));
+})();
+</script>
+</body>
+</html>
