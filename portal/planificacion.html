@@ -72,6 +72,13 @@ h1{margin:4px 0 0;font-size:clamp(26px,4.5vw,40px);line-height:1.1;font-weight:8
 .g summary b{flex:1;min-width:200px}
 .g summary .when{color:var(--muted);font-size:12px}
 .g .gt{padding:0 16px 14px;white-space:pre-wrap;overflow-wrap:anywhere;max-width:75ch;margin:0}
+.g .doc{background:var(--yellow,#FFC107);color:#0A0A0A;border:0;border-radius:7px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer}
+.docv{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.75);display:flex;flex-direction:column;padding:16px}
+.docv .vb{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#141414;border:1px solid var(--line);border-radius:14px 14px 0 0;padding:10px 14px;color:#F6F5F1}
+.docv .vb b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.docv .vb a,.docv .vb button{display:inline-flex;align-items:center;min-height:38px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.04);color:#F6F5F1;font-family:inherit;font-weight:600;font-size:13px;text-decoration:none;cursor:pointer}
+.docv iframe{flex:1;width:100%;border:1px solid var(--line);border-top:0;border-radius:0 0 14px 14px;background:#fff}
+.docv .msg{flex:1;display:grid;place-items:center;color:#F6F5F1;background:#141414;border:1px solid var(--line);border-top:0;border-radius:0 0 14px 14px}
 .g .open{background:none;border:1px solid var(--line);border-radius:7px;padding:3px 10px;font-size:12px;font-weight:600}
 .foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between}
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:20}
@@ -200,7 +207,7 @@ function guionesMes(ym){
   gs.sort((a,b) => (fecha(a)||'9').localeCompare(fecha(b)||'9'));
   return `<div class="gsec"><h2>Guiones del mes</h2>
     ${rec ? `<details class="g" style="margin-bottom:10px;border-left:3px solid var(--accent)"><summary><b>Recomendaciones para grabar</b></summary><p class="gt">${esc(rec)}</p></details>` : ''}
-    <div class="gl">${gs.map(g => { const f = fecha(g); return `<details class="g"><summary><b>${esc(g.titulo || 'Guion')}</b>${f ? `<span class="when">${fmtDay(f)}</span><button class="open" data-id="${esc(g.postId)}">Ver publicación</button>` : ''}</summary><p class="gt">${esc(g.guion)}</p></details>`; }).join('')}</div></div>`;
+    <div class="gl">${gs.map(g => { const f = fecha(g); return `<details class="g"><summary><b>${esc(g.titulo || 'Guion')}</b>${f ? `<span class="when">${fmtDay(f)}</span>` : ''}${g.archivo ? `<button class="doc" data-doc="${esc(g.archivo)}">Ver documento</button>` : ''}${f ? `<button class="open" data-id="${esc(g.postId)}">Ver publicación</button>` : ''}</summary>${g.guion ? `<p class="gt">${esc(g.guion)}</p>` : (g.archivo ? '<p class="gt" style="color:var(--muted)">El guion está en el documento adjunto.</p>' : '')}</details>`; }).join('')}</div></div>`;
 }
 function extra(){
   const qs = D.objTrim || [];
@@ -228,18 +235,38 @@ function open(id){
       ${pasos(p)}
       ${p.edicion ? `<div class="blk"><h3>Propuesta de edición</h3><p>${esc(p.edicion)}</p></div>` : ''}
       ${p.copy ? `<div class="blk"><h3>Copy</h3><div class="copybox"><p>${esc(p.copy)}</p></div></div>` : ''}
-      ${gOf(p.id).map(g => `<div class="blk"><h3>Guion${g.titulo && g.titulo !== p.titulo ? ' · ' + esc(g.titulo) : ''}</h3><div class="copybox"><p>${esc(g.guion)}</p></div></div>`).join('')}
+      ${gOf(p.id).map(g => `<div class="blk"><h3>Guion${g.titulo && g.titulo !== p.titulo ? ' · ' + esc(g.titulo) : ''}</h3>${g.guion ? `<div class="copybox"><p>${esc(g.guion)}</p></div>` : ''}${g.archivo ? `<button class="pl-btn" style="margin-top:8px" data-doc="${esc(g.archivo)}">Ver documento del guion</button>` : ''}</div>`).join('')}
       ${p.portada && /^https?:\/\//i.test(p.portada) ? `<div class="blk"><h3>Portada del reel</h3><a class="pl-btn" style="background:var(--surface-2);color:var(--fg)" href="${esc(safeUrl(p.portada))}" target="_blank" rel="noopener">Ver portada ↗</a></div>` : ''}
       ${p.contenidoOk ? `<a class="pl-btn" href="${esc(safeUrl(p.contenidoOk))}" target="_blank" rel="noopener">Ver pieza final ↗</a>` : ''}
     </div>
   </aside>`;
   setTimeout(() => document.querySelector('.close')?.focus(), 20);
 }
+// Documento de guion (PDF o HTML): se desencripta en el navegador y se muestra arriba de todo
+const docUrls = [];
+function cerrarDoc(){ const v = document.getElementById('docv'); if (v) v.remove(); docUrls.splice(0).forEach(u => URL.revokeObjectURL(u)); }
+async function verDoc(id){
+  const g = G.find(x => x.archivo === id); cerrarDoc();
+  const titulo = esc((g && (g.titulo || g.archivoNombre)) || 'Documento del guion');
+  document.body.insertAdjacentHTML('beforeend', `<div class="docv" id="docv" role="dialog" aria-label="Documento del guion"><div class="vb"><b>${titulo}</b><button type="button" data-cdoc>Cerrar ✕</button></div><div class="msg">Abriendo el documento…</div></div>`);
+  let f;
+  try { f = await Portal.abrirArchivo(id, S.code); }
+  catch (_) { const m = document.querySelector('#docv .msg'); if (m) m.textContent = 'No pudimos abrir el documento. Recargá la página o escribinos por WhatsApp.'; return; }
+  const v = document.getElementById('docv'); if (!v) return;
+  const url = URL.createObjectURL(new Blob([f.datos], {type: f.tipo})); docUrls.push(url);
+  v.querySelector('.vb button').insertAdjacentHTML('beforebegin', `<a href="${url}" download="${esc(f.nombre || 'guion')}">Descargar</a>`);
+  const fr = document.createElement('iframe'); fr.title = f.nombre || 'Documento';
+  if (/html/.test(f.tipo)) { fr.setAttribute('sandbox', 'allow-scripts allow-popups allow-popups-to-escape-sandbox'); fr.srcdoc = new TextDecoder().decode(f.datos); }
+  else fr.src = url;
+  v.querySelector('.msg').replaceWith(fr);
+}
 document.addEventListener('click', e => {
+  const d = e.target.closest('[data-doc]'); if (d) { e.preventDefault(); e.stopPropagation(); verDoc(d.dataset.doc); return; }
+  if (e.target.closest('[data-cdoc]')) { cerrarDoc(); return; }
   const c = e.target.closest('[data-id]'); if (c) { open(c.dataset.id); return; }
   if (e.target.closest('[data-close]')) document.getElementById('host').innerHTML = '';
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') document.getElementById('host').innerHTML = ''; });
+document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; if (document.getElementById('docv')) { cerrarDoc(); return; } document.getElementById('host').innerHTML = ''; });
 const shift = n => { let [y,m] = cur.split('-').map(Number); m += n; if (m<1){m=12;y--;} if (m>12){m=1;y++;} cur = `${y}-${pad(m)}`; render(); };
 document.getElementById('prev').onclick = () => shift(-1);
 document.getElementById('next').onclick = () => shift(1);

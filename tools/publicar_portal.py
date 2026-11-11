@@ -17,7 +17,8 @@ Tipo de servicio (campo "portalTipo"): "anuncios" = la agencia solo ve sus repor
 
 Incluye solo datos aptos para el cliente: título, formato, fecha, pilar, objetivo, propuesta de edición, copy, link final,
 estado por paso, guiones, objetivos, reportes (anuncios y orgánico) y el Drive para el cliente (portalDrive). Nunca responsables,
-comentarios internos ni el Drive interno de trabajo. Un reporte subido como archivo solo se publica si está marcado "portal": true.
+comentarios internos ni el Drive interno de trabajo. Un reporte subido como archivo solo se publica si está marcado "portal": true. Los documentos de guion
+(campo "docAsset", PDF o HTML) se publican salvo que estén marcados "docPortal": false; también se buscan en <dump>/archivos/.
 """
 import argparse, base64, datetime, glob, hashlib, json, os, re, unicodedata
 
@@ -71,6 +72,22 @@ def archivo_de(dump, asset_id):
     return hits[0] if hits else None
 
 
+def publicar_archivo(dump, asset_id, nombre, clave, code, out, usados_r):
+    """Encripta un archivo subido (reporte o documento de guion) en <out>/r/<id>.json. Devuelve el id o None."""
+    path = archivo_de(dump, asset_id)
+    if not path:
+        return None
+    nombre = nombre or os.path.basename(path)
+    ext = (nombre.rsplit('.', 1)[-1] if '.' in nombre else path.rsplit('.', 1)[-1]).lower()
+    rid = hashlib.sha256(clave.encode()).hexdigest()[:32]
+    caja = {'tipo': MIME.get(ext, 'application/octet-stream'), 'nombre': nombre, 'datos': base64.b64encode(open(path, 'rb').read()).decode()}
+    os.makedirs(os.path.join(out, 'r'), exist_ok=True)
+    with open(os.path.join(out, 'r', rid + '.json'), 'w', encoding='utf-8') as f:
+        json.dump(encriptar(caja, code), f)
+    usados_r.add(rid)
+    return rid
+
+
 def payload(dump, emp, now, code, slug, out, usados_r):
     eid = emp['id']
     posts = [{k: p.get(k, '') for k in KEEP} for p in load(dump, 'posts') if p.get('empresaId') == eid and p.get('fecha')]
@@ -92,26 +109,30 @@ def payload(dump, emp, now, code, slug, out, usados_r):
         if r.get('link'):
             rep['link'] = r['link']
         elif r.get('assetId') and r.get('portal') is True:
-            path = archivo_de(dump, r['assetId'])
-            if not path:
+            rid = publicar_archivo(dump, r['assetId'], r.get('nombreArchivo'), f"{slug}|{r['id']}|{r['assetId']}", code, out, usados_r)
+            if not rid:
                 print(f"  AVISO {emp.get('nombre')}: no se encontró el archivo del reporte {per} ({r['assetId']}); no se publica")
                 continue
-            nombre = r.get('nombreArchivo') or os.path.basename(path)
-            ext = (nombre.rsplit('.', 1)[-1] if '.' in nombre else path.rsplit('.', 1)[-1]).lower()
-            rid = hashlib.sha256(f"{slug}|{r['id']}|{r['assetId']}".encode()).hexdigest()[:32]
-            datos = open(path, 'rb').read()
-            caja = {'tipo': MIME.get(ext, 'application/octet-stream'), 'nombre': nombre, 'datos': base64.b64encode(datos).decode()}
-            os.makedirs(os.path.join(out, 'r'), exist_ok=True)
-            with open(os.path.join(out, 'r', rid + '.json'), 'w', encoding='utf-8') as f:
-                json.dump(encriptar(caja, code), f)
-            usados_r.add(rid)
             rep['archivo'] = rid
         else:
             continue  # archivo sin marcar para el portal: queda solo para el equipo
         reps.append(rep)
     reps.sort(key=lambda r: r['periodo'], reverse=True)
-    guiones = [{'id': g['id'], 'titulo': g.get('titulo', ''), 'guion': g.get('guion', ''), 'postId': g.get('postId', ''), 'mes': g.get('mes', '')}
-               for g in load(dump, 'guiones') if g.get('empresaId') == eid and (g.get('guion') or g.get('titulo'))]
+    guiones = []
+    for g in load(dump, 'guiones'):
+        if g.get('empresaId') != eid:
+            continue
+        item = {'id': g['id'], 'titulo': g.get('titulo', ''), 'guion': g.get('guion', ''), 'postId': g.get('postId', ''), 'mes': g.get('mes', '')}
+        # Documento del guion (PDF o HTML) subido al planificador: se publica salvo que esté marcado docPortal: false
+        if g.get('docAsset') and g.get('docPortal') is not False:
+            rid = publicar_archivo(dump, g['docAsset'], g.get('docNombre'), f"{slug}|guion|{g['id']}|{g['docAsset']}", code, out, usados_r)
+            if rid:
+                item['archivo'] = rid
+                item['archivoNombre'] = g.get('docNombre', '')
+            else:
+                print(f"  AVISO {emp.get('nombre')}: no se encontró el documento del guion \"{g.get('titulo', '')}\" ({g['docAsset']}); se publica sin documento")
+        if item['guion'] or item['titulo'] or item.get('archivo'):
+            guiones.append(item)
     guiones.sort(key=lambda g: (g['mes'], g['id']))
     guion_rec = {k.split('__')[2]: v.get('texto', '') for k, v in notas.items() if '__guionrec__' in k and v.get('texto')}
     return {
