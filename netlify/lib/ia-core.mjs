@@ -53,7 +53,11 @@ export async function llamarClaude({ apiKey, model, pedido, fetchImpl = fetch })
     method: 'POST',
     headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
     body: JSON.stringify({
-      model, max_tokens: 1500,
+      model, max_tokens: 4000,
+      // Sin razonamiento previo y con esfuerzo bajo: el guion es corto, así sale más rápido y más barato.
+      // (Sonnet no acepta "disabled"; "between_tools" equivale a no pensar cuando no hay herramientas.)
+      thinking: { type: /haiku/.test(model) ? 'disabled' : 'between_tools' },
+      output_config: { effort: 'low' },
       system: [{ type: 'text', text: INSTRUCCIONES, cache_control: { type: 'ephemeral' } }],
       messages: [{ role: 'user', content: pedido }],
     }),
@@ -64,6 +68,7 @@ export async function llamarClaude({ apiKey, model, pedido, fetchImpl = fetch })
   }
   const j = await r.json();
   const texto = (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
+  if (j.stop_reason && j.stop_reason !== 'end_turn') console.error('Generador de guiones: stop_reason', j.stop_reason);
   return { texto, uso: j.usage || {} };
 }
 
@@ -120,7 +125,8 @@ export async function manejar(body, deps) {
     try {
       const r = await ia(pedido);
       uso = r.uso;
-      salida = extraerJSON(r.texto);
+      try { salida = extraerJSON(r.texto); }
+      catch (e) { e.detalle = String(r.texto || '').slice(0, 300); throw e; }
     } catch (e) {
       console.error('Generador de guiones:', e.message, e.status || '', e.detalle || '');
       return [502, { error: 'ia', creditos: resumenCreditos(datos, c, env, mes) }];
