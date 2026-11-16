@@ -5,4 +5,6 @@
 export const CARPETAS_PAQUETES = {
   // GF Travel → MATERIAL MARKETING / Paquetes vigentes
   fde3d5ab427a36814efab95c61efc39f: '1R8FmlAxxdlZzYoalaFp2TWGo2Xk5y1U-',
+  // Aterrizar Villa María → Aterrizar / 11. At Villa Maria / Paquetes Vigentes
+  '4477ac64fa38984db569f9cf1cde96bc': '1dV_cKTQ0xqVJEoaotZAyJntK8KhJ67ER',
 };
