@@ -73,7 +73,8 @@ window.PlantillaFlyer = {
     // "altura" (deslizador) sube el bloque de texto; 170 es la posición por defecto.
     const alt = h.n('altura') - 170;
     const L = h.formato === 'cuadrado'
-      ? { s: .8, logoSup: [490, 40, 100, 83], cx: 540, lastBase: 500 - alt * .6, titleMax: 900, fechaMinY: 140, incCx: 540, ctaCx: 540,
+      // Cuadrado: todo centrado y arriba (logo → fecha → destino → incluye → CTA), armado de arriba hacia abajo
+      ? { s: .8, logoSup: [500, 34, 80, 66], cx: 540, arriba: 124 - alt * .5, titleMax: 900, fechaMinY: 110, incCx: 540, ctaCx: 540, centrado: true,
           px: 648, py: 676, logoInf: [325.5, 936, 429, 71], legX: 540, legY: 1030 }
       : { s: 1, logoSup: [470, 62, 133, 110], cx: 555.5, lastBase: 580 - alt, titleMax: 940, fechaMinY: 190, incCx: 566, ctaCx: 557,
           px: 648, py: 1432, logoInf: [314, 1726, 429, 71], legX: 543.4, legY: 1827.3 };
@@ -98,18 +99,25 @@ window.PlantillaFlyer = {
     let maxW = Math.max(1, ...lines.map(l => ctx.measureText(l).width));
     if (maxW > L.titleMax) { const f = L.titleMax / maxW; tSize *= f; lead *= f; ctx.font = font(800, tSize); maxW = Math.max(...lines.map(l => ctx.measureText(l).width)); }
     h.aviso('destino', tSize < 154.3 * s ? 'El texto es largo: se achicó para que entre.' : '');
-    const lastBase = L.lastBase, firstBase = lastBase - lead * (lines.length - 1);
+    const asc = lines.length ? ctx.measureText(lines[0]).actualBoundingBoxAscent : 0;
+    const conFecha = h.on('showFecha') && v('fecha').trim();
+    let firstBase, lastBase;
+    if (L.arriba != null) {   // de arriba hacia abajo: la fecha arriba y el destino debajo
+      firstBase = L.arriba + (conFecha ? (58 + 16) * s : 0) + asc;
+      lastBase = firstBase + lead * (lines.length - 1);
+    } else {                  // historia: la última línea queda fija y el destino crece hacia arriba
+      lastBase = L.lastBase; firstBase = lastBase - lead * (lines.length - 1);
+    }
     ctx.fillStyle = C.white; ctx.textAlign = 'center';
     lines.forEach((l, i) => ctx.fillText(l, L.cx, firstBase + lead * i));
-    const asc = lines.length ? ctx.measureText(lines[0]).actualBoundingBoxAscent : 0;
     const titleTop = firstBase - asc, titleRight = L.cx + maxW / 2;
 
     // 3. Fecha: píldora oscura arriba del destino
     ctx.textAlign = 'left';
-    if (h.on('showFecha') && v('fecha').trim()) {
+    if (conFecha) {
       const t = v('fecha').trim(), f = fit(t, 700, 36 * s, 700 * s);
       const w = f.w + 56 * s, hh = 58 * s, right = Math.min(W - 30, Math.max(titleRight + 13 * s, w + 40));
-      const y = Math.max(L.fechaMinY, titleTop - 16 * s - hh), x = right - w;
+      const y = Math.max(L.fechaMinY, titleTop - 16 * s - hh), x = L.centrado ? L.cx - w / 2 : right - w;
       leaf(x, y, w, hh, hh, C.dark);
       ctx.font = font(700, f.size); ctx.fillStyle = C.white; ctx.fillText(t, x + 30 * s, y + 36.7 * s);
     }
