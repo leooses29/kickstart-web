@@ -104,7 +104,7 @@ export function armarPedidoFlyer({ texto, archivo }) {
   return bloques;
 }
 
-const LIM_FLYER = { destino: 40, pais: 22, fecha: 22, incluye: 60, cta: 18, precio: 14, aclaracion: 34 };
+const LIM_FLYER = { destino: 40, pais: 14, fecha: 22, incluye: 60, cta: 18, precio: 14, aclaracion: 34 };
 export function extraerFlyer(texto) {
   const a = texto.indexOf('{'), b = texto.lastIndexOf('}');
   if (a < 0 || b <= a) throw new Error('respuesta_invalida');

@@ -71,4 +71,4 @@ Variables de entorno en Netlify (Site configuration → Environment variables):
 
   Para sumar otra agencia: agregar su línea en `netlify/lib/carpetas-paquetes.mjs`.
 - Plantillas cargadas: GF Travel y Aterrizar Villa María (las dos con historia 1080×1920 y cuadrado 1080×1080).
-  La de Aterrizar usa Urbanist en lugar de Gilroy hasta que se carguen los archivos de Gilroy (ver su plantilla.js).
+  La de Aterrizar usa las tipografías originales del PSD (Gilroy y Travellia), cargadas como .woff2 en su carpeta.

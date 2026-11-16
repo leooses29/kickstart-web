@@ -1,8 +1,7 @@
 /* Plantilla de flyer de Aterrizar (sucursal Villa María), del PSD "flyer_2026_edith".
    Historia 1080×1920 (réplica del PSD) y cuadrado 1080×1080 (adaptación).
-   Tipografía: el PSD usa Gilroy (Heavy y Medium). Mientras no tengamos los archivos de Gilroy se usa Urbanist,
-   que es muy parecida: para cambiarla, reemplazar titulos-500.woff2 y titulos-900.woff2 por Gilroy Medium y Heavy.
-   La frase "Viví el encanto de:", el pin, la ola y el logo son imágenes sacadas del PSD.
+   Tipografías del PSD: Gilroy Heavy y Medium (títulos, lista y precio) y Travellia (la frase de arriba).
+   El pin, la ola y el logo son imágenes sacadas del PSD.
    Contrato con flyers.html: ver la plantilla de GF Travel. */
 window.PlantillaFlyer = {
   archivo: 'flyer',
@@ -11,17 +10,18 @@ window.PlantillaFlyer = {
     { id: 'cuadrado', nombre: 'Cuadrado', W: 1080, H: 1080 }
   ],
   fuentes: [
-    { family: 'Titulos AVM', weight: 500, file: 'titulos-500.woff2' },
-    { family: 'Titulos AVM', weight: 900, file: 'titulos-900.woff2' }
+    { family: 'Gilroy AVM', weight: 500, file: 'gilroy-medium.woff2' },
+    { family: 'Gilroy AVM', weight: 900, file: 'gilroy-heavy.woff2' },
+    { family: 'Travellia AVM', weight: 400, file: 'travellia.woff2' }
   ],
-  imagenes: { frase: 'frase.png', pin: 'pin.png', zocalo: 'zocalo.png', logo: 'logo.png' },
+  imagenes: { pin: 'pin.png', zocalo: 'zocalo.png', logo: 'logo.png' },
   muestra: { file: 'foto-muestra.jpg', ox: 0, oy: 0 },
 
   secciones: [
     { titulo: 'Paquete', campos: [
-      { id: 'showFrase', label: 'Mostrar "Viví el encanto de:"', tipo: 'check', valor: true },
+      { id: 'frase', label: 'Frase de arriba (opcional)', max: 24, hint: 'Va en letra manuscrita. Dejala vacía para no mostrarla.', valor: 'Vivi el encanto de:' },
       { id: 'destino', label: 'Destino', tipo: 'textarea', filas: 2, max: 24, lineas: 2, hint: 'Corto. Máximo 2 líneas (Enter = salto de línea).', valor: 'Maragogi' },
-      { id: 'pais', label: 'País o región (va en el pin)', max: 18, valor: 'Brasil' },
+      { id: 'pais', label: 'País (va en el pin)', max: 14, hint: 'Solo el país. Ej: Brasil, México, Caribe.', valor: 'Brasil' },
       { id: 'fecha', label: 'Fecha / salida (opcional)', max: 20, hint: 'Si la cargás, va arriba de la lista en negrita.', valor: '' },
       { id: 'incluye', label: 'Qué incluye', tipo: 'textarea', filas: 4, max: 80, lineas: 5, hint: 'Un ítem por línea, hasta 5. Ej: Aéreos / 7 Noches / Traslados / Desayuno', valor: 'Aéreos\n7 Noches\nTraslados\nDesayuno' }
     ]},
@@ -36,11 +36,12 @@ window.PlantillaFlyer = {
   ia: { destino: 'destino', pais: 'pais', fecha: 'fecha', incluye: 'incluye', precio: 'precio', moneda: 'moneda', aclaracion: 'base' },
 
   ajustes: [
+    { id: 'altura', label: 'Altura del título', hint: 'más a la derecha = más arriba', min: -100, max: 200, step: 1, valor: 0 },
     { id: 'luz', label: 'Luz detrás del texto', hint: 'aclara la izquierda de la foto', min: 0, max: 2, step: 0.01, valor: 1 }
   ],
 
   dibujar(ctx, h) {
-    const W = h.W, H = h.H, FONT = "'Titulos AVM'";
+    const W = h.W, H = h.H, FONT = "'Gilroy AVM'";
     const C = { white: '#F9F7F7', violeta: '#5E2D89', verde: '#013834' };
     const font = (w, s) => `${w} ${s}px ${FONT}`;
     const fit = (t, w, s, maxW) => {
@@ -56,8 +57,8 @@ window.PlantillaFlyer = {
     const cuadrado = h.formato === 'cuadrado';
     // s = escala del bloque de arriba (frase, destino, pin, lista); ps = escala del precio; zs = escala de ola y logo
     const L = cuadrado
-      ? { s: .72, firstBase: 286, listaMin: 0, ps: .64, py: 610, zs: .72, zy: 1080 - 340, logoY: 948 }
-      : { s: 1, firstBase: 527, listaMin: 882.6, ps: 1, py: 1205, zs: 1, zy: 1340, logoY: 1606 };
+      ? { s: .55, base: 212, listaMin: 0, ps: .64, py: 610, boxMax: 520, zs: .72, zh: .62, zy: 1080 - 360 }
+      : { s: 1, base: 527, listaMin: 882.6, ps: 1, py: 1205, boxMax: 700, zs: 1, zh: 1, zy: 1340 };
     const s = L.s;
 
     // 1. Foto y luz suave a la izquierda (como la capa "Luz suave" del PSD)
@@ -77,12 +78,16 @@ window.PlantillaFlyer = {
     const tope = 940;
     if (maxW > tope) { const f = tope / maxW; tSize *= f; lead *= f; ctx.font = font(900, tSize); maxW = Math.max(...lines.map(l => ctx.measureText(l).width)); }
     h.aviso('destino', tSize < 184.9 * s ? 'El texto es largo: se achicó para que entre.' : '');
-    const firstBase = L.firstBase, lastBase = firstBase + lead * (lines.length - 1);
-    if (h.on('showFrase')) {
-      const fw = 609 * s, fh = 88 * s;
-      ctx.drawImage(h.img.frase, 540 + 46.5 * s - fw / 2, firstBase - 198 * s, fw, fh);
+    // La última línea queda fija y el título crece hacia arriba (así no baja sobre la foto)
+    const lastBase = L.base - h.n('altura') * (cuadrado ? .6 : 1), firstBase = lastBase - lead * (lines.length - 1);
+    const frase = v('frase').trim();
+    if (frase) {
+      const ff = 102 * s;
+      ctx.font = `400 ${ff}px 'Travellia AVM'`; ctx.textAlign = 'center';
+      ctx.lineJoin = 'round'; ctx.lineWidth = 3 * s; ctx.strokeStyle = '#F0F2F4'; ctx.fillStyle = C.white;
+      ctx.strokeText(frase, 540 + 51 * s, firstBase - 115 * s); ctx.fillText(frase, 540 + 51 * s, firstBase - 115 * s);
     }
-    ctx.fillStyle = C.white; ctx.textAlign = 'center';
+    ctx.font = font(900, tSize); ctx.fillStyle = C.white; ctx.textAlign = 'center';
     lines.forEach((l, i) => ctx.fillText(l, 540, firstBase + lead * i));
 
     // 3. Pin con el país (la etiqueta verde se estira según el texto)
@@ -116,8 +121,9 @@ window.PlantillaFlyer = {
 
     // 5. Ola, logo y precio
     const zs = L.zs;
-    ctx.drawImage(h.img.zocalo, 525 - 701 * zs, L.zy, 1402 * zs, 580 * zs);
-    ctx.drawImage(h.img.logo, 538 - 344 * zs, L.logoY, 688 * zs, 168 * zs);
+    // La ola ocupa siempre todo el ancho; en el cuadrado se aplana (zh) para que no tape la foto
+    ctx.drawImage(h.img.zocalo, -176, L.zy, 1402, 580 * L.zh);
+    ctx.drawImage(h.img.logo, 538 - 344 * zs, L.zy + 266 * L.zh, 688 * zs, 168 * zs);   // mismo lugar sobre la ola que en el PSD
 
     const p = v('precio').trim();
     if (p) {
@@ -125,7 +131,7 @@ window.PlantillaFlyer = {
       const nSize = 156 * ps, mSize = 113.6 * ps;
       ctx.font = font(900, nSize); let wn = ctx.measureText(p).width;
       ctx.font = font(900, mSize); let wm = ctx.measureText(' ' + mon).width;
-      let k2 = Math.min(1, (900 - 44 * ps) / (wn + wm));   // si no entra ni estirando la caja, se achica
+      let k2 = Math.min(1, (L.boxMax - 73 * ps) / (wn + wm));   // la caja crece hasta un tope; después se achica el número
       const x0 = 44 * ps, textR = x0 + (wn + wm) * k2;
       const boxR = Math.max(550 * ps, textR + 29 * ps);
       rrect(-87, Y, boxR + 87, 240 * ps, 50 * ps); ctx.fillStyle = C.violeta; ctx.fill();
