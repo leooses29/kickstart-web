@@ -51,4 +51,6 @@ Variables de entorno en Netlify (Site configuration → Environment variables):
   Usa `/api/ia` con la acción `flyer`, descuenta 1 crédito (los mismos del Generador de Guiones) y queda registrado en
   Netlify Blobs (`flyers/<mes>/`), visible en el panel interno. Las instrucciones están en `netlify/lib/instrucciones-flyer.mjs`.
   Cada plantilla indica qué campo completa cada dato (`ia` en `plantilla.js`) y los límites de cada campo (`max`, `lineas`).
-- Plantillas cargadas: GF Travel (historia 1080×1920).
+- Formatos: cada plantilla define los suyos en `formatos` (la agencia elige en la vista previa y puede descargar todos juntos;
+  cada formato guarda su propio encuadre de la foto). `dibujar` recibe `h.formato`, `h.W` y `h.H`.
+- Plantillas cargadas: GF Travel (historia 1080×1920 y cuadrado 1080×1080).
