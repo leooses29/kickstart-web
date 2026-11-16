@@ -53,4 +53,21 @@ Variables de entorno en Netlify (Site configuration → Environment variables):
   Cada plantilla indica qué campo completa cada dato (`ia` en `plantilla.js`) y los límites de cada campo (`max`, `lineas`).
 - Formatos: cada plantilla define los suyos en `formatos` (la agencia elige en la vista previa y puede descargar todos juntos;
   cada formato guarda su propio encuadre de la foto). `dibujar` recibe `h.formato`, `h.W` y `h.H`.
+- **Guardar en Drive**: el botón "Guardar en Paquetes vigentes (Drive)" sube el flyer del formato que se está viendo a la
+  carpeta "Paquetes vigentes" de la agencia. Solo aparece si la agencia tiene carpeta en `netlify/lib/carpetas-paquetes.mjs`
+  (id de la agencia → id de la carpeta de Drive) y si están configuradas las variables de abajo. La función es
+  `netlify/functions/flyer-drive.mjs` (`/api/flyer-drive`) y la subida la hace una aplicación web de Google Apps Script
+  (`tools/drive-flyers.gs`) con la cuenta de Kickstart, que solo guarda en carpetas cuyo nombre diga "Paquetes vigentes".
+
+  Configuración (una sola vez):
+  1. Con la cuenta de Kickstart que puede editar las carpetas, entrar a script.google.com → Nuevo proyecto, pegar
+     `tools/drive-flyers.gs` y guardar.
+  2. Configuración del proyecto (engranaje) → Propiedades del script → agregar `SECRETO` con una clave larga inventada.
+  3. Elegir la función `autorizar` → Ejecutar → aceptar los permisos de Drive.
+  4. Implementar → Nueva implementación → Tipo: Aplicación web → Ejecutar como: Yo → Quién tiene acceso: Cualquier persona → Implementar.
+     Copiar la URL que termina en `/exec`.
+  5. En Netlify → Site configuration → Environment variables: `DRIVE_WEBAPP_URL` = esa URL y `DRIVE_SECRET` = la misma clave
+     del paso 2. Volver a publicar el sitio (Deploys → Trigger deploy).
+
+  Para sumar otra agencia: agregar su línea en `netlify/lib/carpetas-paquetes.mjs`.
 - Plantillas cargadas: GF Travel (historia 1080×1920 y cuadrado 1080×1080).
