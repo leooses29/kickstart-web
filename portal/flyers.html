@@ -109,6 +109,7 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
         <div class="tip">Arrastrá la foto sobre el flyer para encuadrarla. También podés soltar una foto encima.</div>
         <button type="button" class="btn btn-primary js-bajar">Descargar PNG</button>
         <button type="button" class="btn btn-ghost sm js-bajar-todo" style="width:min(100%,440px); justify-content:center;" hidden>Descargar todos los formatos</button>
+        <button type="button" class="btn btn-ghost sm js-drive" style="width:min(100%,440px); justify-content:center;" hidden>Guardar en Paquetes vigentes (Drive)</button>
         <div class="tip js-msg" aria-live="polite"></div>
       </div>
     </div>
@@ -333,6 +334,31 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
       await new Promise(r => setTimeout(r, 400));   // algunos navegadores frenan descargas seguidas
     }
     $('.js-msg').textContent = 'Listo: ' + nombres.join(' · ');
+  };
+
+  // 7. Guardar en la carpeta "Paquetes vigentes" de la agencia en Google Drive (solo si tiene una configurada)
+  async function apiDrive(body) {
+    const r = await fetch('/api/flyer-drive', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: s.slug, code: s.code, ...body }) });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 401) { Portal.salir(); throw new Error('sesion'); }
+    if (!r.ok) throw new Error(j.error || 'red');
+    return j;
+  }
+  apiDrive({ accion: 'estado' }).then(j => { if (j.carpeta && j.configurado) $('.js-drive').hidden = false; }).catch(() => {});
+  const blobB64 = (c, tipo, q) => new Promise(ok => c.toBlob(b => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1]); fr.readAsDataURL(b); }, tipo, q));
+  $('.js-drive').onclick = async () => {
+    const btn = $('.js-drive'); btn.disabled = true; btn.textContent = 'Guardando en Drive…';
+    try {
+      draw();
+      let tipo = 'image/png', datos = await blobB64(cv, tipo);
+      if (datos.length > 5_000_000) { tipo = 'image/jpeg'; datos = await blobB64(cv, tipo, 0.92); }   // fotos muy pesadas
+      const partes = [h.v('destino').replace(/\s+/g, ' ').trim() || 'Flyer', h.on('showFecha') ? h.v('fecha').trim() : '', FORMATOS.length > 1 ? fmt.nombre : ''];
+      const nombre = partes.filter(Boolean).join(' - ') + (tipo === 'image/png' ? '.png' : '.jpg');
+      const j = await apiDrive({ accion: 'guardar', nombre, tipo, datos });
+      $('.js-msg').innerHTML = `Guardado en Paquetes vigentes: <a href="${esc(Portal.urlSegura(j.url))}" target="_blank" rel="noopener" style="color:var(--yellow);">${esc(j.nombre)} ↗</a>`;
+    } catch (e) {
+      if (e.message !== 'sesion') $('.js-msg').textContent = e.message === 'sin_carpeta' ? 'Tu carpeta de Paquetes vigentes todavía no está configurada. Avisale a Kickstart.' : 'No pudimos guardarlo en Drive. Probá de nuevo; mientras tanto podés descargarlo.';
+    } finally { btn.disabled = false; btn.textContent = 'Guardar en Paquetes vigentes (Drive)'; }
   };
 })();
 </script>
