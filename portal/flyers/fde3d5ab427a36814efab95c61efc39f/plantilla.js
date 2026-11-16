@@ -22,24 +22,27 @@ window.PlantillaFlyer = {
 
   secciones: [
     { titulo: 'Paquete', campos: [
-      { id: 'destino', label: 'Destino', tipo: 'textarea', filas: 2, hint: 'Enter = salto de línea', valor: 'Porto de\nGalinhas' },
-      { id: 'fecha', label: 'Fecha / salida', valor: 'Enero 2027' },
+      { id: 'destino', label: 'Destino', tipo: 'textarea', filas: 2, max: 30, lineas: 2, hint: 'Corto. Máximo 2 líneas (Enter = salto de línea).', valor: 'Porto de\nGalinhas' },
+      { id: 'fecha', label: 'Fecha / salida', max: 18, hint: 'Ej: Enero 2027 · Salida 14/03 · Semana Santa', valor: 'Enero 2027' },
       { id: 'showFecha', label: 'Mostrar fecha', tipo: 'check', valor: true },
-      { id: 'incluye', label: 'Qué incluye', valor: 'Aéreos - 7 Noches - Traslados - desayuno' },
-      { id: 'cta', label: 'Llamado a la acción', valor: 'Reservá Hoy' },
+      { id: 'incluye', label: 'Qué incluye', max: 48, hint: '2 a 4 ítems cortos separados por guiones.', valor: 'Aéreos - 7 Noches - Traslados - desayuno' },
+      { id: 'cta', label: 'Llamado a la acción', max: 14, valor: 'Reservá Hoy' },
       { id: 'showCta', label: 'Mostrar llamado a la acción', tipo: 'check', valor: true }
     ]},
     { titulo: 'Precio', campos: [
-      { id: 'desde', label: 'Texto superior', valor: 'desde', medio: true },
+      { id: 'desde', label: 'Texto superior', max: 10, valor: 'desde', medio: true },
       { id: 'moneda', label: 'Moneda', tipo: 'select', opciones: ['usd', 'ars', '$', 'eur'], valor: 'usd', medio: true },
-      { id: 'precio', label: 'Precio', valor: '1450' },
-      { id: 'base', label: 'Aclaración', valor: 'por persona - base doble' }
+      { id: 'precio', label: 'Precio', max: 10, hint: 'Solo el número. Si hay varios, el más bajo.', valor: '1450' },
+      { id: 'base', label: 'Aclaración', max: 28, valor: 'por persona - base doble' }
     ]},
     { titulo: 'Legales', campos: [
-      { id: 'legales', label: 'Texto legal', tipo: 'textarea', filas: 3, hint: 'Hasta 4 líneas. Si el precio es en pesos, cambiá la moneda acá también.',
+      { id: 'legales', label: 'Texto legal', tipo: 'textarea', filas: 3, max: 300, lineas: 4, hint: 'Hasta 4 líneas. Si el precio es en pesos, cambiá la moneda acá también.',
         valor: 'Tarifa dinámica sujeta a disponibilidad. Incluye impuestos.\nTarifa expresada en moneda dólar estadounidense. Tarifa en BASE DOBLE.\nGF Travel SRL Leg 17169' }
     ]}
   ],
+  // Qué campo completa cada dato del ordenador de información (IA)
+  ia: { destino: 'destino', fecha: 'fecha', incluye: 'incluye', cta: 'cta', precio: 'precio', moneda: 'moneda', aclaracion: 'base' },
+
   ajustes: [
     { id: 'altura', label: 'Altura del bloque de texto', hint: 'más a la derecha = más arriba', min: 0, max: 300, step: 1, valor: 170 },
     { id: 'oscuro', label: 'Oscurecido del fondo', min: 0, max: 1.3, step: 0.01, valor: 1 }
@@ -111,15 +114,19 @@ window.PlantillaFlyer = {
       const w = f.w + 81, x = 557 - w / 2; leaf(x, 847 + dy, w, 58, 58, C.yellow);
       ctx.font = font(700, f.size); ctx.fillStyle = C.white; ctx.fillText(t, x + 49, 890.1 + dy);
     }
-    // 6. Precio
+    // 6. Precio (sin precio cargado, no va la caja)
+    const p = v('precio').trim();
+    if (p) {
     leaf(648, 1432, 602, 178, 80, C.red);
     ctx.fillStyle = C.white; ctx.textAlign = 'left';
     ctx.font = font(300, 33.3); ctx.fillText(v('desde'), 692, 1476);
-    const p = v('precio').trim(), fp = fit(p, 700, 119.3, 312);
+    const fp = fit(p, 700, 119.3, 312);
     ctx.font = font(700, fp.size); ctx.fillText(p, 682, 1569);
     ctx.save(); ctx.translate(682 + fp.w + 46, 1525); ctx.rotate(-Math.PI / 2); ctx.textAlign = 'center';
     const fm = fit(v('moneda'), 700, 47, 160); ctx.font = font(700, fm.size); ctx.fillText(v('moneda'), 0, 0); ctx.restore();
     ctx.textAlign = 'left'; ctx.font = font(300, fit(v('base'), 300, 24, 340).size); ctx.fillText(v('base'), 689, 1592);
+    }
+    h.aviso('legales', v('moneda') !== 'usd' && /d[óo]lar/i.test(v('legales')) ? 'Ojo: el texto legal habla de dólares y el precio está en otra moneda.' : '');
     // 7. Logo inferior y legales
     ctx.drawImage(h.img.logoInf, 314, 1726, 429, 71);
     ctx.fillStyle = C.legal; ctx.textAlign = 'center';

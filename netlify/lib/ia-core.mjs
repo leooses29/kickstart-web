@@ -1,6 +1,7 @@
 // Lógica del Generador de Guiones del portal: créditos mensuales por agencia, llamada a la IA y registro de usos.
 // Las dependencias (almacenamiento, verificación de la agencia, llamada a la IA) se inyectan para poder probarla.
 import { INSTRUCCIONES } from './instrucciones.mjs';
+import { INSTRUCCIONES_FLYER } from './instrucciones-flyer.mjs';
 
 export const CREDITOS_POR_DEFECTO = 40;
 const MAX = { destino: 80, paquete: 900, precio: 160, publico: 120, palabra: 24, extra: 400, ajuste: 300 };
@@ -48,17 +49,18 @@ export function extraerJSON(texto) {
   return o;
 }
 
-export async function llamarClaude({ apiKey, model, pedido, fetchImpl = fetch }) {
+// pedido: texto, o lista de bloques (texto, imagen, PDF). system: instrucciones (por defecto, las del Generador de Guiones).
+export async function llamarClaude({ apiKey, model, pedido, system = INSTRUCCIONES, maxTokens = 4000, fetchImpl = fetch }) {
   const r = await fetchImpl('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
     body: JSON.stringify({
-      model, max_tokens: 4000,
+      model, max_tokens: maxTokens,
       // Sin razonamiento previo y con esfuerzo bajo: el guion es corto, así sale más rápido y más barato.
       // (Sonnet no acepta "disabled"; "between_tools" equivale a no pensar cuando no hay herramientas.)
       thinking: { type: /haiku/.test(model) ? 'disabled' : 'between_tools' },
       output_config: { effort: 'low' },
-      system: [{ type: 'text', text: INSTRUCCIONES, cache_control: { type: 'ephemeral' } }],
+      system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
       messages: [{ role: 'user', content: pedido }],
     }),
   });
@@ -70,6 +72,54 @@ export async function llamarClaude({ apiKey, model, pedido, fetchImpl = fetch })
   const texto = (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
   if (j.stop_reason && j.stop_reason !== 'end_turn') console.error('Generador de guiones: stop_reason', j.stop_reason);
   return { texto, uso: j.usage || {} };
+}
+
+// --- Generador de flyers: ordenar la información de un paquete ---
+export const MAX_FLYER = { texto: 8000, archivoB64: 5_500_000 };
+const TIPOS_FLYER = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
+
+export function limpiarEntradaFlyer(body = {}) {
+  const texto = recortar(body.texto, MAX_FLYER.texto);
+  let archivo = null;
+  if (body.archivo && body.archivo.datos) {
+    const tipo = String(body.archivo.tipo || '');
+    const datos = String(body.archivo.datos).replace(/^data:[^,]*,/, '');
+    if (!TIPOS_FLYER.includes(tipo)) return { error: 'tipo_archivo' };
+    if (datos.length > MAX_FLYER.archivoB64 || !/^[A-Za-z0-9+/=\s]+$/.test(datos.slice(0, 2000))) return { error: 'archivo_grande' };
+    archivo = { tipo, datos };
+  }
+  if (!texto && !archivo) return { error: 'vacio' };
+  return { texto, archivo };
+}
+
+export function armarPedidoFlyer({ texto, archivo }) {
+  const bloques = [];
+  if (archivo) {
+    bloques.push(archivo.tipo === 'application/pdf'
+      ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: archivo.datos } }
+      : { type: 'image', source: { type: 'base64', media_type: archivo.tipo, data: archivo.datos } });
+  }
+  bloques.push({ type: 'text', text: 'Ordená esta información para el flyer.' + (archivo ? ' La información principal está en el archivo adjunto.' : '') +
+    (texto ? `\n\nInformación del paquete que cargó la agencia:\n${texto}` : '') });
+  return bloques;
+}
+
+const LIM_FLYER = { destino: 40, fecha: 22, incluye: 60, cta: 18, precio: 14, aclaracion: 34 };
+export function extraerFlyer(texto) {
+  const a = texto.indexOf('{'), b = texto.lastIndexOf('}');
+  if (a < 0 || b <= a) throw new Error('respuesta_invalida');
+  const o = JSON.parse(texto.slice(a, b + 1));
+  const s = (k) => String(o[k] == null ? '' : o[k]).trim().slice(0, LIM_FLYER[k]);
+  const lista = (x) => (Array.isArray(x) ? x : []).map(v => String(v).trim()).filter(Boolean).slice(0, 12).map(v => v.slice(0, 200));
+  const moneda = String(o.moneda || '').toLowerCase().trim();
+  return {
+    destino: s('destino').split('\n').map(l => l.trim()).filter(Boolean).slice(0, 2).join('\n'),
+    fecha: s('fecha'), incluye: s('incluye'), cta: s('cta'),
+    precio: s('precio').replace(/[^0-9.,]/g, ''),
+    moneda: ['usd', 'ars', 'eur'].includes(moneda) ? moneda : '',
+    aclaracion: s('aclaracion'),
+    descartado: lista(o.descartado), dudas: lista(o.dudas),
+  };
 }
 
 // --- Créditos ---
@@ -143,6 +193,33 @@ export async function manejar(body, deps) {
     return [200, { id, resultado: salida, creditos: resumenCreditos(datos, c2, env, mes) }];
   }
 
+  if (accion === 'flyer') {
+    const entrada = limpiarEntradaFlyer(body);
+    if (entrada.error) return [400, { error: entrada.error }];
+    const limite = limiteDe(datos, c, env);
+    if ((c.usados || 0) >= limite) return [402, { error: 'sin_creditos', creditos: resumenCreditos(datos, c, env, mes) }];
+    let salida, uso;
+    try {
+      const r = await ia(armarPedidoFlyer(entrada), { system: INSTRUCCIONES_FLYER, maxTokens: 1500 });
+      uso = r.uso;
+      try { salida = extraerFlyer(r.texto); }
+      catch (e) { e.detalle = String(r.texto || '').slice(0, 300); throw e; }
+    } catch (e) {
+      console.error('Ordenar flyer:', e.message, e.status || '', e.detalle || '');
+      return [502, { error: 'ia', creditos: resumenCreditos(datos, c, env, mes) }];
+    }
+    const c2 = await leerCreditos(store, slug, mes);
+    c2.usados = (c2.usados || 0) + 1;
+    await store.setJSON(`creditos/${slug}/${mes}`, c2);
+    // Registro sin el archivo (solo tipo y tamaño), para el panel de Kickstart
+    await store.setJSON(`flyers/${mes}/${ahora.getTime()}-${slug}`, {
+      fecha: ahora.toISOString(), slug, agencia, texto: entrada.texto.slice(0, 2000),
+      archivo: entrada.archivo ? { tipo: entrada.archivo.tipo, kb: Math.round(entrada.archivo.datos.length * 0.75 / 1024) } : null,
+      salida, modelo: env.ANTHROPIC_MODEL || '', uso: uso || {},
+    });
+    return [200, { resultado: salida, creditos: resumenCreditos(datos, c2, env, mes) }];
+  }
+
   if (accion === 'voto') {
     const id = String(body.id || '').replace(/[^a-z0-9-]/gi, '');
     const key = `registros/${mes}/${id}`;
@@ -191,6 +268,16 @@ export async function manejarAdmin(body, deps) {
     a.guiones++; if (r.voto === 1) a.positivos++; if (r.voto === -1) a.negativos++;
     a.tokensEntrada += (r.uso.input_tokens || 0) + (r.uso.cache_read_input_tokens || 0) + (r.uso.cache_creation_input_tokens || 0);
     a.tokensSalida += r.uso.output_tokens || 0;
+  }
+  // Usos del ordenador de información del Generador de flyers (usan los mismos créditos)
+  const lf = await store.list({ prefix: `flyers/${mes}/` });
+  for (const b of lf.blobs || []) {
+    const r = await store.get(b.key, { type: 'json' }); if (!r) continue;
+    const a = agencias[r.slug] || (agencias[r.slug] = { slug: r.slug, agencia: r.agencia, guiones: 0, positivos: 0, negativos: 0, tokensEntrada: 0, tokensSalida: 0 });
+    a.flyers = (a.flyers || 0) + 1;
+    const u = r.uso || {};
+    a.tokensEntrada += (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0);
+    a.tokensSalida += u.output_tokens || 0;
   }
   for (const a of Object.values(agencias)) a.creditos = await leerCreditos(store, a.slug, mes);
   return [200, { mes, agencias: Object.values(agencias), registros }];

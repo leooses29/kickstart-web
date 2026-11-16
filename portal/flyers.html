@@ -33,6 +33,23 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
 .estado{margin:40px auto; text-align:center; color:var(--muted); font-size:15px; line-height:1.6; max-width:46ch;}
 .btn[disabled]{opacity:.5; pointer-events:none;}
 [hidden]{display:none !important;}
+.lbl{display:flex; justify-content:space-between; align-items:baseline; gap:10px;}
+.cnt{font-size:11px; color:var(--muted-2); font-variant-numeric:tabular-nums; white-space:nowrap;}
+.cnt.lleno{color:var(--yellow);}
+.ia-box{display:flex; flex-direction:column; gap:12px; padding:18px; border:1px solid rgba(255,193,7,.35); border-radius:var(--r-md); background:rgba(255,193,7,.05);}
+.ia-box textarea{min-height:110px;}
+.ia-paso{font-size:13px; color:var(--muted); line-height:1.5;}
+.ia-arch{display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:13px; color:var(--muted);}
+.ia-arch b{color:var(--white); font-weight:500; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.mini{background:none; border:1px solid var(--line-2); color:var(--white); border-radius:10px; padding:7px 12px; font:600 12px var(--f); cursor:pointer; white-space:nowrap;}
+.mini:hover{border-color:var(--yellow);}
+.aviso{font-size:13px; line-height:1.5; border-radius:var(--r-sm); padding:12px 14px; border:1px solid rgba(255,193,7,.3); background:rgba(255,193,7,.07); color:var(--yellow);}
+.aviso.err{border-color:rgba(255,99,99,.35); background:rgba(255,99,99,.08); color:#FF9B9B;}
+.aviso.ok{border-color:rgba(120,220,140,.35); background:rgba(120,220,140,.07); color:#9BE3AA;}
+.ia-res{display:flex; flex-direction:column; gap:10px;}
+.ia-res ul{margin:4px 0 0; padding-left:18px; font-size:13px; color:var(--muted); line-height:1.55;}
+.gira{display:inline-block; width:14px; height:14px; border-radius:50%; border:2px solid rgba(10,10,10,.25); border-top-color:#0A0A0A; animation:gira 1s linear infinite; vertical-align:-2px; margin-right:8px;}
+@keyframes gira{to{transform:rotate(360deg);}}
 @media (max-width:900px){ .fl-grid{grid-template-columns:1fr;} .fl-prev{position:static; order:-1;} .portal-main{padding:28px 16px;} }
 </style>
 </head>
@@ -53,7 +70,21 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
 
     <div class="fl-grid js-app" hidden>
       <form class="card fl-form js-form" novalidate autocomplete="off">
-        <div class="sec-t">Imagen de fondo</div>
+        <div class="ia-box js-ia" hidden>
+          <div class="sec-t" style="margin:0; color:var(--yellow);">1 · Ordená la info del paquete</div>
+          <div class="ia-paso">Pegá toda la información del paquete o subí la foto de un flyer o el PDF del operador. Te dejamos solo lo que va en el flyer: destino, fecha, qué incluye, llamado a la acción, precio y aclaración.</div>
+          <textarea class="js-ia-texto" maxlength="8000" placeholder="Ej: Porto de Galinhas – Salidas 10/01, 17/01 y 24/01 desde Córdoba. Aéreo directo, 7 noches en Hotel …, desayuno, traslados in/out. Base doble USD 1.450 por persona, base triple USD 1.390…"></textarea>
+          <div class="ia-arch">
+            <button type="button" class="mini js-ia-subir">Adjuntar imagen o PDF</button>
+            <span class="js-ia-nombre"></span>
+            <input type="file" class="js-ia-file" accept="image/*,application/pdf" hidden>
+          </div>
+          <div class="aviso err js-ia-err" role="alert" hidden></div>
+          <button type="button" class="btn btn-primary sm js-ia-go" style="justify-content:center;">Ordenar para el flyer · 1 crédito</button>
+          <div class="hint js-ia-cred" style="margin:0;"></div>
+          <div class="ia-res js-ia-res" aria-live="polite" hidden></div>
+        </div>
+        <div class="sec-t js-paso2">Imagen de fondo</div>
         <div class="fl-btns">
           <button type="button" class="btn btn-ghost sm js-subir">Subir foto</button>
           <button type="button" class="btn btn-ghost sm js-centrar">Centrar</button>
@@ -109,12 +140,13 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
   const esc = Portal.esc;
   const campo = c => {
     const id = 'c-' + c.id, hint = c.hint ? `<div class="hint">${esc(c.hint)}</div>` : '';
+    const ml = c.max ? ` maxlength="${c.max}"` : '', cnt = c.max ? `<span class="cnt" id="n-${esc(c.id)}"></span>` : '';
     if (c.tipo === 'check') return `<label class="check"><input type="checkbox" id="${id}" ${c.valor ? 'checked' : ''}> ${esc(c.label)}</label>`;
     let input;
-    if (c.tipo === 'textarea') input = `<textarea id="${id}" rows="${c.filas || 2}">${esc(c.valor || '')}</textarea>`;
+    if (c.tipo === 'textarea') input = `<textarea id="${id}" rows="${c.filas || 2}"${ml}>${esc(c.valor || '')}</textarea>`;
     else if (c.tipo === 'select') input = `<select id="${id}">${c.opciones.map(o => `<option${o === c.valor ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
-    else input = `<input id="${id}" value="${esc(c.valor || '')}">`;
-    return `<div><label for="${id}">${esc(c.label)}</label>${input}${hint}<div class="warn" id="w-${esc(c.id)}"></div></div>`;
+    else input = `<input id="${id}" value="${esc(c.valor || '')}"${ml}>`;
+    return `<div><label for="${id}" class="lbl"><span>${esc(c.label)}</span>${cnt}</label>${input}${hint}<div class="warn" id="w-${esc(c.id)}"></div></div>`;
   };
   $('.js-campos').innerHTML = P.secciones.map(sec => {
     let html = `<div class="sec-t">${esc(sec.titulo)}</div>`, par = [];
@@ -126,6 +158,18 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
   }).join('');
   $('.js-ajustes').innerHTML = (P.ajustes || []).map(a => `<div><label for="a-${a.id}">${esc(a.label)}${a.hint ? ` <span style="font-weight:400; color:var(--muted-2);">(${esc(a.hint)})</span>` : ''}</label><input type="range" id="a-${a.id}" min="${a.min}" max="${a.max}" step="${a.step || 1}" value="${a.valor}"></div>`).join('');
   if (P.nombre) $('.js-formato').textContent = 'Formato: ' + P.nombre + '.';
+
+  // Límites de cada campo: contador de caracteres y máximo de líneas
+  const CAMPOS = P.secciones.flatMap(sec => sec.campos);
+  function limitar(c) {
+    const el = document.getElementById('c-' + c.id); if (!el || !c.max) return;
+    if (c.lineas) { const ls = el.value.split('\n'); if (ls.length > c.lineas) el.value = ls.slice(0, c.lineas).join('\n'); }
+    if (el.value.length > c.max) el.value = el.value.slice(0, c.max);
+    const n = document.getElementById('n-' + c.id);
+    if (n) { n.textContent = el.value.length + '/' + c.max; n.classList.toggle('lleno', el.value.length >= c.max); }
+  }
+  CAMPOS.forEach(limitar);
+  $('.js-campos').addEventListener('input', e => { const c = CAMPOS.find(x => 'c-' + x.id === e.target.id); if (c) limitar(c); });
 
   // 3. Dibujar
   const cv = $('.js-cv'), ctx = cv.getContext('2d'); cv.width = P.W; cv.height = P.H;
@@ -172,7 +216,76 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
   stage.addEventListener('dragover', e => e.preventDefault());
   stage.addEventListener('drop', e => { e.preventDefault(); setFondo(e.dataTransfer.files[0]); });
 
-  // 5. Descargar
+  // 5. Ordenar la información con IA (texto, imagen o PDF) y completar los campos
+  if (P.ia) {
+    $('.js-ia').hidden = false;
+    $('.js-paso2').textContent = '2 · Imagen de fondo';
+    let adjunto = null;
+    const iaErr = t => { const el = $('.js-ia-err'); el.textContent = t || ''; el.hidden = !t; };
+    const cred = c => { if (c) $('.js-ia-cred').textContent = `Te quedan ${c.restantes} de ${c.limite} créditos este mes (los comparte con Guiones para anuncios).`; };
+    async function api(body) {
+      const r = await fetch('/api/ia', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: s.slug, code: s.code, ...body }) });
+      const j = await r.json().catch(() => ({}));
+      if (r.status === 401) { Portal.salir(); throw new Error('sesion'); }
+      if (j.creditos) cred(j.creditos);
+      if (!r.ok) throw new Error(j.error || 'red');
+      return j;
+    }
+    api({ accion: 'estado' }).catch(() => {});
+
+    // Imagen: se achica a 1600 px antes de mandarla. PDF: hasta 4 MB.
+    const leerB64 = f => new Promise((ok, mal) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1]); fr.onerror = mal; fr.readAsDataURL(f); });
+    async function prepararImagen(f) {
+      const im = await loadImg(URL.createObjectURL(f));
+      const k = Math.min(1, 1600 / Math.max(im.width, im.height));
+      const c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
+      return { tipo: 'image/jpeg', datos: c.toDataURL('image/jpeg', 0.85).split(',')[1] };
+    }
+    $('.js-ia-subir').onclick = () => $('.js-ia-file').click();
+    $('.js-ia-file').onchange = async e => {
+      const f = e.target.files[0]; e.target.value = ''; iaErr('');
+      if (!f) return;
+      try {
+        if (f.type === 'application/pdf') {
+          if (f.size > 4 * 1024 * 1024) { iaErr('El PDF pesa más de 4 MB. Probá con una captura de la página del paquete o pegá el texto.'); return; }
+          adjunto = { tipo: 'application/pdf', datos: await leerB64(f) };
+        } else if (f.type.startsWith('image/')) adjunto = await prepararImagen(f);
+        else { iaErr('Ese tipo de archivo no sirve. Subí una imagen (JPG o PNG) o un PDF.'); return; }
+        $('.js-ia-nombre').innerHTML = `<b>${esc(f.name)}</b> <button type="button" class="mini js-ia-quitar">Quitar</button>`;
+        $('.js-ia-quitar').onclick = () => { adjunto = null; $('.js-ia-nombre').innerHTML = ''; };
+      } catch (err) { iaErr('No pudimos leer ese archivo. Probá con otro.'); }
+    };
+
+    const ERR = { sin_creditos: 'Usaste todos los créditos de este mes. Se renuevan el 1° del mes que viene. Si necesitás más, escribile a Kickstart.',
+      sin_configurar: 'La herramienta todavía se está configurando. Mientras tanto podés completar los campos a mano.',
+      vacio: 'Pegá la información del paquete o adjuntá una imagen o PDF.', tipo_archivo: 'Ese tipo de archivo no sirve. Subí una imagen o un PDF.',
+      archivo_grande: 'El archivo es muy pesado. Probá con uno más liviano o pegá el texto.', ia: 'No pudimos ordenar la información esta vez (no se descontó el crédito). Probá de nuevo.' };
+    $('.js-ia-go').onclick = async () => {
+      iaErr('');
+      const texto = $('.js-ia-texto').value.trim();
+      if (!texto && !adjunto) { iaErr(ERR.vacio); return; }
+      const btn = $('.js-ia-go'); btn.disabled = true; btn.innerHTML = '<span class="gira"></span>Ordenando la información…';
+      try {
+        const { resultado: r } = await api({ accion: 'flyer', texto, archivo: adjunto });
+        // Completar los campos de la plantilla
+        Object.entries(P.ia).forEach(([dato, idCampo]) => {
+          const el = document.getElementById('c-' + idCampo); if (!el || r[dato] == null) return;
+          if (el.tagName === 'SELECT') { if (r[dato] && [...el.options].some(o => o.value === r[dato])) el.value = r[dato]; }
+          else el.value = r[dato];
+        });
+        CAMPOS.forEach(limitar); redraw();
+        const li = a => a.map(x => `<li>${esc(x)}</li>`).join('');
+        let html = '<div class="aviso ok">Listo: cargamos los datos en el flyer. Revisalos abajo antes de descargar.</div>';
+        if (r.dudas.length) html += `<div class="aviso"><b>Revisá</b><ul style="color:inherit;">${li(r.dudas)}</ul></div>`;
+        if (r.descartado.length) html += `<div><div class="sec-t" style="margin:4px 0 0;">Quedó afuera del flyer (usalo en el copy)</div><ul>${li(r.descartado)}</ul></div>`;
+        $('.js-ia-res').innerHTML = html; $('.js-ia-res').hidden = false;
+      } catch (e) { if (e.message !== 'sesion') iaErr(ERR[e.message] || 'Algo falló. Revisá la conexión y probá de nuevo.'); }
+      finally { btn.disabled = false; btn.textContent = 'Ordenar para el flyer · 1 crédito'; }
+    };
+  }
+
+  // 6. Descargar
   const slugTxt = t => t.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
   $('.js-bajar').onclick = () => {
     draw();

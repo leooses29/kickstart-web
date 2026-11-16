@@ -90,7 +90,7 @@ td.n{font-variant-numeric:tabular-nums;}
   function pintar() {
     $('.js-ag').innerHTML = datos.agencias.length ? datos.agencias.map(a => {
       const usd = (a.tokensEntrada * PRECIO_IN + a.tokensSalida * PRECIO_OUT) / 1e6;
-      return `<tr><td>${esc(a.agencia)}</td><td class="n">${a.creditos.usados || 0}</td><td class="n">${a.creditos.extra || 0}</td><td class="n">${a.guiones}</td><td class="n">${a.positivos}</td><td class="n">${a.negativos}</td><td class="n">USD ${usd.toFixed(2)}</td></tr>`;
+      return `<tr><td>${esc(a.agencia)}</td><td class="n">${a.creditos.usados || 0}</td><td class="n">${a.creditos.extra || 0}</td><td class="n">${a.guiones}${a.flyers ? ` <span style="color:var(--muted-2); font-size:12px;">+ ${a.flyers} flyer${a.flyers === 1 ? '' : 's'}</span>` : ''}</td><td class="n">${a.positivos}</td><td class="n">${a.negativos}</td><td class="n">USD ${usd.toFixed(2)}</td></tr>`;
     }).join('') : '<tr><td colspan="7" style="color:var(--muted);">Todavía no hay guiones este mes.</td></tr>';
     const regs = datos.registros.filter(r => filtro === 'todos' || (filtro === 'pos' && r.voto === 1) || (filtro === 'neg' && (r.voto === -1 || r.comentario)));
     $('.js-regs').innerHTML = regs.map(r => {
