@@ -3,9 +3,188 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Próximamente — Portal de Agencias · Kickstart Marketing</title>
-<meta http-equiv="refresh" content="0; url=dashboard.html">
-<style>body{background:#0A0A0A;color:#F6F5F1;font-family:system-ui,sans-serif;padding:40px}</style>
+<title>Generador de flyers — Portal de Agencias · Kickstart Marketing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+/* Generador de flyers: formulario a la izquierda · vista previa a la derecha.
+   La estética de cada agencia vive en portal/flyers/<id de la agencia>/plantilla.js */
+.fl-grid{display:grid; grid-template-columns:minmax(0,5fr) minmax(0,6fr); gap:24px; align-items:start;}
+.fl-form{display:flex; flex-direction:column; gap:14px; padding:24px;}
+.fl-form textarea{resize:vertical;}
+.sec-t{font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:10px 0 -2px;}
+.sec-t:first-child{margin-top:0;}
+.hint{font-size:12px; color:var(--muted-2); margin-top:6px; line-height:1.45;}
+.warn{font-size:12px; color:var(--yellow); margin-top:6px;}
+.warn:empty{display:none;}
+.row2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+.check{display:flex; align-items:center; gap:10px; font-size:14px; color:var(--muted); cursor:pointer;}
+.check input{width:18px; height:18px; accent-color:var(--yellow); margin:0;}
+input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none; background:none; box-shadow:none;}
+.fl-btns{display:flex; gap:10px;}
+.fl-btns .btn{flex:1; justify-content:center;}
+.fl-prev{position:sticky; top:24px; display:flex; flex-direction:column; align-items:center; gap:14px;}
+.stage{position:relative; width:min(100%,440px); aspect-ratio:9/16; border-radius:var(--r-md); overflow:hidden; background:#1A1A1A; border:1px solid var(--line); touch-action:none; cursor:grab;}
+.stage.dragging{cursor:grabbing;}
+.stage canvas{width:100%; height:100%; display:block;}
+.tip{font-size:12px; color:var(--muted-2); text-align:center; max-width:440px; line-height:1.5;}
+.fl-prev .btn-primary{width:min(100%,440px); justify-content:center;}
+.estado{margin:40px auto; text-align:center; color:var(--muted); font-size:15px; line-height:1.6; max-width:46ch;}
+.btn[disabled]{opacity:.5; pointer-events:none;}
+[hidden]{display:none !important;}
+@media (max-width:900px){ .fl-grid{grid-template-columns:1fr;} .fl-prev{position:static; order:-1;} .portal-main{padding:28px 16px;} }
+</style>
 </head>
-<body><p>Esta herramienta estará disponible próximamente. <a href="dashboard.html" style="color:#FFD000">Volver al panel</a></p></body>
+<body>
+
+<div class="page-frame" style="max-width:none;">
+<div class="portal-shell">
+  <div class="portal-sidebar"></div>
+
+  <div class="portal-main">
+    <div style="margin-bottom:28px;">
+      <div class="mono" style="color:var(--yellow); font-size:12px; letter-spacing:.1em; margin-bottom:6px;">HERRAMIENTAS</div>
+      <h1 style="font-size:34px;">Generador de flyers</h1>
+      <p style="color:var(--muted); font-size:14px; max-width:62ch; margin-top:8px; line-height:1.55;">Cargá los datos del paquete y una foto: el flyer sale con la estética de tu agencia, listo para publicar. <span class="js-formato"></span></p>
+    </div>
+
+    <div class="js-estado estado">Cargando tu plantilla…</div>
+
+    <div class="fl-grid js-app" hidden>
+      <form class="card fl-form js-form" novalidate autocomplete="off">
+        <div class="sec-t">Imagen de fondo</div>
+        <div class="fl-btns">
+          <button type="button" class="btn btn-ghost sm js-subir">Subir foto</button>
+          <button type="button" class="btn btn-ghost sm js-centrar">Centrar</button>
+        </div>
+        <input type="file" class="js-file" accept="image/*" hidden>
+        <div class="hint" style="margin-top:-6px;">Ideal: foto vertical de 1080×1920 o más.</div>
+        <div>
+          <label for="aj-zoom">Zoom</label>
+          <input type="range" id="aj-zoom" min="1" max="3" step="0.01" value="1">
+        </div>
+        <div class="js-ajustes" style="display:flex; flex-direction:column; gap:14px;"></div>
+        <div class="js-campos" style="display:flex; flex-direction:column; gap:14px;"></div>
+      </form>
+
+      <div class="fl-prev">
+        <div class="stage js-stage"><canvas class="js-cv"></canvas></div>
+        <div class="tip">Arrastrá la foto sobre el flyer para encuadrarla. También podés soltar una foto encima.</div>
+        <button type="button" class="btn btn-primary js-bajar">Descargar PNG</button>
+        <div class="tip js-msg" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script src="js/portal.js"></script>
+<script>
+(async function () {
+  const s = Portal.requerirSesion(); if (!s) return;
+  Portal.sidebar('flyers');
+  Portal.abrir(s.slug, s.code).then(d => Portal.sidebar('flyers', d)).catch(e => { if (e.message === 'codigo') Portal.salir(); });
+
+  const $ = sel => document.querySelector(sel);
+  const base = 'flyers/' + encodeURIComponent(s.slug) + '/';
+  const estado = t => { $('.js-estado').textContent = t; };
+
+  // 1. Cargar la plantilla de esta agencia
+  try {
+    await new Promise((ok, mal) => { const sc = document.createElement('script'); sc.src = base + 'plantilla.js'; sc.onload = ok; sc.onerror = mal; document.head.appendChild(sc); });
+  } catch (e) { estado('Tu plantilla de flyer todavía está en preparación. Escribinos y te avisamos cuando esté lista.'); return; }
+  const P = window.PlantillaFlyer;
+  if (!P) { estado('No pudimos abrir tu plantilla. Probá recargar la página.'); return; }
+
+  const loadImg = src => new Promise((ok, mal) => { const i = new Image(); i.onload = () => ok(i); i.onerror = mal; i.src = src; });
+  const img = {}, view = { zoom: 1, ox: 0, oy: 0 }; let fondo = null;
+  try {
+    await Promise.all((P.fuentes || []).map(async f => { const ff = new FontFace(f.family, `url(${base + f.file})`, { weight: String(f.weight) }); await ff.load(); document.fonts.add(ff); }));
+    await Promise.all(Object.entries(P.imagenes || {}).map(async ([k, f]) => { img[k] = await loadImg(base + f); }));
+    if (P.muestra) { fondo = await loadImg(base + P.muestra.file); view.ox = P.muestra.ox || 0; view.oy = P.muestra.oy || 0; }
+  } catch (e) { estado('No pudimos cargar los archivos de tu plantilla. Probá recargar la página.'); return; }
+
+  // 2. Armar el formulario desde la plantilla
+  const esc = Portal.esc;
+  const campo = c => {
+    const id = 'c-' + c.id, hint = c.hint ? `<div class="hint">${esc(c.hint)}</div>` : '';
+    if (c.tipo === 'check') return `<label class="check"><input type="checkbox" id="${id}" ${c.valor ? 'checked' : ''}> ${esc(c.label)}</label>`;
+    let input;
+    if (c.tipo === 'textarea') input = `<textarea id="${id}" rows="${c.filas || 2}">${esc(c.valor || '')}</textarea>`;
+    else if (c.tipo === 'select') input = `<select id="${id}">${c.opciones.map(o => `<option${o === c.valor ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+    else input = `<input id="${id}" value="${esc(c.valor || '')}">`;
+    return `<div><label for="${id}">${esc(c.label)}</label>${input}${hint}<div class="warn" id="w-${esc(c.id)}"></div></div>`;
+  };
+  $('.js-campos').innerHTML = P.secciones.map(sec => {
+    let html = `<div class="sec-t">${esc(sec.titulo)}</div>`, par = [];
+    sec.campos.forEach(c => {
+      if (c.medio) { par.push(campo(c)); if (par.length === 2) { html += `<div class="row2">${par.join('')}</div>`; par = []; } }
+      else { if (par.length) { html += par.join(''); par = []; } html += campo(c); }
+    });
+    return html + par.join('');
+  }).join('');
+  $('.js-ajustes').innerHTML = (P.ajustes || []).map(a => `<div><label for="a-${a.id}">${esc(a.label)}${a.hint ? ` <span style="font-weight:400; color:var(--muted-2);">(${esc(a.hint)})</span>` : ''}</label><input type="range" id="a-${a.id}" min="${a.min}" max="${a.max}" step="${a.step || 1}" value="${a.valor}"></div>`).join('');
+  if (P.nombre) $('.js-formato').textContent = 'Formato: ' + P.nombre + '.';
+
+  // 3. Dibujar
+  const cv = $('.js-cv'), ctx = cv.getContext('2d'); cv.width = P.W; cv.height = P.H;
+  function dibujarFondo() {
+    if (!fondo) { ctx.fillStyle = '#3a3a3a'; ctx.fillRect(0, 0, P.W, P.H); return; }
+    const sc = Math.max(P.W / fondo.width, P.H / fondo.height) * view.zoom, dw = fondo.width * sc, dh = fondo.height * sc;
+    const mx = (dw - P.W) / 2, my = (dh - P.H) / 2;
+    view.ox = Math.max(-mx, Math.min(mx, view.ox)); view.oy = Math.max(-my, Math.min(my, view.oy));
+    ctx.drawImage(fondo, (P.W - dw) / 2 + view.ox, (P.H - dh) / 2 + view.oy, dw, dh);
+  }
+  const h = {
+    v: id => { const el = document.getElementById('c-' + id); return el ? el.value : ''; },
+    on: id => { const el = document.getElementById('c-' + id); return !!(el && el.checked); },
+    n: id => { const el = document.getElementById('a-' + id); return el ? +el.value : 0; },
+    img, fondo: dibujarFondo,
+    aviso: (id, t) => { const el = document.getElementById('w-' + id); if (el) el.textContent = t; }
+  };
+  const draw = () => { ctx.clearRect(0, 0, P.W, P.H); ctx.save(); P.dibujar(ctx, h); ctx.restore(); };
+  let raf = 0; const redraw = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(draw); };
+
+  $('.js-estado').hidden = true; $('.js-app').hidden = false;
+  draw();
+
+  // 4. Foto de fondo: subir, soltar, arrastrar, zoom
+  async function setFondo(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    try { fondo = await loadImg(URL.createObjectURL(file)); view.zoom = 1; view.ox = 0; view.oy = 0; $('#aj-zoom').value = 1; redraw(); }
+    catch (e) { $('.js-msg').textContent = 'No se pudo abrir esa imagen. Probá con un JPG o PNG.'; }
+  }
+  $('.js-subir').onclick = () => $('.js-file').click();
+  $('.js-file').onchange = e => setFondo(e.target.files[0]);
+  $('.js-centrar').onclick = () => { view.zoom = 1; view.ox = 0; view.oy = 0; $('#aj-zoom').value = 1; redraw(); };
+  $('#aj-zoom').oninput = e => { view.zoom = +e.target.value; redraw(); };
+  $('.js-form').addEventListener('input', redraw);
+  $('.js-form').addEventListener('change', redraw);
+  $('.js-form').addEventListener('submit', e => e.preventDefault());
+
+  const stage = $('.js-stage'); let drag = null;
+  stage.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY }; stage.setPointerCapture(e.pointerId); stage.classList.add('dragging'); });
+  stage.addEventListener('pointermove', e => { if (!drag) return; const k = P.W / stage.clientWidth; view.ox += (e.clientX - drag.x) * k; view.oy += (e.clientY - drag.y) * k; drag = { x: e.clientX, y: e.clientY }; redraw(); });
+  const fin = () => { drag = null; stage.classList.remove('dragging'); };
+  stage.addEventListener('pointerup', fin); stage.addEventListener('pointercancel', fin);
+  stage.addEventListener('wheel', e => { e.preventDefault(); view.zoom = Math.max(1, Math.min(3, view.zoom - e.deltaY * 0.001)); $('#aj-zoom').value = view.zoom; redraw(); }, { passive: false });
+  stage.addEventListener('dragover', e => e.preventDefault());
+  stage.addEventListener('drop', e => { e.preventDefault(); setFondo(e.dataTransfer.files[0]); });
+
+  // 5. Descargar
+  const slugTxt = t => t.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
+  $('.js-bajar').onclick = () => {
+    draw();
+    cv.toBlob(blob => {
+      const nombre = [P.archivo || 'flyer', slugTxt(h.v('destino') || '')].filter(Boolean).join('-') + '.png';
+      const url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      $('.js-msg').textContent = 'Listo: ' + nombre;
+    }, 'image/png');
+  };
+})();
+</script>
+</body>
 </html>

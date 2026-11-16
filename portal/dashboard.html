@@ -55,8 +55,11 @@
           <div style="font-weight:600; font-size:17px;">Herramientas de IA</div>
           <div class="mono" style="font-size:11px; color:var(--yellow);">NUEVO</div>
         </div>
-        <div style="font-size:13px; color:var(--muted); line-height:1.5;">Guiones para anuncios de 20 a 25 segundos con la estrategia de Kickstart. Guiones para reels y generador de flyers, próximamente.</div>
-        <a href="guiones-ads.html" class="mono" style="font-size:13px; color:var(--yellow);">Crear un guion →</a>
+        <div style="font-size:13px; color:var(--muted); line-height:1.5;"><span class="js-herr">Guiones para anuncios de 20 a 25 segundos con la estrategia de Kickstart. Guiones para reels y generador de flyers, próximamente.</span></div>
+        <div style="display:flex; gap:18px; flex-wrap:wrap;">
+          <a href="guiones-ads.html" class="mono" style="font-size:13px; color:var(--yellow);">Crear un guion →</a>
+          <a href="flyers.html" class="mono js-flyer-link" style="font-size:13px; color:var(--yellow); display:none;">Crear un flyer →</a>
+        </div>
       </div>
     </div>
   </div>
@@ -69,6 +72,11 @@
     const s = Portal.requerirSesion(); if (!s) return;
     if (Portal.soloAnuncios(s)) { location.replace('reportes.html'); return; }
     Portal.sidebar('panel');
+    Portal.tieneFlyer().then(ok => {
+      if (!ok) return;
+      document.querySelector('.js-flyer-link').style.display = '';
+      document.querySelector('.js-herr').textContent = 'Guiones para anuncios de 20 a 25 segundos y flyers con la estética de tu agencia. Guiones para reels, próximamente.';
+    });
     document.querySelectorAll('.js-agencia').forEach(el => el.textContent = s.nombre || '');
     const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
     const hoy = new Date(); document.querySelector('.js-mes').textContent = MESES[hoy.getMonth()] + ' ' + hoy.getFullYear();
