@@ -136,12 +136,16 @@ window.PlantillaFlyer = {
       ctx.font = font(700, f.size); ctx.fillStyle = C.white; ctx.fillText(t, x + 49 * s, ctaY + 43.1 * s);
     }
     // 6. Precio (sin precio cargado, no va la caja)
-    const p = v('precio').trim(), X = L.px, Y = L.py;
+    // La caja sale del borde derecho y se agranda hacia la izquierda si el precio es largo (en vez de achicar el número).
+    const p = v('precio').trim(), Y = L.py;
     if (p) {
-      leaf(X, Y, 602, 178, 80, C.red);
+      ctx.font = font(700, 119.3);
+      const anchoNum = ctx.measureText(p).width, sobra = 34 + 46 + 40;   // margen izq. + moneda + margen der.
+      const X = Math.max(40, Math.min(L.px, W - (anchoNum + sobra)));
+      leaf(X, Y, W - X + 200, 178, 80, C.red);
       ctx.fillStyle = C.white; ctx.textAlign = 'left';
       ctx.font = font(300, 33.3); ctx.fillText(v('desde'), X + 44, Y + 44);
-      const fp = fit(p, 700, 119.3, 312);
+      const fp = fit(p, 700, 119.3, W - X - sobra);
       ctx.font = font(700, fp.size); ctx.fillText(p, X + 34, Y + 137);
       ctx.save(); ctx.translate(X + 34 + fp.w + 46, Y + 93); ctx.rotate(-Math.PI / 2); ctx.textAlign = 'center';
       const fm = fit(v('moneda'), 700, 47, 160); ctx.font = font(700, fm.size); ctx.fillText(v('moneda'), 0, 0); ctx.restore();
