@@ -25,6 +25,10 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
 .fl-btns{display:flex; gap:10px;}
 .fl-btns .btn{flex:1; justify-content:center;}
 .fl-prev{position:sticky; top:24px; display:flex; flex-direction:column; align-items:center; gap:14px;}
+.fmts{display:flex; gap:6px; padding:4px; border:1px solid var(--line); border-radius:999px; background:var(--bg-card);}
+.fmts button{background:none; border:0; color:var(--muted); font:600 13px var(--f); padding:8px 16px; border-radius:999px; cursor:pointer;}
+.fmts button[aria-pressed="true"]{background:var(--yellow); color:#0A0A0A;}
+.fmts small{font-weight:400; opacity:.75; margin-left:4px;}
 .stage{position:relative; width:min(100%,440px); aspect-ratio:9/16; border-radius:var(--r-md); overflow:hidden; background:#1A1A1A; border:1px solid var(--line); touch-action:none; cursor:grab;}
 .stage.dragging{cursor:grabbing;}
 .stage canvas{width:100%; height:100%; display:block;}
@@ -90,7 +94,7 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
           <button type="button" class="btn btn-ghost sm js-centrar">Centrar</button>
         </div>
         <input type="file" class="js-file" accept="image/*" hidden>
-        <div class="hint" style="margin-top:-6px;">Ideal: foto vertical de 1080×1920 o más.</div>
+        <div class="hint" style="margin-top:-6px;">Ideal: foto de buena calidad (1080 px o más). Cada formato guarda su propio encuadre.</div>
         <div>
           <label for="aj-zoom">Zoom</label>
           <input type="range" id="aj-zoom" min="1" max="3" step="0.01" value="1">
@@ -100,9 +104,11 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
       </form>
 
       <div class="fl-prev">
+        <div class="fmts js-fmts" role="group" aria-label="Formato" hidden></div>
         <div class="stage js-stage"><canvas class="js-cv"></canvas></div>
         <div class="tip">Arrastrá la foto sobre el flyer para encuadrarla. También podés soltar una foto encima.</div>
         <button type="button" class="btn btn-primary js-bajar">Descargar PNG</button>
+        <button type="button" class="btn btn-ghost sm js-bajar-todo" style="width:min(100%,440px); justify-content:center;" hidden>Descargar todos los formatos</button>
         <div class="tip js-msg" aria-live="polite"></div>
       </div>
     </div>
@@ -157,7 +163,11 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
     return html + par.join('');
   }).join('');
   $('.js-ajustes').innerHTML = (P.ajustes || []).map(a => `<div><label for="a-${a.id}">${esc(a.label)}${a.hint ? ` <span style="font-weight:400; color:var(--muted-2);">(${esc(a.hint)})</span>` : ''}</label><input type="range" id="a-${a.id}" min="${a.min}" max="${a.max}" step="${a.step || 1}" value="${a.valor}"></div>`).join('');
-  if (P.nombre) $('.js-formato').textContent = 'Formato: ' + P.nombre + '.';
+  // Formatos de descarga (cada uno con su propio encuadre de la foto)
+  const FORMATOS = P.formatos || [{ id: 'unico', nombre: P.nombre || '', W: P.W, H: P.H }];
+  const views = {}; FORMATOS.forEach((f, i) => { views[f.id] = { zoom: 1, ox: i === 0 ? view.ox : 0, oy: i === 0 ? view.oy : 0 }; });
+  let fmt = FORMATOS[0], vw = views[fmt.id];
+  $('.js-formato').textContent = 'Formato' + (FORMATOS.length > 1 ? 's: ' : ': ') + FORMATOS.map(f => `${f.nombre} ${f.W}×${f.H}`.trim()).join(' y ') + '.';
 
   // Límites de cada campo: contador de caracteres y máximo de líneas
   const CAMPOS = P.secciones.flatMap(sec => sec.campos);
@@ -172,47 +182,66 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
   $('.js-campos').addEventListener('input', e => { const c = CAMPOS.find(x => 'c-' + x.id === e.target.id); if (c) limitar(c); });
 
   // 3. Dibujar
-  const cv = $('.js-cv'), ctx = cv.getContext('2d'); cv.width = P.W; cv.height = P.H;
+  const cv = $('.js-cv'), ctx0 = cv.getContext('2d');
+  let ctx = ctx0, F = fmt, V = vw;   // lo que se está dibujando ahora (vista previa o descarga)
   function dibujarFondo() {
-    if (!fondo) { ctx.fillStyle = '#3a3a3a'; ctx.fillRect(0, 0, P.W, P.H); return; }
-    const sc = Math.max(P.W / fondo.width, P.H / fondo.height) * view.zoom, dw = fondo.width * sc, dh = fondo.height * sc;
-    const mx = (dw - P.W) / 2, my = (dh - P.H) / 2;
-    view.ox = Math.max(-mx, Math.min(mx, view.ox)); view.oy = Math.max(-my, Math.min(my, view.oy));
-    ctx.drawImage(fondo, (P.W - dw) / 2 + view.ox, (P.H - dh) / 2 + view.oy, dw, dh);
+    if (!fondo) { ctx.fillStyle = '#3a3a3a'; ctx.fillRect(0, 0, F.W, F.H); return; }
+    const sc = Math.max(F.W / fondo.width, F.H / fondo.height) * V.zoom, dw = fondo.width * sc, dh = fondo.height * sc;
+    const mx = (dw - F.W) / 2, my = (dh - F.H) / 2;
+    V.ox = Math.max(-mx, Math.min(mx, V.ox)); V.oy = Math.max(-my, Math.min(my, V.oy));
+    ctx.drawImage(fondo, (F.W - dw) / 2 + V.ox, (F.H - dh) / 2 + V.oy, dw, dh);
   }
   const h = {
     v: id => { const el = document.getElementById('c-' + id); return el ? el.value : ''; },
     on: id => { const el = document.getElementById('c-' + id); return !!(el && el.checked); },
     n: id => { const el = document.getElementById('a-' + id); return el ? +el.value : 0; },
     img, fondo: dibujarFondo,
+    get formato() { return F.id; }, get W() { return F.W; }, get H() { return F.H; },
     aviso: (id, t) => { const el = document.getElementById('w-' + id); if (el) el.textContent = t; }
   };
-  const draw = () => { ctx.clearRect(0, 0, P.W, P.H); ctx.save(); P.dibujar(ctx, h); ctx.restore(); };
+  function dibujarEn(c, f) {
+    ctx = c.getContext('2d'); F = f; V = views[f.id];
+    ctx.clearRect(0, 0, f.W, f.H); ctx.save(); P.dibujar(ctx, h); ctx.restore();
+    ctx = ctx0; F = fmt; V = vw;
+  }
+  const draw = () => dibujarEn(cv, fmt);
+  function elegirFormato(f) {
+    fmt = f; vw = views[f.id]; F = fmt; V = vw;
+    cv.width = f.W; cv.height = f.H; $('.js-stage').style.aspectRatio = f.W + ' / ' + f.H;
+    $('#aj-zoom').value = vw.zoom;
+    document.querySelectorAll('.js-fmts button').forEach(b => b.setAttribute('aria-pressed', b.dataset.id === f.id));
+    draw();
+  }
+  if (FORMATOS.length > 1) {
+    $('.js-fmts').innerHTML = FORMATOS.map(f => `<button type="button" data-id="${esc(f.id)}">${esc(f.nombre)}<small>${f.W}×${f.H}</small></button>`).join('');
+    $('.js-fmts').hidden = false; $('.js-bajar-todo').hidden = false;
+    $('.js-fmts').addEventListener('click', e => { const b = e.target.closest('button'); if (b) elegirFormato(FORMATOS.find(f => f.id === b.dataset.id)); });
+  }
   let raf = 0; const redraw = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(draw); };
 
   $('.js-estado').hidden = true; $('.js-app').hidden = false;
-  draw();
+  elegirFormato(fmt);
 
   // 4. Foto de fondo: subir, soltar, arrastrar, zoom
   async function setFondo(file) {
     if (!file || !file.type.startsWith('image/')) return;
-    try { fondo = await loadImg(URL.createObjectURL(file)); view.zoom = 1; view.ox = 0; view.oy = 0; $('#aj-zoom').value = 1; redraw(); }
+    try { fondo = await loadImg(URL.createObjectURL(file)); Object.values(views).forEach(x => { x.zoom = 1; x.ox = 0; x.oy = 0; }); $('#aj-zoom').value = 1; redraw(); }
     catch (e) { $('.js-msg').textContent = 'No se pudo abrir esa imagen. Probá con un JPG o PNG.'; }
   }
   $('.js-subir').onclick = () => $('.js-file').click();
   $('.js-file').onchange = e => setFondo(e.target.files[0]);
-  $('.js-centrar').onclick = () => { view.zoom = 1; view.ox = 0; view.oy = 0; $('#aj-zoom').value = 1; redraw(); };
-  $('#aj-zoom').oninput = e => { view.zoom = +e.target.value; redraw(); };
+  $('.js-centrar').onclick = () => { vw.zoom = 1; vw.ox = 0; vw.oy = 0; $('#aj-zoom').value = 1; redraw(); };
+  $('#aj-zoom').oninput = e => { vw.zoom = +e.target.value; redraw(); };
   $('.js-form').addEventListener('input', redraw);
   $('.js-form').addEventListener('change', redraw);
   $('.js-form').addEventListener('submit', e => e.preventDefault());
 
   const stage = $('.js-stage'); let drag = null;
   stage.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY }; stage.setPointerCapture(e.pointerId); stage.classList.add('dragging'); });
-  stage.addEventListener('pointermove', e => { if (!drag) return; const k = P.W / stage.clientWidth; view.ox += (e.clientX - drag.x) * k; view.oy += (e.clientY - drag.y) * k; drag = { x: e.clientX, y: e.clientY }; redraw(); });
+  stage.addEventListener('pointermove', e => { if (!drag) return; const k = fmt.W / stage.clientWidth; vw.ox += (e.clientX - drag.x) * k; vw.oy += (e.clientY - drag.y) * k; drag = { x: e.clientX, y: e.clientY }; redraw(); });
   const fin = () => { drag = null; stage.classList.remove('dragging'); };
   stage.addEventListener('pointerup', fin); stage.addEventListener('pointercancel', fin);
-  stage.addEventListener('wheel', e => { e.preventDefault(); view.zoom = Math.max(1, Math.min(3, view.zoom - e.deltaY * 0.001)); $('#aj-zoom').value = view.zoom; redraw(); }, { passive: false });
+  stage.addEventListener('wheel', e => { e.preventDefault(); vw.zoom = Math.max(1, Math.min(3, vw.zoom - e.deltaY * 0.001)); $('#aj-zoom').value = vw.zoom; redraw(); }, { passive: false });
   stage.addEventListener('dragover', e => e.preventDefault());
   stage.addEventListener('drop', e => { e.preventDefault(); setFondo(e.dataTransfer.files[0]); });
 
@@ -287,15 +316,23 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
 
   // 6. Descargar
   const slugTxt = t => t.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
-  $('.js-bajar').onclick = () => {
-    draw();
-    cv.toBlob(blob => {
-      const nombre = [P.archivo || 'flyer', slugTxt(h.v('destino') || '')].filter(Boolean).join('-') + '.png';
+  const nombreDe = f => [P.archivo || 'flyer', slugTxt(h.v('destino') || ''), FORMATOS.length > 1 ? f.W + 'x' + f.H : ''].filter(Boolean).join('-') + '.png';
+  function bajar(c, nombre) {
+    return new Promise(ok => c.toBlob(blob => {
       const url = URL.createObjectURL(blob), a = document.createElement('a');
       a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
-      $('.js-msg').textContent = 'Listo: ' + nombre;
-    }, 'image/png');
+      setTimeout(() => URL.revokeObjectURL(url), 10000); ok();
+    }, 'image/png'));
+  }
+  $('.js-bajar').onclick = async () => { draw(); const n = nombreDe(fmt); await bajar(cv, n); $('.js-msg').textContent = 'Listo: ' + n; };
+  $('.js-bajar-todo').onclick = async () => {
+    const nombres = [];
+    for (const f of FORMATOS) {
+      const c = document.createElement('canvas'); c.width = f.W; c.height = f.H; dibujarEn(c, f);
+      const n = nombreDe(f); await bajar(c, n); nombres.push(n);
+      await new Promise(r => setTimeout(r, 400));   // algunos navegadores frenan descargas seguidas
+    }
+    $('.js-msg').textContent = 'Listo: ' + nombres.join(' · ');
   };
 })();
 </script>
