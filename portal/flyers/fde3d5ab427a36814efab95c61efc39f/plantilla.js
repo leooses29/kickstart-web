@@ -75,7 +75,7 @@ window.PlantillaFlyer = {
     const L = h.formato === 'cuadrado'
       // Cuadrado: todo centrado y arriba (logo → fecha → destino → incluye → CTA), armado de arriba hacia abajo
       ? { s: .8, logoSup: [500, 34, 80, 66], cx: 540, arriba: 124 - alt * .5, titleMax: 900, fechaMinY: 110, incCx: 540, ctaCx: 540, centrado: true,
-          px: 648, py: 676, logoInf: [325.5, 936, 429, 71], legX: 540, legY: 1030 }
+          px: 648, py: 676, ps: .72, logoInf: [325.5, 936, 429, 71], legX: 540, legY: 1030 }
       : { s: 1, logoSup: [470, 62, 133, 110], cx: 555.5, lastBase: 580 - alt, titleMax: 940, fechaMinY: 190, incCx: 566, ctaCx: 557,
           px: 648, py: 1432, logoInf: [314, 1726, 429, 71], legX: 543.4, legY: 1827.3 };
     const s = L.s;
@@ -137,19 +137,20 @@ window.PlantillaFlyer = {
     }
     // 6. Precio (sin precio cargado, no va la caja)
     // La caja sale del borde derecho y se agranda hacia la izquierda si el precio es largo (en vez de achicar el número).
-    const p = v('precio').trim(), Y = L.py;
+    // ps = tamaño del bloque de precio (1 = como el PSD).
+    const p = v('precio').trim(), ps = L.ps || 1, Y = L.py + 178 * (1 - ps);
     if (p) {
-      ctx.font = font(700, 119.3);
-      const anchoNum = ctx.measureText(p).width, sobra = 34 + 46 + 40;   // margen izq. + moneda + margen der.
-      const X = Math.max(40, Math.min(L.px, W - (anchoNum + sobra)));
-      leaf(X, Y, W - X + 200, 178, 80, C.red);
+      ctx.font = font(700, 119.3 * ps);
+      const anchoNum = ctx.measureText(p).width, sobra = (34 + 46 + 40) * ps;   // margen izq. + moneda + margen der.
+      const X = Math.max(40, Math.min(L.px + 432 * (1 - ps), W - (anchoNum + sobra)));
+      leaf(X, Y, W - X + 200, 178 * ps, 80 * ps, C.red);
       ctx.fillStyle = C.white; ctx.textAlign = 'left';
-      ctx.font = font(300, 33.3); ctx.fillText(v('desde'), X + 44, Y + 44);
-      const fp = fit(p, 700, 119.3, W - X - sobra);
-      ctx.font = font(700, fp.size); ctx.fillText(p, X + 34, Y + 137);
-      ctx.save(); ctx.translate(X + 34 + fp.w + 46, Y + 93); ctx.rotate(-Math.PI / 2); ctx.textAlign = 'center';
-      const fm = fit(v('moneda'), 700, 47, 160); ctx.font = font(700, fm.size); ctx.fillText(v('moneda'), 0, 0); ctx.restore();
-      ctx.textAlign = 'left'; ctx.font = font(300, fit(v('base'), 300, 24, 340).size); ctx.fillText(v('base'), X + 41, Y + 160);
+      ctx.font = font(300, 33.3 * ps); ctx.fillText(v('desde'), X + 44 * ps, Y + 44 * ps);
+      const fp = fit(p, 700, 119.3 * ps, W - X - sobra);
+      ctx.font = font(700, fp.size); ctx.fillText(p, X + 34 * ps, Y + 137 * ps);
+      ctx.save(); ctx.translate(X + 34 * ps + fp.w + 46 * ps, Y + 93 * ps); ctx.rotate(-Math.PI / 2); ctx.textAlign = 'center';
+      const fm = fit(v('moneda'), 700, 47 * ps, 160 * ps); ctx.font = font(700, fm.size); ctx.fillText(v('moneda'), 0, 0); ctx.restore();
+      ctx.textAlign = 'left'; ctx.font = font(300, fit(v('base'), 300, 24 * ps, Math.max(340 * ps, W - X - 60 * ps)).size); ctx.fillText(v('base'), X + 41 * ps, Y + 160 * ps);
     }
     h.aviso('legales', v('moneda') !== 'usd' && /d[óo]lar/i.test(v('legales')) ? 'Ojo: el texto legal habla de dólares y el precio está en otra moneda.' : '');
     // 7. Logo inferior y legales. En el cuadrado van sobre una franja clara para que se lean con cualquier foto.
