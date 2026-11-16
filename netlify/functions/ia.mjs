@@ -1,5 +1,6 @@
 // Generador de Guiones del portal de agencias: POST /api/ia
-// Acciones: estado (créditos e historial), generar (nuevo guion o ajuste), voto (👍/👎 y comentario).
+// Acciones: estado (créditos e historial), generar (nuevo guion o ajuste), voto (👍/👎 y comentario),
+// flyer (ordena la información de un paquete —texto, imagen o PDF— para el Generador de flyers; usa 1 crédito).
 import { getStore } from '@netlify/blobs';
 import { verificarAgencia } from '../lib/portal-auth.mjs';
 import { manejar, llamarClaude } from '../lib/ia-core.mjs';
@@ -11,13 +12,13 @@ export default async (req) => {
   let body;
   try { body = await req.json(); } catch (e) { return json(400, { error: 'json' }); }
   const env = { CREDITOS_MES: process.env.CREDITOS_MES, ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5' };
-  if (body.accion === 'generar' && !process.env.ANTHROPIC_API_KEY) return json(503, { error: 'sin_configurar' });
+  if ((body.accion === 'generar' || body.accion === 'flyer') && !process.env.ANTHROPIC_API_KEY) return json(503, { error: 'sin_configurar' });
   const origen = process.env.URL || new URL(req.url).origin;
   const [status, out] = await manejar(body, {
     store: getStore({ name: 'generador-guiones', consistency: 'strong' }),
     verificar: (slug, code) => verificarAgencia(slug, code, origen),
     env,
-    ia: pedido => llamarClaude({ apiKey: process.env.ANTHROPIC_API_KEY, model: env.ANTHROPIC_MODEL, pedido }),
+    ia: (pedido, extra = {}) => llamarClaude({ apiKey: process.env.ANTHROPIC_API_KEY, model: env.ANTHROPIC_MODEL, pedido, ...extra }),
   });
   return json(status, out);
 };

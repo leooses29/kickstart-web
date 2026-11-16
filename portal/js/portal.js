@@ -98,7 +98,8 @@
       ? `${link('reportes.html', 'rep', 'Reportes', active === 'reportes')}
       ${drive ? link(drive, 'drive', 'Drive', false, true) : ''}
       <div class="mono" style="font-size:11px; color:var(--muted); padding:16px 16px 6px; letter-spacing:.08em;">HERRAMIENTAS IA</div>
-      ${link('guiones-ads.html', 'ads', 'Guiones para anuncios', active === 'ads')}`
+      ${link('guiones-ads.html', 'ads', 'Guiones para anuncios', active === 'ads')}
+      ${navFlyer(active, '')}`
       : `${link('dashboard.html', 'panel', 'Panel', active === 'panel')}
       ${link('planificacion.html', 'plan', 'Planificación', active === 'plan')}
       ${link('reportes.html', 'rep', 'Reportes', active === 'reportes')}
@@ -106,7 +107,7 @@
       <div class="mono" style="font-size:11px; color:var(--muted); padding:16px 16px 6px; letter-spacing:.08em;">HERRAMIENTAS IA</div>
       ${link('guiones-ads.html', 'ads', 'Guiones para anuncios', active === 'ads')}
       ${off('reel', 'Guiones para reels')}
-      ${off('flyer', 'Generador de flyers')}`;
+      ${navFlyer(active, off('flyer', 'Generador de flyers'))}`;
     el.innerHTML = `
     <a href="${soloAnuncios(s) ? 'reportes.html' : 'dashboard.html'}" style="display:flex; align-items:center; gap:10px; padding:0 6px;">
       <img src="../images/logo-2026/kickstart-icono.svg" alt="Kickstart" style="width:34px; height:34px; object-fit:contain;">
@@ -120,7 +121,24 @@
       <a href="login.html" class="mono js-salir" style="font-size:11px; color:var(--muted);">Salir</a>
     </div>`;
     el.querySelector('.js-salir').addEventListener('click', e => { e.preventDefault(); salir(); });
+    if (active !== 'flyers') tieneFlyer().then(ok => {
+      const ph = el.querySelector('.js-nav-flyer');
+      if (ok && ph) ph.outerHTML = link('flyers.html', 'flyer', 'Generador de flyers', false);
+    });
   }
 
-  window.Portal = { sidebar, urlSegura, esc, abrir, abrirArchivo, ingresar, guardar, leer, salir, requerirSesion, soloAnuncios, normUsuario, idUsuario };
+  // Generador de flyers: solo para las agencias que tienen plantilla en portal/flyers/<id>/plantilla.js
+  function navFlyer(active, siNo) {
+    if (active === 'flyers') return link('flyers.html', 'flyer', 'Generador de flyers', true);
+    return `<div class="js-nav-flyer" style="display:contents;">${siNo}</div>`;
+  }
+  let _flyer = null;
+  function tieneFlyer() {
+    const s = leer(); if (!s || !s.slug) return Promise.resolve(false);
+    if (!_flyer) _flyer = fetch('flyers/' + encodeURIComponent(s.slug) + '/plantilla.js', { method: 'HEAD', cache: 'no-store' })
+      .then(r => r.ok).catch(() => false);
+    return _flyer;
+  }
+
+  window.Portal = { sidebar, tieneFlyer, urlSegura, esc, abrir, abrirArchivo, ingresar, guardar, leer, salir, requerirSesion, soloAnuncios, normUsuario, idUsuario };
 })();

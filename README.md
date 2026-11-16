@@ -34,3 +34,21 @@ Variables de entorno en Netlify (Site configuration → Environment variables):
 | `ADMIN_KEY` | Clave del panel interno (mínimo 12 caracteres). |
 | `ANTHROPIC_MODEL` | Opcional. Por defecto `claude-sonnet-5-5`. |
 | `CREDITOS_MES` | Opcional. Créditos por agencia por mes; por defecto 40. Por agencia: campo `iaCreditos` en el planificador. |
+
+## Portal de agencias — Generador de flyers
+
+- Página: `/portal/flyers.html`. La agencia carga los datos del paquete y una foto de fondo y descarga el flyer en PNG
+  con su estética. No usa IA ni créditos: todo se dibuja en el navegador.
+- La estética de cada agencia está en `portal/flyers/<id>/plantilla.js`, donde `<id>` es el mismo hash del usuario que
+  usa `portal/data/<id>.json` (así no queda a la vista el nombre de la agencia). En esa carpeta van también los logos,
+  las tipografías y la foto de muestra.
+- Solo las agencias que tienen carpeta ven el generador en el menú y en el panel; al resto les sigue apareciendo "Próximamente".
+- Para sumar una agencia: calcular su id con `python3 -c "import sys; sys.path.insert(0,'tools'); import publicar_portal as p; print(p.id_usuario('USUARIO'))"`,
+  copiar una carpeta existente con ese nombre y adaptar `plantilla.js` (campos, textos por defecto y la función `dibujar`).
+- **Ordenar la info con IA** (arriba del formulario): la agencia pega toda la info del paquete o sube la foto de un flyer
+  o el PDF del operador, y la IA deja solo lo que va en el flyer (destino, fecha, qué incluye, llamado a la acción, precio,
+  moneda y aclaración), respetando los límites de caracteres. Lo que queda afuera se muestra como "usalo en el copy".
+  Usa `/api/ia` con la acción `flyer`, descuenta 1 crédito (los mismos del Generador de Guiones) y queda registrado en
+  Netlify Blobs (`flyers/<mes>/`), visible en el panel interno. Las instrucciones están en `netlify/lib/instrucciones-flyer.mjs`.
+  Cada plantilla indica qué campo completa cada dato (`ia` en `plantilla.js`) y los límites de cada campo (`max`, `lineas`).
+- Plantillas cargadas: GF Travel (historia 1080×1920).
