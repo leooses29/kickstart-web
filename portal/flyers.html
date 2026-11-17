@@ -19,7 +19,7 @@
 .warn{font-size:12px; color:var(--yellow); margin-top:6px;}
 .warn:empty{display:none;}
 .row2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
-.check{display:flex; align-items:center; gap:10px; font-size:14px; color:var(--muted); cursor:pointer;}
+.check{display:flex; align-items:center; gap:10px; font-size:14px; color:var(--muted); cursor:pointer; text-transform:none; letter-spacing:0; font-weight:500;}
 .check input{width:18px; height:18px; accent-color:var(--yellow); margin:0;}
 input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none; background:none; box-shadow:none;}
 .fl-btns{display:flex; gap:10px;}
@@ -37,6 +37,11 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
 .estado{margin:40px auto; text-align:center; color:var(--muted); font-size:15px; line-height:1.6; max-width:46ch;}
 .btn[disabled]{opacity:.5; pointer-events:none;}
 [hidden]{display:none !important;}
+.fondos-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:6px;}
+.fondos-grid button{padding:0; border:2px solid transparent; border-radius:8px; overflow:hidden; cursor:pointer; background:#222; aspect-ratio:3/4;}
+.fondos-grid button:hover, .fondos-grid button[aria-pressed="true"]{border-color:var(--yellow);}
+.fondos-grid img{width:100%; height:100%; object-fit:cover; display:block;}
+.fondos-grid small{display:none;}
 .lbl{display:flex; justify-content:space-between; align-items:baseline; gap:10px;}
 .cnt{font-size:11px; color:var(--muted-2); font-variant-numeric:tabular-nums; white-space:nowrap;}
 .cnt.lleno{color:var(--yellow);}
@@ -95,6 +100,16 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
         </div>
         <input type="file" class="js-file" accept="image/*" hidden>
         <div class="hint" style="margin-top:-6px;">Ideal: foto de buena calidad (1080 px o más). Cada formato guarda su propio encuadre.</div>
+        <label class="check"><input type="checkbox" id="aj-auto" checked> Encuadre automático: que el texto no tape a las personas</label>
+        <div class="js-fondos" style="display:flex; flex-direction:column; gap:10px;" hidden>
+          <div class="sec-t" style="margin:6px 0 0;">Fondos sugeridos</div>
+          <div class="row2">
+            <select class="js-fondos-dest" aria-label="Destino del banco de fondos"><option value="">Según el destino cargado</option></select>
+            <button type="button" class="btn btn-ghost sm js-fondos-ver" style="justify-content:center;">Ver fondos</button>
+          </div>
+          <div class="fondos-grid js-fondos-grid"></div>
+          <div class="hint js-fondos-msg" style="margin:0;"></div>
+        </div>
         <div>
           <label for="aj-zoom">Zoom</label>
           <input type="range" id="aj-zoom" min="1" max="3" step="0.01" value="1">
@@ -185,7 +200,9 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
   // 3. Dibujar
   const cv = $('.js-cv'), ctx0 = cv.getContext('2d');
   let ctx = ctx0, F = fmt, V = vw;   // lo que se está dibujando ahora (vista previa o descarga)
+  let grabando = false;   // true mientras se miden las zonas de texto (ahí no se dibuja la foto)
   function dibujarFondo() {
+    if (grabando) return;
     if (!fondo) { ctx.fillStyle = '#3a3a3a'; ctx.fillRect(0, 0, F.W, F.H); return; }
     const sc = Math.max(F.W / fondo.width, F.H / fondo.height) * V.zoom, dw = fondo.width * sc, dh = fondo.height * sc;
     const mx = (dw - F.W) / 2, my = (dh - F.H) / 2;
@@ -226,9 +243,96 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
   // 4. Foto de fondo: subir, soltar, arrastrar, zoom
   async function setFondo(file) {
     if (!file || !file.type.startsWith('image/')) return;
-    try { fondo = await loadImg(URL.createObjectURL(file)); Object.values(views).forEach(x => { x.zoom = 1; x.ox = 0; x.oy = 0; }); $('#aj-zoom').value = 1; redraw(); }
+    try { usarFondo(await loadImg(URL.createObjectURL(file))); }
     catch (e) { $('.js-msg').textContent = 'No se pudo abrir esa imagen. Probá con un JPG o PNG.'; }
   }
+  function usarFondo(im) {
+    fondo = im; Object.values(views).forEach(x => { x.zoom = 1; x.ox = 0; x.oy = 0; }); $('#aj-zoom').value = 1; redraw();
+    autoEncuadre();
+  }
+
+  // 4b. Encuadre automático: la IA marca dónde están las personas y se elige, para cada formato, el zoom y la
+  // posición en que el texto de la plantilla tapa lo menos posible las caras y los cuerpos.
+  function zonasTexto(f) {
+    const c = document.createElement('canvas'); c.width = f.W; c.height = f.H; const x = c.getContext('2d');
+    const zonas = [], o = {}; let pts = [];
+    const tr = (px, py) => { const m = x.getTransform(); return [m.a * px + m.c * py + m.e, m.b * px + m.d * py + m.f]; };
+    const caja = (x0, y0, w, hh) => {
+      if (!(w > 0 && hh > 0)) return;
+      const q = [tr(x0, y0), tr(x0 + w, y0), tr(x0, y0 + hh), tr(x0 + w, y0 + hh)];
+      const xs = q.map(p => p[0]), ys = q.map(p => p[1]);
+      const z = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+      if ((z[2] - z[0]) * (z[3] - z[1]) < f.W * f.H * .4) zonas.push(z);   // las capas que cubren todo (degradados) no cuentan
+    };
+    ['fillText', 'strokeText', 'drawImage', 'fill', 'fillRect', 'beginPath', 'moveTo', 'lineTo', 'arcTo', 'rect'].forEach(k => { o[k] = x[k].bind(x); });
+    x.fillText = x.strokeText = function (t, px, py) {
+      const m = x.measureText(t), al = x.textAlign;
+      const x0 = px - (al === 'center' ? m.width / 2 : (al === 'right' || al === 'end') ? m.width : 0);
+      caja(x0, py - m.actualBoundingBoxAscent, m.width, m.actualBoundingBoxAscent + m.actualBoundingBoxDescent);
+    };
+    x.drawImage = function (im, dx, dy, dw, dh) { if (arguments.length >= 5) caja(dx, dy, dw, dh); else caja(dx, dy, im.width, im.height); };
+    x.fillRect = function (a, b, w, hh) { caja(a, b, w, hh); };
+    x.beginPath = function () { pts = []; o.beginPath(); };
+    x.moveTo = x.lineTo = function (a, b) { pts.push(tr(a, b)); };
+    x.arcTo = function (a, b, c2, d) { pts.push(tr(a, b), tr(c2, d)); };
+    x.rect = function (a, b, w, hh) { pts.push(tr(a, b), tr(a + w, b + hh)); };
+    x.fill = function () {
+      if (!pts.length) return;
+      const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+      const z = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+      if ((z[2] - z[0]) * (z[3] - z[1]) < f.W * f.H * .4) zonas.push(z);
+    };
+    const prev = [ctx, F, V]; ctx = x; F = f; V = views[f.id]; grabando = true;
+    try { x.save(); P.dibujar(x, h); x.restore(); } finally { grabando = false; [ctx, F, V] = prev; }
+    return zonas.map(z => [Math.max(0, z[0]), Math.max(0, z[1]), Math.min(f.W, z[2]), Math.min(f.H, z[3])]).filter(z => z[2] > z[0] && z[3] > z[1]);
+  }
+  const area = z => Math.max(0, z[2] - z[0]) * Math.max(0, z[3] - z[1]);
+  const inter = (a, b) => area([Math.max(a[0], b[0]), Math.max(a[1], b[1]), Math.min(a[2], b[2]), Math.min(a[3], b[3])]);
+  function mejorEncuadre(f, personas) {
+    const zonas = zonasTexto(f), m = f.W * .04, lienzo = [m, m, f.W - m, f.H - m];   // margen: las caras no quedan pegadas al borde
+    const base = Math.max(f.W / fondo.width, f.H / fondo.height);
+    let mejor = { zoom: 1, ox: 0, oy: 0 }, mejorPuntos = Infinity;
+    for (const zoom of [1, 1.12, 1.25, 1.4, 1.6]) {
+      const dw = fondo.width * base * zoom, dh = fondo.height * base * zoom, mx = (dw - f.W) / 2, my = (dh - f.H) / 2;
+      const pasos = n => n < 1 ? [0] : Array.from({ length: 9 }, (_, i) => -n + 2 * n * i / 8);
+      for (const ox of pasos(mx)) for (const oy of pasos(my)) {
+        const X = (f.W - dw) / 2 + ox, Y = (f.H - dh) / 2 + oy;
+        const enLienzo = c => [X + c[0] / 1000 * dw, Y + c[1] / 1000 * dh, X + c[2] / 1000 * dw, Y + c[3] / 1000 * dh];
+        let puntos = .15 * (zoom - 1);
+        personas.forEach(p => {
+          const cu = enLienzo(p.cuerpo);
+          const ca = p.cara ? enLienzo(p.cara) : [cu[0], cu[1], cu[2], cu[1] + (cu[3] - cu[1]) * .3];
+          const tapadoCara = Math.min(1, zonas.reduce((s, z) => s + inter(ca, z), 0) / (area(ca) || 1));
+          const tapadoCuerpo = Math.min(1, zonas.reduce((s, z) => s + inter(cu, z), 0) / (area(cu) || 1));
+          const fueraCara = 1 - inter(ca, lienzo) / (area(ca) || 1), fueraCuerpo = 1 - inter(cu, lienzo) / (area(cu) || 1);
+          puntos += 4 * tapadoCara + tapadoCuerpo + 3 * fueraCara + fueraCuerpo;
+        });
+        if (puntos < mejorPuntos - 1e-6) { mejorPuntos = puntos; mejor = { zoom, ox, oy }; }
+      }
+    }
+    return mejor;
+  }
+  let turnoEncuadre = 0;
+  async function autoEncuadre() {
+    if (!fondo || !$('#aj-auto').checked) return;
+    const turno = ++turnoEncuadre, im = fondo;
+    $('.js-msg').textContent = 'Acomodando la foto para que el texto no tape a las personas…';
+    try {
+      const k = Math.min(1, 512 / Math.max(im.width, im.height)), c = document.createElement('canvas');
+      c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      const r = await fetch('/api/ia', { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ slug: s.slug, code: s.code, accion: 'encuadre', imagen: c.toDataURL('image/jpeg', .8).split(',')[1] }) });
+      const j = await r.json().catch(() => ({}));
+      if (turno !== turnoEncuadre || fondo !== im) return;   // ya cambiaron la foto
+      if (!r.ok) { $('.js-msg').textContent = ''; return; }
+      if (!j.personas || !j.personas.length) { $('.js-msg').textContent = 'No encontramos personas en la foto: quedó centrada.'; return; }
+      FORMATOS.forEach(f => Object.assign(views[f.id], mejorEncuadre(f, j.personas)));
+      $('#aj-zoom').value = vw.zoom; redraw();
+      $('.js-msg').textContent = 'Listo: acomodamos la foto. Si querés, ajustala arrastrándola.';
+    } catch (e) { if (turno === turnoEncuadre) $('.js-msg').textContent = ''; }
+  }
+  $('#aj-auto').addEventListener('change', e => { if (e.target.checked) autoEncuadre(); });
   $('.js-subir').onclick = () => $('.js-file').click();
   $('.js-file').onchange = e => setFondo(e.target.files[0]);
   $('.js-centrar').onclick = () => { vw.zoom = 1; vw.ox = 0; vw.oy = 0; $('#aj-zoom').value = 1; redraw(); };
@@ -344,7 +448,39 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
     if (!r.ok) throw new Error(j.error || 'red');
     return j;
   }
-  apiDrive({ accion: 'estado' }).then(j => { if (j.carpeta && j.configurado) $('.js-drive').hidden = false; }).catch(() => {});
+  apiDrive({ accion: 'estado' }).then(j => {
+    if (j.carpeta && j.configurado) $('.js-drive').hidden = false;
+    if (j.fondos) $('.js-fondos').hidden = false;
+  }).catch(() => {});
+
+  // 8. Fondos sugeridos del Banco de fondos (Drive): primero los de la agencia, después los del destino y los generales
+  async function verFondos() {
+    const btn = $('.js-fondos-ver'), msg = $('.js-fondos-msg');
+    btn.disabled = true; btn.textContent = 'Buscando…'; msg.textContent = '';
+    try {
+      const sel = $('.js-fondos-dest').value;
+      const j = await apiDrive({ accion: 'fondos', destino: h.v('destino').replace(/\s+/g, ' ').trim(), carpetaNombre: sel });
+      const opciones = ['<option value="">Según el destino cargado</option>'].concat((j.destinos || []).map(d => `<option${d === sel ? ' selected' : ''}>${esc(d)}</option>`));
+      $('.js-fondos-dest').innerHTML = opciones.join('');
+      $('.js-fondos-grid').innerHTML = (j.fotos || []).map(f => `<button type="button" data-id="${esc(f.id)}" title="${esc(f.nombre)}"><img alt="${esc(f.nombre)}" src="data:image/jpeg;base64,${f.miniatura}"></button>`).join('');
+      if (!(j.fotos || []).length) msg.textContent = 'Todavía no hay fotos para este destino en el banco. Elegí otro destino de la lista o subí una foto.';
+      else msg.textContent = j.elegido ? `Fotos de ${j.elegido}${(j.fotos || []).some(f => f.origen === 'general') ? ' y generales' : ''}. Tocá una para usarla.`
+        : 'No hay una carpeta para este destino: te mostramos fotos generales. Tocá una para usarla.';
+    } catch (e) { if (e.message !== 'sesion') msg.textContent = 'No pudimos traer los fondos. Probá de nuevo.'; }
+    finally { btn.disabled = false; btn.textContent = 'Ver fondos'; }
+  }
+  $('.js-fondos-ver').onclick = verFondos;
+  $('.js-fondos-dest').onchange = verFondos;
+  $('.js-fondos-grid').addEventListener('click', async e => {
+    const b = e.target.closest('button'); if (!b) return;
+    document.querySelectorAll('.js-fondos-grid button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    $('.js-fondos-msg').textContent = 'Cargando la foto…';
+    try {
+      const j = await apiDrive({ accion: 'fondo', id: b.dataset.id });
+      usarFondo(await loadImg('data:' + (j.tipo || 'image/jpeg') + ';base64,' + j.datos));
+      $('.js-fondos-msg').textContent = '';
+    } catch (err) { if (err.message !== 'sesion') $('.js-fondos-msg').textContent = 'No pudimos cargar esa foto. Probá con otra.'; }
+  });
   const blobB64 = (c, tipo, q) => new Promise(ok => c.toBlob(b => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1]); fr.readAsDataURL(b); }, tipo, q));
   $('.js-drive').onclick = async () => {
     const btn = $('.js-drive'); btn.disabled = true; btn.textContent = 'Guardando en Drive…';

@@ -70,5 +70,14 @@ Variables de entorno en Netlify (Site configuration → Environment variables):
      del paso 2. Volver a publicar el sitio (Deploys → Trigger deploy).
 
   Para sumar otra agencia: agregar su línea en `netlify/lib/carpetas-paquetes.mjs`.
+- **Fondos sugeridos**: el generador muestra fotos del "Banco de fondos Kickstart" de Drive (una subcarpeta por destino y
+  una "General"). Busca la subcarpeta que coincide con el destino cargado (o la que se elija de la lista) y suma las
+  generales. Para agregar fotos alcanza con subirlas a la carpeta del destino: no hay que publicar nada. Fotos propias de
+  una agencia: agregar su carpeta en `FONDOS_AGENCIA` (`netlify/lib/carpetas-paquetes.mjs`) y aparecen primero.
+  Lo sirve el mismo script de Google (`tools/drive-flyers.gs`, acciones `fondos` y `fondo`).
+- **Encuadre automático**: al poner una foto (subida o del banco), la IA marca dónde están las personas (acción `encuadre`
+  de `/api/ia`, no usa créditos; tope de 400 por agencia por mes) y el generador elige para cada formato el zoom y la
+  posición en que el texto de la plantilla no tape caras ni cuerpos. Las zonas de texto se miden solas a partir de lo que
+  dibuja cada plantilla, así que sirve para cualquier plantilla nueva sin configurar nada.
 - Plantillas cargadas: GF Travel y Aterrizar Villa María (las dos con historia 1080×1920 y cuadrado 1080×1080).
   La de Aterrizar usa las tipografías originales del PSD (Gilroy y Travellia), cargadas como .woff2 en su carpeta.
