@@ -104,7 +104,7 @@ export function armarPedidoFlyer({ texto, archivo }) {
   return bloques;
 }
 
-const LIM_FLYER = { destino: 40, fecha: 22, incluye: 60, cta: 18, precio: 14, aclaracion: 34 };
+const LIM_FLYER = { destino: 40, pais: 14, fecha: 22, incluye: 60, cta: 18, precio: 14, aclaracion: 34 };
 export function extraerFlyer(texto) {
   const a = texto.indexOf('{'), b = texto.lastIndexOf('}');
   if (a < 0 || b <= a) throw new Error('respuesta_invalida');
@@ -114,7 +114,7 @@ export function extraerFlyer(texto) {
   const moneda = String(o.moneda || '').toLowerCase().trim();
   return {
     destino: s('destino').split('\n').map(l => l.trim()).filter(Boolean).slice(0, 2).join('\n'),
-    fecha: s('fecha'), incluye: s('incluye'), cta: s('cta'),
+    pais: s('pais'), fecha: s('fecha'), incluye: s('incluye'), cta: s('cta'),
     precio: s('precio').replace(/[^0-9.,]/g, ''),
     moneda: ['usd', 'ars', 'eur'].includes(moneda) ? moneda : '',
     aclaracion: s('aclaracion'),
