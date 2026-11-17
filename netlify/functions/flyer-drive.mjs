@@ -1,8 +1,9 @@
 // Generador de flyers: guarda un flyer en la carpeta "Paquetes vigentes" de la agencia. POST /api/flyer-drive
-// Acciones: estado (¿la agencia tiene carpeta configurada?), guardar ({nombre, tipo, datos} con la imagen en base64).
+// Acciones: estado (¿la agencia tiene carpeta configurada?), guardar ({nombre, tipo, datos} con la imagen en base64),
+// fondos ({destino} o {carpetaNombre}: fotos sugeridas del Banco de fondos) y fondo ({id}: una foto en tamaño grande).
 // La subida la hace una aplicación web de Google Apps Script (tools/drive-flyers.gs) con la cuenta de Kickstart.
 import { verificarAgencia } from '../lib/portal-auth.mjs';
-import { CARPETAS_PAQUETES } from '../lib/carpetas-paquetes.mjs';
+import { CARPETAS_PAQUETES, BANCO_FONDOS, FONDOS_AGENCIA } from '../lib/carpetas-paquetes.mjs';
 
 const json = (status, obj) => new Response(JSON.stringify(obj), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
 const MAX_B64 = 5_600_000;
@@ -17,7 +18,21 @@ export default async (req) => {
 
   const carpeta = CARPETAS_PAQUETES[body.slug];
   const configurado = !!(process.env.DRIVE_WEBAPP_URL && process.env.DRIVE_SECRET);
-  if (body.accion === 'estado') return json(200, { carpeta: !!carpeta, configurado });
+  if (body.accion === 'estado') return json(200, { carpeta: !!carpeta, configurado, fondos: configurado && !!BANCO_FONDOS });
+
+  if (body.accion === 'fondos' || body.accion === 'fondo') {
+    if (!configurado || !BANCO_FONDOS) return json(503, { error: 'sin_configurar' });
+    const pedido = { secreto: process.env.DRIVE_SECRET, accion: body.accion, banco: BANCO_FONDOS, agencia: FONDOS_AGENCIA[body.slug] || '' };
+    if (body.accion === 'fondos') { pedido.destino = String(body.destino || '').slice(0, 60); pedido.carpetaNombre = String(body.carpetaNombre || '').slice(0, 80); }
+    else pedido.id = String(body.id || '').slice(0, 100);
+    try {
+      const r = await fetch(process.env.DRIVE_WEBAPP_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, redirect: 'follow', body: JSON.stringify(pedido) });
+      const out = await r.json();
+      if (!out.ok) { console.error('Fondos:', out.error, out.detalle || ''); return json(502, { error: 'drive' }); }
+      delete out.ok;
+      return json(200, out);
+    } catch (e) { console.error('Fondos:', e.message); return json(502, { error: 'drive' }); }
+  }
 
   if (body.accion === 'guardar') {
     if (!carpeta) return json(404, { error: 'sin_carpeta' });

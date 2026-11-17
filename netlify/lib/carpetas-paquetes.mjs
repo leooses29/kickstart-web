@@ -8,3 +8,9 @@ export const CARPETAS_PAQUETES = {
   // Aterrizar Villa María → Aterrizar / 11. At Villa Maria / Paquetes Vigentes
   '4477ac64fa38984db569f9cf1cde96bc': '1dV_cKTQ0xqVJEoaotZAyJntK8KhJ67ER',
 };
+
+// Banco de fondos de Kickstart (Drive → "Banco de fondos Kickstart"): una subcarpeta por destino y una "General".
+export const BANCO_FONDOS = '1IndDNvxBxYX95uVN8-ACuHzWiI66JSk6';
+// Fotos propias de cada agencia (opcional): aparecen primero en "Fondos sugeridos". Clave: id de la agencia.
+export const FONDOS_AGENCIA = {
+};

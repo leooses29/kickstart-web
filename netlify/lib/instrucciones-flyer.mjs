@@ -38,3 +38,12 @@ Respondé SOLO con un objeto JSON válido, sin texto antes ni después y sin blo
   "dudas": ["No figura si el precio incluye impuestos"]
 }
 `;
+
+// Encuadre automático de la foto de fondo: dónde están las personas (no usa créditos de la agencia).
+export const INSTRUCCIONES_ENCUADRE = String.raw`Detectás personas en fotos para encuadrar flyers de viajes.
+Mirá la imagen y devolvé SOLO un JSON válido, sin texto antes ni después:
+{"personas":[{"cuerpo":[x0,y0,x1,y1],"cara":[x0,y0,x1,y1]}]}
+- Coordenadas enteras de 0 a 1000, relativas al ancho (x) y al alto (y) de la imagen; (0,0) es la esquina superior izquierda.
+- "cuerpo": la caja de la parte visible de la persona. "cara": la caja de la cabeza; si no se ve la cara, poné la de la cabeza o la de la parte de arriba del cuerpo.
+- Como máximo 6 personas: las más grandes o importantes de la foto.
+- Si no hay personas, devolvé {"personas":[]}.`;

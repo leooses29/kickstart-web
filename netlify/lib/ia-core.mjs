@@ -1,7 +1,7 @@
 // Lógica del Generador de Guiones del portal: créditos mensuales por agencia, llamada a la IA y registro de usos.
 // Las dependencias (almacenamiento, verificación de la agencia, llamada a la IA) se inyectan para poder probarla.
 import { INSTRUCCIONES } from './instrucciones.mjs';
-import { INSTRUCCIONES_FLYER } from './instrucciones-flyer.mjs';
+import { INSTRUCCIONES_FLYER, INSTRUCCIONES_ENCUADRE } from './instrucciones-flyer.mjs';
 
 export const CREDITOS_POR_DEFECTO = 40;
 const MAX = { destino: 80, paquete: 900, precio: 160, publico: 120, palabra: 24, extra: 400, ajuste: 300 };
@@ -122,6 +122,20 @@ export function extraerFlyer(texto) {
   };
 }
 
+// --- Encuadre automático ---
+export const MAX_ENCUADRES = 400;
+export function extraerPersonas(texto) {
+  const a = texto.indexOf('{'), b = texto.lastIndexOf('}');
+  if (a < 0 || b <= a) throw new Error('respuesta_invalida');
+  const o = JSON.parse(texto.slice(a, b + 1));
+  const caja = c => Array.isArray(c) && c.length === 4 && c.every(n => Number.isFinite(+n))
+    ? c.map(n => Math.max(0, Math.min(1000, Math.round(+n)))) : null;
+  return (Array.isArray(o.personas) ? o.personas : []).slice(0, 6).map(p => {
+    const cuerpo = caja(p.cuerpo); if (!cuerpo || cuerpo[2] <= cuerpo[0] || cuerpo[3] <= cuerpo[1]) return null;
+    return { cuerpo, cara: caja(p.cara) };
+  }).filter(Boolean);
+}
+
 // --- Créditos ---
 async function leerCreditos(store, slug, mes) {
   return (await store.get(`creditos/${slug}/${mes}`, { type: 'json' })) || { usados: 0, extra: 0 };
@@ -218,6 +232,26 @@ export async function manejar(body, deps) {
       salida, modelo: env.ANTHROPIC_MODEL || '', uso: uso || {},
     });
     return [200, { resultado: salida, creditos: resumenCreditos(datos, c2, env, mes) }];
+  }
+
+  if (accion === 'encuadre') {
+    // Encuadre automático: no descuenta créditos, pero tiene un tope mensual propio por agencia
+    const datosImg = String(body.imagen || '').replace(/^data:[^,]*,/, '');
+    if (!datosImg || datosImg.length > 600_000 || !/^[A-Za-z0-9+/=\s]+$/.test(datosImg.slice(0, 2000))) return [400, { error: 'imagen' }];
+    const clave = `encuadres/${slug}/${mes}`;
+    const usados = (await store.get(clave, { type: 'json' })) || { n: 0 };
+    if (usados.n >= MAX_ENCUADRES) return [429, { error: 'tope' }];
+    let personas;
+    try {
+      const r = await ia([{ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: datosImg } },
+        { type: 'text', text: 'Detectá las personas de esta foto.' }], { system: INSTRUCCIONES_ENCUADRE, maxTokens: 500 });
+      personas = extraerPersonas(r.texto);
+    } catch (e) {
+      console.error('Encuadre:', e.message, e.status || '');
+      return [502, { error: 'ia' }];
+    }
+    await store.setJSON(clave, { n: usados.n + 1 });
+    return [200, { personas }];
   }
 
   if (accion === 'voto') {
