@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Secuencia de historias — Portal de Agencias · Kickstart Marketing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+/* Secuencia de historias: formulario a la izquierda · las 3 historias a la derecha.
+   La estética de cada agencia vive en portal/flyers/<id de la agencia>/historias.js (junto a la plantilla del flyer). */
+/* overflow:clip en vez de hidden: recorta igual pero deja que la vista previa acompañe al bajar (sticky) */
+.portal-main{overflow:clip; min-width:0;}
+.hs-grid{display:grid; grid-template-columns:minmax(0,4fr) minmax(0,6fr); gap:24px; align-items:start;}
+.hs-form{display:flex; flex-direction:column; gap:14px; padding:24px;}
+.hs-form textarea{resize:vertical;}
+.paso{font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--yellow); margin:14px 0 -6px;}
+.paso:first-child{margin-top:0;}
+.paso-t{font-size:17px; font-weight:600; margin:0;}
+.hint{font-size:12px; color:var(--muted-2); margin-top:6px; line-height:1.45;}
+.row2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+.row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;}
+.check{display:flex; align-items:center; gap:10px; font-size:14px; color:var(--muted); cursor:pointer; text-transform:none; letter-spacing:0; font-weight:500; margin:0;}
+.check input{width:18px; height:18px; accent-color:var(--yellow); margin:0;}
+input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none; background:none; box-shadow:none;}
+.btns{display:flex; gap:10px; flex-wrap:wrap;}
+.btns .btn{flex:1; justify-content:center;}
+.btn[disabled]{opacity:.5; pointer-events:none;}
+[hidden]{display:none !important;}
+hr.sep{border:0; border-top:1px solid var(--line); margin:10px 0 0;}
+.drop{display:flex; align-items:center; gap:14px; border:2px dashed var(--line-2); border-radius:var(--r-md); padding:14px; cursor:pointer; color:var(--muted); font-size:13px; line-height:1.45;}
+.drop:hover{border-color:var(--yellow);}
+.drop.lleno{border-style:solid; border-color:rgba(255,193,7,.55); color:var(--white);}
+.drop img{width:46px; height:82px; object-fit:cover; border-radius:8px; display:none; flex:none;}
+.drop.lleno img{display:block;}
+.seg{display:flex; gap:4px; padding:4px; border:1px solid var(--line); border-radius:999px; background:var(--bg-card);}
+.seg button{flex:1; background:none; border:0; color:var(--muted); font:600 13px var(--f); padding:9px 10px; border-radius:999px; cursor:pointer;}
+.seg button[aria-pressed="true"]{background:var(--yellow); color:#0A0A0A;}
+.chips{display:flex; flex-direction:column; gap:8px;}
+.chips:empty{display:none;}
+.chip{font:400 14px var(--f); color:var(--white); text-align:left; background:#101010; border:1px solid var(--line-2); border-radius:var(--r-sm); padding:10px 12px; cursor:pointer; line-height:1.4;}
+.chip:hover{border-color:var(--yellow);}
+.chip b{color:var(--yellow); font-weight:600;}
+.chip .fm{display:block; font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted-2); margin-bottom:3px;}
+.chips .lab{font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-top:2px;}
+.mas{background:none; border:0; color:var(--yellow); font:600 13px var(--f); cursor:pointer; text-align:left; padding:4px 0;}
+.estado-ia{font-size:13px; color:var(--muted); line-height:1.5;}
+.estado-ia:empty{display:none;}
+.estado-ia.err{color:#FF9B9B;}
+.estado-ia.ok{color:#9BE3AA;}
+.gira{display:inline-block; width:13px; height:13px; border-radius:50%; border:2px solid rgba(255,255,255,.2); border-top-color:var(--yellow); animation:gira 1s linear infinite; vertical-align:-2px; margin-right:8px;}
+@keyframes gira{to{transform:rotate(360deg);}}
+.cred{font-size:12px; color:var(--muted-2);}
+.fondos-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:6px;}
+.fondos-grid button{padding:0; border:2px solid transparent; border-radius:8px; overflow:hidden; cursor:pointer; background:#222; aspect-ratio:3/4;}
+.fondos-grid button:hover{border-color:var(--yellow);}
+.fondos-grid img{width:100%; height:100%; object-fit:cover; display:block;}
+.hs-prev{position:sticky; top:24px; display:flex; flex-direction:column; gap:16px;}
+.historias{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+.hcard{display:flex; flex-direction:column; gap:8px; min-width:0;}
+.hcard .tit{display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;}
+.hcard .num{display:inline-grid; place-items:center; width:24px; height:24px; border-radius:50%; background:var(--yellow); color:#0A0A0A; font-size:12px; flex:none;}
+.hcard .tipo{color:var(--muted); font-weight:500;}
+.stage{position:relative; width:100%; aspect-ratio:9/16; border-radius:var(--r-sm); overflow:hidden; background:#1A1A1A; border:1px solid var(--line); touch-action:none;}
+.stage.movil{cursor:grab;}
+.stage.arrastrando{cursor:grabbing;}
+.stage canvas{width:100%; height:100%; display:block;}
+.mini{background:none; border:1px solid var(--line-2); color:var(--white); border-radius:10px; padding:8px 12px; font:600 12px var(--f); cursor:pointer;}
+.mini:hover{border-color:var(--yellow);}
+.tip{font-size:12px; color:var(--muted-2); line-height:1.5;}
+.msg{font-size:13px; color:var(--muted); min-height:18px;}
+.guia{border:1px solid var(--line); border-radius:var(--r-md); padding:16px 18px; background:var(--bg-card); font-size:13px; color:var(--muted); line-height:1.6;}
+.guia b{color:var(--white); font-weight:600;}
+.guia ol{margin:6px 0 0; padding-left:18px;}
+.estado{margin:40px auto; text-align:center; color:var(--muted); font-size:15px; line-height:1.6; max-width:46ch;}
+@media (max-width:1100px){ .hs-grid{grid-template-columns:1fr;} .hs-prev{position:static; order:-1;} }
+@media (max-width:640px){ .historias{grid-template-columns:repeat(3,70vw); overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:6px;} .hcard{scroll-snap-align:center;} .portal-main{padding:28px 16px;} }
+</style>
+</head>
+<body>
+
+<div class="page-frame" style="max-width:none;">
+<div class="portal-shell">
+  <div class="portal-sidebar"></div>
+
+  <div class="portal-main">
+    <div style="margin-bottom:28px;">
+      <div class="mono" style="color:var(--yellow); font-size:12px; letter-spacing:.1em; margin-bottom:6px;">HERRAMIENTAS</div>
+      <h1 style="font-size:34px;">Secuencia de historias</h1>
+      <p style="color:var(--muted); font-size:14px; max-width:66ch; margin-top:8px; line-height:1.55;">Con el flyer de un paquete vigente armás 3 historias para publicar seguidas: un hook que frena el scroll, la info del paquete (o un llamado a la acción) y el flyer con el precio.</p>
+    </div>
+
+    <div class="js-estado estado">Cargando tu plantilla…</div>
+
+    <div class="hs-grid js-app" hidden>
+      <form class="card hs-form js-form" novalidate autocomplete="off">
+        <div class="paso">Paso 1</div>
+        <h2 class="paso-t">El flyer del paquete</h2>
+        <div class="drop js-drop" role="button" tabindex="0"><img class="js-thumb" alt=""><span class="js-drop-t">Tocá o soltá acá el flyer (PNG o JPG), el que está en "Paquetes vigentes".</span></div>
+        <input type="file" class="js-file-flyer" accept="image/*" hidden>
+        <div class="hint" style="margin-top:-6px;">También podés venir directo desde el <a href="flyers.html">Generador de flyers</a> con el botón "Armar secuencia de historias".</div>
+        <button type="button" class="btn btn-ghost sm js-leer" hidden>Completar los datos leyendo el flyer · 1 crédito</button>
+        <div class="estado-ia js-leer-msg" aria-live="polite"></div>
+
+        <div class="paso">Paso 2</div>
+        <h2 class="paso-t">Datos del paquete</h2>
+        <div class="hint" style="margin-top:-6px;">Se usan en el hook y en la historia del medio. La historia de info no lleva precio: el precio queda solo en el flyer.</div>
+        <div><label for="h-destino">Destino <span style="text-transform:none; letter-spacing:0; font-weight:400; color:var(--muted-2);">(Enter = salto de línea)</span></label><textarea id="h-destino" rows="2" maxlength="40"></textarea></div>
+        <div class="row2">
+          <div><label for="h-fecha">Fecha / salida</label><input id="h-fecha" maxlength="22"></div>
+          <div><label for="h-cta">Botón / CTA</label><input id="h-cta" maxlength="18"></div>
+        </div>
+        <div><label for="h-incluye">Qué incluye <span style="text-transform:none; letter-spacing:0; font-weight:400; color:var(--muted-2);">(un ítem por línea, hasta 6)</span></label><textarea id="h-incluye" rows="4" maxlength="200"></textarea></div>
+        <div class="row3">
+          <div><label for="h-desde">Texto sup.</label><input id="h-desde" maxlength="10"></div>
+          <div><label for="h-moneda">Moneda</label><select id="h-moneda"><option>usd</option><option>ars</option><option>$</option><option>eur</option></select></div>
+          <div><label for="h-precio">Precio</label><input id="h-precio" maxlength="10" inputmode="decimal"></div>
+        </div>
+        <div><label for="h-base">Aclaración del precio</label><input id="h-base" maxlength="28"></div>
+        <div><label for="h-legales">Legales</label><textarea id="h-legales" rows="3" maxlength="300"></textarea><div class="hint">Van solo si alguna historia (además del flyer) muestra el precio.</div></div>
+
+        <hr class="sep">
+        <div class="paso">Paso 3</div>
+        <h2 class="paso-t">Historia 1 · Hook</h2>
+        <div class="hint" style="margin-top:-6px;">Mismo criterio que Guiones para anuncios: máximo 12 palabras, fórmulas virales, nada de "Imaginá…". Lo que va entre *asteriscos* sale resaltado.</div>
+        <textarea id="h-hook" rows="3" maxlength="140"></textarea>
+        <div><label for="h-publico">Público (opcional)</label>
+          <select id="h-publico"><option value="">General</option><option>Parejas</option><option>Familias con chicos</option><option>Grupos de amigas</option><option>Luna de miel</option><option>Adultos mayores</option><option>Egresados</option></select></div>
+        <div class="btns"><button type="button" class="btn btn-primary sm js-hooks">Sugerir hooks con IA · 1 crédito</button></div>
+        <div class="estado-ia js-hooks-msg" aria-live="polite"></div>
+        <div class="chips js-chips"></div>
+        <div class="cred js-cred"></div>
+        <div><label for="h-hookBtn">Texto del botón de abajo</label><input id="h-hookBtn" maxlength="24"></div>
+
+        <hr class="sep">
+        <div class="paso">Paso 4</div>
+        <h2 class="paso-t">Historia del medio</h2>
+        <div class="seg js-medio" role="group" aria-label="Historia del medio"><button type="button" data-v="info" aria-pressed="true">Info del paquete</button><button type="button" data-v="cta" aria-pressed="false">Llamado a la acción</button></div>
+        <div class="js-cta-campos" style="display:flex; flex-direction:column; gap:14px;" hidden>
+          <div><label for="h-ctaTitulo">Frase principal</label><textarea id="h-ctaTitulo" rows="2" maxlength="80"></textarea></div>
+          <div class="chips js-chips-cta"></div>
+          <div><label for="h-ctaSub">Texto secundario <span style="text-transform:none; letter-spacing:0; font-weight:400; color:var(--muted-2);">(vacío = fecha y precio automáticos)</span></label><input id="h-ctaSub" maxlength="60"></div>
+          <div><label for="h-whatsapp">WhatsApp de la agencia</label><input id="h-whatsapp" maxlength="24" placeholder="Ej: 351 123 4567"></div>
+        </div>
+
+        <hr class="sep">
+        <div class="paso">Paso 5</div>
+        <h2 class="paso-t">Fotos y orden</h2>
+        <div class="btns">
+          <button type="button" class="btn btn-ghost sm js-foto-hook">Foto del hook</button>
+          <button type="button" class="btn btn-ghost sm js-foto-medio">Otra foto para el medio</button>
+        </div>
+        <input type="file" class="js-file-hook" accept="image/*" hidden><input type="file" class="js-file-medio" accept="image/*" hidden>
+        <label class="check"><input type="checkbox" id="h-misma" checked> Usar la misma foto en la historia del medio</label>
+        <div class="js-fondos" style="display:flex; flex-direction:column; gap:10px;" hidden>
+          <div class="row2">
+            <select class="js-fondos-dest" aria-label="Destino del banco de fondos"><option value="">Fondos según el destino</option></select>
+            <button type="button" class="btn btn-ghost sm js-fondos-ver" style="justify-content:center;">Ver fondos sugeridos</button>
+          </div>
+          <div class="fondos-grid js-fondos-grid"></div>
+          <div class="hint js-fondos-msg" style="margin:0;"></div>
+        </div>
+        <div><label for="h-oscuro">Oscurecido del fondo</label><input type="range" id="h-oscuro" min="0" max="1.4" step="0.01" value="1"></div>
+        <div><label>Orden de la secuencia</label>
+          <div class="seg js-orden" role="group" aria-label="Orden"><button type="button" data-v="medio" aria-pressed="true">Hook → Medio → Flyer</button><button type="button" data-v="flyer" aria-pressed="false">Hook → Flyer → Medio</button></div></div>
+        <label class="check"><input type="checkbox" id="h-zonas"> Mostrar las zonas que tapa Instagram</label>
+      </form>
+
+      <div class="hs-prev">
+        <div class="historias js-historias"></div>
+        <div class="btns"><button type="button" class="btn btn-primary js-todas">Descargar las 3 historias</button></div>
+        <div class="msg js-msg" aria-live="polite"></div>
+        <div class="tip">Arrastrá la foto dentro del hook y de la historia del medio para encuadrarla; con la ruedita del mouse hacés zoom. Las 3 salen numeradas para no confundir el orden.</div>
+        <div class="guia"><b>Para publicar</b>
+          <ol>
+            <li>Descargá las 3 historias.</li>
+            <li>En Meta Business Suite → Planificador, programalas en orden (01, 02, 03) con 1 o 2 minutos de diferencia.</li>
+            <li>En la última, sumá el sticker de link a tu WhatsApp.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script src="js/portal.js"></script>
+<script>
+(async function () {
+  const s = Portal.requerirSesion(); if (!s) return;
+  Portal.sidebar('historias');
+  Portal.abrir(s.slug, s.code).then(d => Portal.sidebar('historias', d)).catch(e => { if (e.message === 'codigo') Portal.salir(); });
+
+  const $ = sel => document.querySelector(sel), esc = Portal.esc;
+  const base = 'flyers/' + encodeURIComponent(s.slug) + '/';
+  const estado = t => { $('.js-estado').textContent = t; };
+  const W = 1080, H = 1920;
+
+  // 1. Plantilla de historias de esta agencia
+  try {
+    await new Promise((ok, mal) => { const sc = document.createElement('script'); sc.src = base + 'historias.js'; sc.onload = ok; sc.onerror = mal; document.head.appendChild(sc); });
+  } catch (e) { estado('Tu plantilla de historias todavía está en preparación. Escribinos y te avisamos cuando esté lista.'); return; }
+  const P = window.PlantillaHistorias;
+  if (!P) { estado('No pudimos abrir tu plantilla. Probá recargar la página.'); return; }
+  const loadImg = src => new Promise((ok, mal) => { const i = new Image(); i.onload = () => ok(i); i.onerror = mal; i.src = src; });
+  const img = {};
+  let fotoMuestra = null;
+  try {
+    await Promise.all((P.fuentes || []).map(async f => { const ff = new FontFace(f.family, `url(${base + f.file})`, { weight: String(f.weight) }); await ff.load(); document.fonts.add(ff); }));
+    await Promise.all(Object.entries(P.imagenes || {}).map(async ([k, f]) => { img[k] = await loadImg(base + f); }));
+    if (P.muestra) fotoMuestra = await loadImg(base + P.muestra.file);
+  } catch (e) { estado('No pudimos cargar los archivos de tu plantilla. Probá recargar la página.'); return; }
+
+  // 2. Valores por defecto (y WhatsApp recordado en este navegador)
+  const V = P.valores || {};
+  Object.entries(V).forEach(([k, val]) => { const el = document.getElementById('h-' + k); if (el) el.value = val; });
+  const claveWa = 'kickstart.historias.wa.' + s.slug;
+  try { $('#h-whatsapp').value = localStorage.getItem(claveWa) || ''; } catch (e) {}
+
+  // 3. Estado de la secuencia
+  const st = { medio: 'info', orden: 'medio' };
+  const fotos = { hook: null, medio: null };   // fotos subidas (si no hay, se usa la de muestra)
+  const vistas = { hook: { zoom: 1, ox: 0, oy: 0 }, medio: { zoom: 1, ox: 0, oy: 0 } };
+  let flyer = null;   // imagen del flyer (subida o traída del generador)
+  const v = id => { const el = document.getElementById('h-' + id); return el ? el.value : ''; };
+  const destino1 = () => v('destino').split('\n').map(x => x.trim()).filter(Boolean).join(' ');
+  const items = () => v('incluye').split(/\n|\s+-\s+|,|·/).map(x => x.trim()).filter(Boolean);
+  const fotoDe = clave => clave === 'medio' && !$('#h-misma').checked ? (fotos.medio || fotos.hook || fotoMuestra) : (fotos.hook || fotoMuestra);
+
+  function cubrir(ctx, im, vista) {
+    if (!im) { ctx.fillStyle = '#3a3a3a'; ctx.fillRect(0, 0, W, H); return; }
+    const sc = Math.max(W / im.width, H / im.height) * (vista ? vista.zoom : 1), dw = im.width * sc, dh = im.height * sc;
+    const mx = (dw - W) / 2, my = (dh - H) / 2;
+    if (vista) { vista.ox = Math.max(-mx, Math.min(mx, vista.ox)); vista.oy = Math.max(-my, Math.min(my, vista.oy)); }
+    ctx.drawImage(im, (W - dw) / 2 + (vista ? vista.ox : 0), (H - dh) / 2 + (vista ? vista.oy : 0), dw, dh);
+  }
+  function dibujarHistoria(ctx, paso, vista) {
+    ctx.clearRect(0, 0, W, H);
+    if (paso.tipo === 'flyer') {
+      if (flyer) { cubrir(ctx, flyer, null); return; }
+      ctx.fillStyle = '#242424'; ctx.fillRect(0, 0, W, H); ctx.fillStyle = '#8E8E8E'; ctx.textAlign = 'center';
+      ctx.font = "600 58px Poppins, sans-serif"; ctx.fillText('Subí el flyer', W / 2, H / 2 - 20);
+      ctx.font = "400 38px Poppins, sans-serif"; ctx.fillText('(paso 1)', W / 2, H / 2 + 44); return;
+    }
+    const clave = paso.tipo === 'hook' ? 'hook' : 'medio';
+    const h = { v, img, items, destino1, vista, oscuro: +$('#h-oscuro').value, fondo: () => cubrir(ctx, fotoDe(clave), vistas[clave]) };
+    ctx.save(); P.dibujar(paso.tipo, ctx, h); ctx.restore();
+  }
+  function zonasInstagram(ctx) {
+    ctx.fillStyle = 'rgba(0,120,255,.22)'; ctx.fillRect(0, 0, W, 220); ctx.fillRect(0, H - 300, W, 300);
+    ctx.fillStyle = 'rgba(160,200,255,.95)'; ctx.font = "600 32px Poppins, sans-serif"; ctx.textAlign = 'center';
+    ctx.fillText('Zona que tapa Instagram', W / 2, 130); ctx.fillText('Zona que tapa Instagram', W / 2, H - 140);
+  }
+  const NOMBRE = { hook: 'Hook', info: 'Info del paquete', cta: 'Llamado a la acción', flyer: 'Flyer' };
+  const secuencia = () => { const medio = st.medio; return st.orden === 'medio' ? ['hook', medio, 'flyer'] : ['hook', 'flyer', medio]; };
+
+  // 4. Las 3 tarjetas de vista previa
+  const tarjetas = [0, 1, 2].map(i => {
+    const el = document.createElement('div'); el.className = 'hcard';
+    el.innerHTML = `<div class="tit"><span class="num">${i + 1}</span><span class="tipo js-t"></span></div><div class="stage"><canvas width="${W}" height="${H}"></canvas></div><button type="button" class="mini">Descargar</button>`;
+    $('.js-historias').appendChild(el);
+    const t = { el, cv: el.querySelector('canvas'), stage: el.querySelector('.stage'), tit: el.querySelector('.js-t'), i };
+    t.ctx = t.cv.getContext('2d');
+    el.querySelector('button').onclick = () => descargar([i]);
+    arrastrable(t);
+    return t;
+  });
+  function render() {
+    secuencia().forEach((tipo, i) => {
+      const t = tarjetas[i]; t.tipo = tipo; t.tit.textContent = NOMBRE[tipo];
+      t.stage.classList.toggle('movil', tipo !== 'flyer');
+      dibujarHistoria(t.ctx, { tipo }, true);
+      if ($('#h-zonas').checked) zonasInstagram(t.ctx);
+    });
+    $('.js-todas').disabled = !flyer;
+    $('.js-todas').textContent = flyer ? 'Descargar las 3 historias' : 'Subí el flyer para descargar';
+  }
+  let raf = 0; const redibujar = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(render); };
+
+  function arrastrable(t) {
+    let drag = null;
+    const vista = () => t.tipo === 'hook' ? vistas.hook : t.tipo === 'flyer' ? null : vistas.medio;
+    t.stage.addEventListener('pointerdown', e => { if (!vista()) return; drag = { x: e.clientX, y: e.clientY }; t.stage.setPointerCapture(e.pointerId); t.stage.classList.add('arrastrando'); });
+    t.stage.addEventListener('pointermove', e => { if (!drag) return; const vw = vista(), k = W / t.stage.clientWidth; vw.ox += (e.clientX - drag.x) * k; vw.oy += (e.clientY - drag.y) * k; drag = { x: e.clientX, y: e.clientY }; redibujar(); });
+    const fin = () => { drag = null; t.stage.classList.remove('arrastrando'); };
+    t.stage.addEventListener('pointerup', fin); t.stage.addEventListener('pointercancel', fin);
+    t.stage.addEventListener('wheel', e => { const vw = vista(); if (!vw) return; e.preventDefault(); vw.zoom = Math.max(1, Math.min(3, vw.zoom - e.deltaY * 0.001)); redibujar(); }, { passive: false });
+    t.stage.addEventListener('dragover', e => e.preventDefault());
+    t.stage.addEventListener('drop', e => {
+      e.preventDefault(); const f = e.dataTransfer.files[0]; if (!f) return;
+      if (t.tipo === 'flyer') ponerFlyer(f); else if (t.tipo === 'hook') ponerFoto(f, 'hook'); else { $('#h-misma').checked = false; ponerFoto(f, 'medio'); }
+    });
+  }
+
+  $('.js-estado').hidden = true; $('.js-app').hidden = false;
+  render();
+
+  // 5. Flyer y fotos
+  let flyerArchivo = null;
+  async function ponerFlyer(file, nombre) {
+    if (!file || !(file.type || '').startsWith('image/')) return;
+    try {
+      const url = URL.createObjectURL(file); flyer = await loadImg(url); flyerArchivo = file;
+      $('.js-thumb').src = url; $('.js-drop').classList.add('lleno');
+      $('.js-drop-t').textContent = nombre || file.name || 'Flyer cargado';
+      $('.js-leer').hidden = !!nombre;   // si vino del generador, los datos ya están
+      $('.js-msg').textContent = flyer.width / flyer.height > 0.62 ? 'Ojo: el flyer no es vertical (9:16). En la historia se va a recortar.' : '';
+      redibujar();
+    } catch (e) { $('.js-msg').textContent = 'No se pudo abrir esa imagen. Probá con un PNG o JPG.'; }
+  }
+  async function ponerFoto(file, clave) {
+    if (!file || !(file.type || '').startsWith('image/')) return;
+    try { fotos[clave] = await loadImg(URL.createObjectURL(file)); Object.assign(vistas[clave], { zoom: 1, ox: 0, oy: 0 }); redibujar(); }
+    catch (e) { $('.js-msg').textContent = 'No se pudo abrir esa foto. Probá con un JPG o PNG.'; }
+  }
+  $('.js-drop').onclick = () => $('.js-file-flyer').click();
+  $('.js-drop').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('.js-file-flyer').click(); } };
+  $('.js-drop').addEventListener('dragover', e => e.preventDefault());
+  $('.js-drop').addEventListener('drop', e => { e.preventDefault(); ponerFlyer(e.dataTransfer.files[0]); });
+  $('.js-file-flyer').onchange = e => { ponerFlyer(e.target.files[0]); e.target.value = ''; };
+  $('.js-foto-hook').onclick = () => $('.js-file-hook').click();
+  $('.js-foto-medio').onclick = () => $('.js-file-medio').click();
+  $('.js-file-hook').onchange = e => { ponerFoto(e.target.files[0], 'hook'); e.target.value = ''; };
+  $('.js-file-medio').onchange = e => { $('#h-misma').checked = false; ponerFoto(e.target.files[0], 'medio'); e.target.value = ''; };
+
+  const segmento = (sel, clave, alCambiar) => document.querySelectorAll(sel + ' button').forEach(b => b.onclick = () => {
+    document.querySelectorAll(sel + ' button').forEach(x => x.setAttribute('aria-pressed', x === b)); st[clave] = b.dataset.v; alCambiar && alCambiar(); redibujar();
+  });
+  segmento('.js-medio', 'medio', () => { $('.js-cta-campos').hidden = st.medio !== 'cta'; });
+  segmento('.js-orden', 'orden');
+  $('.js-form').addEventListener('input', e => { if (e.target.id === 'h-whatsapp') { try { localStorage.setItem(claveWa, e.target.value); } catch (er) {} } redibujar(); });
+  $('.js-form').addEventListener('change', redibujar);
+  $('.js-form').addEventListener('submit', e => e.preventDefault());
+
+  // 6. Viene del Generador de flyers: trae el flyer, los datos y la foto (guardados en este navegador)
+  try {
+    const t = await Portal.traspaso.tomar();
+    if (t && t.slug === s.slug && Date.now() - t.ts < 3 * 3600e3) {
+      const c = t.campos || {}, set = (id, val) => { if (val != null && String(val).trim() !== '') { const el = document.getElementById('h-' + id); if (el) el.value = val; } };
+      set('destino', c.destino); set('fecha', c.fecha); set('cta', c.cta); set('desde', c.desde); set('moneda', c.moneda);
+      set('precio', c.precio); set('base', c.base); set('legales', c.legales);
+      if (c.incluye) set('incluye', String(c.incluye).split(/\s+-\s+|\n/).map(x => x.trim()).filter(Boolean).join('\n'));
+      const d = (c.destino || '').replace(/\s+/g, ' ').trim(); if (d) set('hook', `3 cosas que no sabías de *${d}*`);
+      if (t.fondo) { fotos.hook = await loadImg(URL.createObjectURL(t.fondo)); }
+      await ponerFlyer(t.flyer, 'Flyer traído del Generador de flyers');
+      $('.js-msg').textContent = 'Trajimos el flyer, los datos y la foto del Generador de flyers. Elegí el hook y descargá.';
+    }
+  } catch (e) {}
+
+  // 7. IA: hooks (mismo criterio que Guiones para anuncios) y lectura del flyer. Usan los créditos del portal.
+  async function api(body) {
+    const r = await fetch('/api/ia', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: s.slug, code: s.code, ...body }) });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 401) { Portal.salir(); throw new Error('sesion'); }
+    if (j.creditos) $('.js-cred').textContent = `Te quedan ${j.creditos.restantes} de ${j.creditos.limite} créditos este mes (compartidos con las otras herramientas).`;
+    if (!r.ok) throw new Error(j.error || 'red');
+    return j;
+  }
+  api({ accion: 'estado' }).catch(() => {});
+  const ERR = { sin_creditos: 'Usaste todos los créditos de este mes. Se renuevan el 1° del mes que viene. Si necesitás más, escribile a Kickstart.',
+    sin_configurar: 'La IA todavía se está configurando. Mientras tanto podés escribir el hook a mano.',
+    falta_destino: 'Cargá el destino para que la IA pueda sugerir hooks.',
+    ia: 'No pudimos generar los hooks esta vez (no se descontó el crédito). Probá de nuevo.' };
+  const resaltar = t => esc(t).replace(/\*([^*]+)\*/g, '<b>$1</b>');
+  let previos = [];
+  function mostrarHooks(r) {
+    const c = $('.js-chips');
+    c.innerHTML = `<div class="lab">Sugeridos para ${esc(destino1())} · tocá uno para usarlo</div>` +
+      r.hooks.map((x, i) => `<button type="button" class="chip" data-i="${i}">${x.formula ? `<span class="fm">${esc(x.formula)}</span>` : ''}${resaltar(x.hook)}</button>`).join('') +
+      '<button type="button" class="mas js-mas">↻ Ver 5 hooks distintos · 1 crédito</button>';
+    c.querySelectorAll('.chip').forEach(b => b.onclick = () => { $('#h-hook').value = r.hooks[+b.dataset.i].hook; redibujar(); });
+    c.querySelector('.js-mas').onclick = () => sugerir(true);
+    $('.js-chips-cta').innerHTML = (r.cta || []).length ? '<div class="lab">Frases sugeridas</div>' + r.cta.map((x, i) => `<button type="button" class="chip" data-i="${i}">${resaltar(x)}</button>`).join('') : '';
+    $('.js-chips-cta').querySelectorAll('.chip').forEach(b => b.onclick = () => { $('#h-ctaTitulo').value = r.cta[+b.dataset.i]; redibujar(); });
+  }
+  let ocupado = false;
+  async function sugerir(mas) {
+    if (ocupado) return;
+    const msg = $('.js-hooks-msg');
+    if (!destino1()) { msg.className = 'estado-ia js-hooks-msg err'; msg.textContent = ERR.falta_destino; return; }
+    if (!mas) previos = [];
+    ocupado = true; $('.js-hooks').disabled = true;
+    msg.className = 'estado-ia js-hooks-msg'; msg.innerHTML = `<span class="gira"></span>Pensando hooks para ${esc(destino1())}… tarda unos segundos.`;
+    try {
+      const { resultado } = await api({ accion: 'hooks', publico: v('publico'), previos,
+        paquete: { destino: v('destino'), fecha: v('fecha'), incluye: items().join(' - '), precio: v('precio').trim() ? `${v('desde')} ${v('moneda')} ${v('precio')} ${v('base')}`.trim() : '' } });
+      previos.push(...resultado.hooks.map(x => x.hook));
+      mostrarHooks(resultado); msg.textContent = '';
+    } catch (e) {
+      if (e.message !== 'sesion') { msg.className = 'estado-ia js-hooks-msg err'; msg.textContent = ERR[e.message] || 'Algo falló. Revisá la conexión y probá de nuevo.'; }
+    } finally { ocupado = false; $('.js-hooks').disabled = false; }
+  }
+  $('.js-hooks').onclick = () => sugerir(false);
+
+  // Leer el flyer subido y completar los datos (usa el ordenador de información del Generador de flyers)
+  $('.js-leer').onclick = async () => {
+    if (!flyerArchivo) return;
+    const btn = $('.js-leer'), msg = $('.js-leer-msg'); btn.disabled = true;
+    msg.className = 'estado-ia js-leer-msg'; msg.innerHTML = '<span class="gira"></span>Leyendo el flyer…';
+    try {
+      const k = Math.min(1, 1600 / Math.max(flyer.width, flyer.height)), c = document.createElement('canvas');
+      c.width = Math.round(flyer.width * k); c.height = Math.round(flyer.height * k);
+      const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(flyer, 0, 0, c.width, c.height);
+      const { resultado: r } = await api({ accion: 'flyer', texto: '', archivo: { tipo: 'image/jpeg', datos: c.toDataURL('image/jpeg', .85).split(',')[1] } });
+      const set = (id, val) => { if (val) document.getElementById('h-' + id).value = val; };
+      set('destino', r.destino); set('fecha', r.fecha); set('cta', r.cta); set('precio', r.precio); set('base', r.aclaracion);
+      if (r.moneda) $('#h-moneda').value = r.moneda;
+      if (r.incluye) set('incluye', r.incluye.split(/\s+-\s+/).map(x => x.trim()).filter(Boolean).join('\n'));
+      if (r.destino) set('hook', `3 cosas que no sabías de *${r.destino.replace(/\s+/g, ' ')}*`);
+      msg.className = 'estado-ia js-leer-msg ok'; msg.textContent = 'Listo: completamos los datos. Revisalos y sugerí hooks.' + (r.dudas.length ? ' Revisá: ' + r.dudas.join(' · ') : '');
+      redibujar();
+    } catch (e) {
+      if (e.message !== 'sesion') { msg.className = 'estado-ia js-leer-msg err'; msg.textContent = e.message === 'sin_creditos' ? ERR.sin_creditos : e.message === 'sin_configurar' ? 'La IA todavía se está configurando: completá los datos a mano.' : 'No pudimos leer el flyer (no se descontó el crédito). Completá los datos a mano.'; }
+    } finally { btn.disabled = false; }
+  };
+
+  // 8. Fondos sugeridos del Banco de fondos (Drive), igual que en el Generador de flyers
+  async function apiDrive(body) {
+    const r = await fetch('/api/flyer-drive', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: s.slug, code: s.code, ...body }) });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 401) { Portal.salir(); throw new Error('sesion'); }
+    if (!r.ok) throw new Error(j.error || 'red');
+    return j;
+  }
+  apiDrive({ accion: 'estado' }).then(j => { if (j.fondos) $('.js-fondos').hidden = false; }).catch(() => {});
+  async function verFondos() {
+    const btn = $('.js-fondos-ver'), msg = $('.js-fondos-msg');
+    btn.disabled = true; btn.textContent = 'Buscando…'; msg.textContent = '';
+    try {
+      const sel = $('.js-fondos-dest').value;
+      const j = await apiDrive({ accion: 'fondos', destino: destino1(), carpetaNombre: sel });
+      $('.js-fondos-dest').innerHTML = ['<option value="">Fondos según el destino</option>'].concat((j.destinos || []).map(d => `<option${d === sel ? ' selected' : ''}>${esc(d)}</option>`)).join('');
+      $('.js-fondos-grid').innerHTML = (j.fotos || []).map(f => `<button type="button" data-id="${esc(f.id)}" title="${esc(f.nombre)}"><img alt="${esc(f.nombre)}" src="data:image/jpeg;base64,${f.miniatura}"></button>`).join('');
+      msg.textContent = (j.fotos || []).length ? 'Tocá una foto para usarla en el hook (y en el medio, si usás la misma).' : 'Todavía no hay fotos para este destino en el banco. Elegí otro destino o subí una foto.';
+    } catch (e) { if (e.message !== 'sesion') msg.textContent = 'No pudimos traer los fondos. Probá de nuevo.'; }
+    finally { btn.disabled = false; btn.textContent = 'Ver fondos sugeridos'; }
+  }
+  $('.js-fondos-ver').onclick = verFondos;
+  $('.js-fondos-dest').onchange = verFondos;
+  $('.js-fondos-grid').addEventListener('click', async e => {
+    const b = e.target.closest('button'); if (!b) return;
+    $('.js-fondos-msg').textContent = 'Cargando la foto…';
+    try {
+      const j = await apiDrive({ accion: 'fondo', id: b.dataset.id });
+      fotos.hook = await loadImg('data:' + (j.tipo || 'image/jpeg') + ';base64,' + j.datos); Object.assign(vistas.hook, { zoom: 1, ox: 0, oy: 0 });
+      $('.js-fondos-msg').textContent = ''; redibujar();
+    } catch (err) { if (err.message !== 'sesion') $('.js-fondos-msg').textContent = 'No pudimos cargar esa foto. Probá con otra.'; }
+  });
+
+  // 9. Descargar (numeradas en el orden de publicación)
+  const slugTxt = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
+  const ARCH = { hook: 'hook', info: 'info', cta: 'cta', flyer: 'flyer' };
+  function bajar(c, nombre) {
+    return new Promise(ok => c.toBlob(blob => {
+      const url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000); ok();
+    }, 'image/png'));
+  }
+  async function descargar(indices) {
+    const seq = secuencia();
+    if (indices.some(i => seq[i] === 'flyer') && !flyer) { $('.js-msg').textContent = 'Primero subí el flyer (paso 1).'; return; }
+    const nombres = [];
+    for (const i of indices) {
+      const c = document.createElement('canvas'); c.width = W; c.height = H;
+      dibujarHistoria(c.getContext('2d'), { tipo: seq[i] }, false);
+      const n = [P.archivo || 'historia', slugTxt(destino1()) || 'paquete', '0' + (i + 1) + '-' + ARCH[seq[i]]].join('_') + '.png';
+      await bajar(c, n); nombres.push(n);
+      if (indices.length > 1) await new Promise(r => setTimeout(r, 400));   // algunos navegadores frenan descargas seguidas
+    }
+    $('.js-msg').textContent = 'Listo: ' + nombres.join(' · ');
+  }
+  $('.js-todas').onclick = () => descargar([0, 1, 2]);
+})();
+</script>
+</body>
+</html>

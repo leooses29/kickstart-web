@@ -59,6 +59,7 @@
         <div style="display:flex; gap:18px; flex-wrap:wrap;">
           <a href="guiones-ads.html" class="mono" style="font-size:13px; color:var(--yellow);">Crear un guion →</a>
           <a href="flyers.html" class="mono js-flyer-link" style="font-size:13px; color:var(--yellow); display:none;">Crear un flyer →</a>
+          <a href="historias.html" class="mono js-hist-link" style="font-size:13px; color:var(--yellow); display:none;">Armar historias →</a>
         </div>
       </div>
     </div>
@@ -77,6 +78,7 @@
       document.querySelector('.js-flyer-link').style.display = '';
       document.querySelector('.js-herr').textContent = 'Guiones para anuncios de 20 a 25 segundos y flyers con la estética de tu agencia. Guiones para reels, próximamente.';
     });
+    Portal.tieneHistorias().then(ok => { if (ok) document.querySelector('.js-hist-link').style.display = ''; });
     document.querySelectorAll('.js-agencia').forEach(el => el.textContent = s.nombre || '');
     const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
     const hoy = new Date(); document.querySelector('.js-mes').textContent = MESES[hoy.getMonth()] + ' ' + hoy.getFullYear();

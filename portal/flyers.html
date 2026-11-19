@@ -125,6 +125,7 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
         <button type="button" class="btn btn-primary js-bajar">Descargar PNG</button>
         <button type="button" class="btn btn-ghost sm js-bajar-todo" style="width:min(100%,440px); justify-content:center;" hidden>Descargar todos los formatos</button>
         <button type="button" class="btn btn-ghost sm js-drive" style="width:min(100%,440px); justify-content:center;" hidden>Guardar en Paquetes vigentes (Drive)</button>
+        <button type="button" class="btn btn-ghost sm js-historias" style="width:min(100%,440px); justify-content:center;" hidden>Armar secuencia de historias con este flyer →</button>
         <div class="tip js-msg" aria-live="polite"></div>
       </div>
     </div>
@@ -438,6 +439,24 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
       await new Promise(r => setTimeout(r, 400));   // algunos navegadores frenan descargas seguidas
     }
     $('.js-msg').textContent = 'Listo: ' + nombres.join(' · ');
+  };
+
+  // 6b. Pasar este flyer (historia), sus datos y la foto a la Secuencia de historias
+  const hist = FORMATOS.find(f => f.H > f.W) || FORMATOS[0];
+  Portal.tieneHistorias().then(ok => { if (ok) $('.js-historias').hidden = false; });
+  $('.js-historias').onclick = async () => {
+    const btn = $('.js-historias'); btn.disabled = true;
+    try {
+      const c = document.createElement('canvas'); c.width = hist.W; c.height = hist.H; dibujarEn(c, hist);
+      const flyerBlob = await new Promise(ok => c.toBlob(ok, 'image/png'));
+      let fondoBlob = null;
+      if (fondo) { const fc = document.createElement('canvas'); fc.width = fondo.width; fc.height = fondo.height; fc.getContext('2d').drawImage(fondo, 0, 0); fondoBlob = await new Promise(ok => fc.toBlob(ok, 'image/jpeg', .92)); }
+      const campos = {}; CAMPOS.forEach(cp => { campos[cp.id] = cp.tipo === 'check' ? h.on(cp.id) : h.v(cp.id); });
+      if (campos.showFecha === false) campos.fecha = '';
+      if (campos.showCta === false) campos.cta = '';
+      await Portal.traspaso.dejar({ slug: s.slug, ts: Date.now(), flyer: flyerBlob, fondo: fondoBlob, campos });
+      location.href = 'historias.html';
+    } catch (e) { btn.disabled = false; $('.js-msg').textContent = 'No pudimos pasar el flyer. Descargalo y subilo en Secuencia de historias.'; }
   };
 
   // 7. Guardar en la carpeta "Paquetes vigentes" de la agencia en Google Drive (solo si tiene una configurada)

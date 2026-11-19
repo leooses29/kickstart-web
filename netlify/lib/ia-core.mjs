@@ -2,6 +2,7 @@
 // Las dependencias (almacenamiento, verificación de la agencia, llamada a la IA) se inyectan para poder probarla.
 import { INSTRUCCIONES } from './instrucciones.mjs';
 import { INSTRUCCIONES_FLYER, INSTRUCCIONES_ENCUADRE } from './instrucciones-flyer.mjs';
+import { INSTRUCCIONES_HOOKS_HISTORIA } from './instrucciones-historias.mjs';
 
 export const CREDITOS_POR_DEFECTO = 40;
 const MAX = { destino: 80, paquete: 900, precio: 160, publico: 120, palabra: 24, extra: 400, ajuste: 300 };
@@ -122,6 +123,36 @@ export function extraerFlyer(texto) {
   };
 }
 
+// --- Secuencia de historias: hooks para la historia 1 ---
+const MAX_HOOKS = { destino: 80, fecha: 40, incluye: 300, precio: 80, publico: 120, previos: 20, previo: 160 };
+export function limpiarEntradaHooks(body = {}) {
+  const f = body.paquete || {};
+  const previos = (Array.isArray(body.previos) ? body.previos : []).map(x => recortar(x, MAX_HOOKS.previo)).filter(Boolean).slice(-MAX_HOOKS.previos);
+  return {
+    destino: recortar(f.destino, MAX_HOOKS.destino).replace(/\s+/g, ' '),
+    fecha: recortar(f.fecha, MAX_HOOKS.fecha), incluye: recortar(f.incluye, MAX_HOOKS.incluye),
+    precio: recortar(f.precio, MAX_HOOKS.precio), publico: recortar(body.publico, MAX_HOOKS.publico), previos,
+  };
+}
+export function armarPedidoHooks(e, agencia) {
+  const l = [`Agencia: ${agencia}`, `Destino: ${e.destino}`, `Fecha: ${e.fecha || 'no informada'}`, `Qué incluye: ${e.incluye || 'no informado'}`, `Precio: ${e.precio || 'no informado'}`];
+  if (e.publico) l.push(`Público: ${e.publico}`);
+  let txt = 'Escribí los hooks para la secuencia de historias de este paquete.\n\n' + l.join('\n');
+  if (e.previos.length) txt += '\n\nHooks ya mostrados (no los repitas ni hagas variantes casi iguales):\n- ' + e.previos.join('\n- ');
+  return txt;
+}
+export function extraerHooks(texto) {
+  const a = texto.indexOf('{'), b = texto.lastIndexOf('}');
+  if (a < 0 || b <= a) throw new Error('respuesta_invalida');
+  const o = JSON.parse(texto.slice(a, b + 1));
+  const hooks = (Array.isArray(o.hooks) ? o.hooks : []).map(h => typeof h === 'string' ? { formula: '', hook: h } : h)
+    .filter(h => h && typeof h.hook === 'string' && h.hook.trim())
+    .map(h => ({ formula: String(h.formula || '').trim().slice(0, 40), hook: h.hook.trim().replace(/\.$/, '').slice(0, 140) })).slice(0, 5);
+  if (!hooks.length) throw new Error('respuesta_invalida');
+  const cta = (Array.isArray(o.cta) ? o.cta : []).filter(x => typeof x === 'string' && x.trim()).map(x => x.trim().replace(/\.$/, '').slice(0, 100)).slice(0, 3);
+  return { hooks, cta };
+}
+
 // --- Encuadre automático ---
 export const MAX_ENCUADRES = 400;
 export function extraerPersonas(texto) {
@@ -234,6 +265,31 @@ export async function manejar(body, deps) {
     return [200, { resultado: salida, creditos: resumenCreditos(datos, c2, env, mes) }];
   }
 
+  if (accion === 'hooks') {
+    // Secuencia de historias: 5 hooks (mismo criterio que el Generador de Guiones) + 3 frases de llamado a la acción. Usa 1 crédito.
+    const entrada = limpiarEntradaHooks(body);
+    if (!entrada.destino) return [400, { error: 'falta_destino' }];
+    const limite = limiteDe(datos, c, env);
+    if ((c.usados || 0) >= limite) return [402, { error: 'sin_creditos', creditos: resumenCreditos(datos, c, env, mes) }];
+    let salida, uso;
+    try {
+      const r = await ia(armarPedidoHooks(entrada, agencia), { system: INSTRUCCIONES_HOOKS_HISTORIA, maxTokens: 1200 });
+      uso = r.uso;
+      try { salida = extraerHooks(r.texto); }
+      catch (e) { e.detalle = String(r.texto || '').slice(0, 300); throw e; }
+    } catch (e) {
+      console.error('Hooks de historias:', e.message, e.status || '', e.detalle || '');
+      return [502, { error: 'ia', creditos: resumenCreditos(datos, c, env, mes) }];
+    }
+    const c2 = await leerCreditos(store, slug, mes);
+    c2.usados = (c2.usados || 0) + 1;
+    await store.setJSON(`creditos/${slug}/${mes}`, c2);
+    await store.setJSON(`historias/${mes}/${ahora.getTime()}-${slug}`, {
+      fecha: ahora.toISOString(), slug, agencia, entrada, salida, modelo: env.ANTHROPIC_MODEL || '', uso: uso || {},
+    });
+    return [200, { resultado: salida, creditos: resumenCreditos(datos, c2, env, mes) }];
+  }
+
   if (accion === 'encuadre') {
     // Encuadre automático: no descuenta créditos, pero tiene un tope mensual propio por agencia
     const datosImg = String(body.imagen || '').replace(/^data:[^,]*,/, '');
@@ -309,6 +365,16 @@ export async function manejarAdmin(body, deps) {
     const r = await store.get(b.key, { type: 'json' }); if (!r) continue;
     const a = agencias[r.slug] || (agencias[r.slug] = { slug: r.slug, agencia: r.agencia, guiones: 0, positivos: 0, negativos: 0, tokensEntrada: 0, tokensSalida: 0 });
     a.flyers = (a.flyers || 0) + 1;
+    const u = r.uso || {};
+    a.tokensEntrada += (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0);
+    a.tokensSalida += u.output_tokens || 0;
+  }
+  // Hooks de la Secuencia de historias (usan los mismos créditos)
+  const lh = await store.list({ prefix: `historias/${mes}/` });
+  for (const b of lh.blobs || []) {
+    const r = await store.get(b.key, { type: 'json' }); if (!r) continue;
+    const a = agencias[r.slug] || (agencias[r.slug] = { slug: r.slug, agencia: r.agencia, guiones: 0, positivos: 0, negativos: 0, tokensEntrada: 0, tokensSalida: 0 });
+    a.historias = (a.historias || 0) + 1;
     const u = r.uso || {};
     a.tokensEntrada += (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0);
     a.tokensSalida += u.output_tokens || 0;

@@ -82,7 +82,8 @@
     drive: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
     ads: '<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
     reel: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
-    flyer: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>'
+    flyer: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>',
+    hist: '<rect x="2" y="4" width="6" height="16" rx="1.5"/><rect x="9" y="4" width="6" height="16" rx="1.5"/><rect x="16" y="4" width="6" height="16" rx="1.5"/>'
   };
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const svg = k => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">${ICON[k]}</svg>`;
@@ -99,7 +100,8 @@
       ${drive ? link(drive, 'drive', 'Drive', false, true) : ''}
       <div class="mono" style="font-size:11px; color:var(--muted); padding:16px 16px 6px; letter-spacing:.08em;">HERRAMIENTAS IA</div>
       ${link('guiones-ads.html', 'ads', 'Guiones para anuncios', active === 'ads')}
-      ${navFlyer(active, '')}`
+      ${navFlyer(active, '')}
+      ${navHistorias(active)}`
       : `${link('dashboard.html', 'panel', 'Panel', active === 'panel')}
       ${link('planificacion.html', 'plan', 'Planificación', active === 'plan')}
       ${link('reportes.html', 'rep', 'Reportes', active === 'reportes')}
@@ -107,7 +109,8 @@
       <div class="mono" style="font-size:11px; color:var(--muted); padding:16px 16px 6px; letter-spacing:.08em;">HERRAMIENTAS IA</div>
       ${link('guiones-ads.html', 'ads', 'Guiones para anuncios', active === 'ads')}
       ${off('reel', 'Guiones para reels')}
-      ${navFlyer(active, off('flyer', 'Generador de flyers'))}`;
+      ${navFlyer(active, off('flyer', 'Generador de flyers'))}
+      ${navHistorias(active)}`;
     el.innerHTML = `
     <a href="${soloAnuncios(s) ? 'reportes.html' : 'dashboard.html'}" style="display:flex; align-items:center; gap:10px; padding:0 6px;">
       <img src="../images/logo-2026/kickstart-icono.svg" alt="Kickstart" style="width:34px; height:34px; object-fit:contain;">
@@ -125,6 +128,10 @@
       const ph = el.querySelector('.js-nav-flyer');
       if (ok && ph) ph.outerHTML = link('flyers.html', 'flyer', 'Generador de flyers', false);
     });
+    if (active !== 'historias') tieneHistorias().then(ok => {
+      const ph = el.querySelector('.js-nav-hist');
+      if (ok && ph) ph.outerHTML = link('historias.html', 'hist', 'Secuencia de historias', false);
+    });
   }
 
   // Generador de flyers: solo para las agencias que tienen plantilla en portal/flyers/<id>/plantilla.js
@@ -140,5 +147,43 @@
     return _flyer;
   }
 
-  window.Portal = { sidebar, tieneFlyer, urlSegura, esc, abrir, abrirArchivo, ingresar, guardar, leer, salir, requerirSesion, soloAnuncios, normUsuario, idUsuario };
+  // Secuencia de historias: solo para las agencias que tienen portal/flyers/<id>/historias.js
+  function navHistorias(active) {
+    if (active === 'historias') return link('historias.html', 'hist', 'Secuencia de historias', true);
+    return '<div class="js-nav-hist" style="display:contents;"></div>';
+  }
+  let _hist = null;
+  function tieneHistorias() {
+    const s = leer(); if (!s || !s.slug) return Promise.resolve(false);
+    if (!_hist) _hist = fetch('flyers/' + encodeURIComponent(s.slug) + '/historias.js', { method: 'HEAD', cache: 'no-store' })
+      .then(r => r.ok).catch(() => false);
+    return _hist;
+  }
+
+  // Traspaso del Generador de flyers a la Secuencia de historias: guarda el flyer (y la foto) en este navegador
+  // (IndexedDB, porque una imagen no entra en sessionStorage) y la otra página lo toma una sola vez.
+  const traspaso = {
+    _db() {
+      return new Promise((ok, mal) => {
+        const r = indexedDB.open('kickstart-portal', 1);
+        r.onupgradeneeded = () => r.result.createObjectStore('traspaso');
+        r.onsuccess = () => ok(r.result); r.onerror = () => mal(r.error);
+      });
+    },
+    async dejar(datos) {
+      const db = await this._db();
+      await new Promise((ok, mal) => { const tx = db.transaction('traspaso', 'readwrite'); tx.objectStore('traspaso').put(datos, 'historias'); tx.oncomplete = ok; tx.onerror = () => mal(tx.error); });
+      db.close();
+    },
+    async tomar() {
+      const db = await this._db();
+      const datos = await new Promise((ok, mal) => {
+        const tx = db.transaction('traspaso', 'readwrite'), os = tx.objectStore('traspaso'), g = os.get('historias');
+        g.onsuccess = () => { os.delete('historias'); ok(g.result || null); }; g.onerror = () => mal(g.error);
+      });
+      db.close(); return datos;
+    }
+  };
+
+  window.Portal = { sidebar, tieneFlyer, tieneHistorias, traspaso, urlSegura, esc, abrir, abrirArchivo, ingresar, guardar, leer, salir, requerirSesion, soloAnuncios, normUsuario, idUsuario };
 })();

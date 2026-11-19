@@ -81,3 +81,21 @@ Variables de entorno en Netlify (Site configuration → Environment variables):
   dibuja cada plantilla, así que sirve para cualquier plantilla nueva sin configurar nada.
 - Plantillas cargadas: GF Travel y Aterrizar Villa María (las dos con historia 1080×1920 y cuadrado 1080×1080).
   La de Aterrizar usa las tipografías originales del PSD (Gilroy y Travellia), cargadas como .woff2 en su carpeta.
+
+## Portal de agencias — Secuencia de historias
+
+- Página: `/portal/historias.html`. Con el flyer de un paquete vigente arma 3 historias 1080×1920 para publicar seguidas:
+  **hook** (frase que frena el scroll sobre una foto) → **info del paquete** (destino, fecha y qué incluye, *sin precio*)
+  o **llamado a la acción** → **flyer** (con el precio). El orden se puede cambiar a hook → flyer → medio.
+- La estética de cada agencia está en `portal/flyers/<id>/historias.js`, en la misma carpeta que la plantilla del flyer
+  (usa sus logos y tipografías). Solo las agencias que tienen ese archivo ven la herramienta en el menú y en el panel.
+  Para sumar una agencia: copiar `historias.js` de GF Travel a su carpeta y adaptar colores, logos y la función `dibujar`.
+- **Desde el Generador de flyers**: el botón "Armar secuencia de historias con este flyer" pasa el flyer, los datos y la
+  foto a esta página (se guardan un momento en el navegador, en IndexedDB). También se puede subir un flyer ya hecho y
+  leerlo con IA (acción `flyer`, 1 crédito).
+- **Hooks con IA**: acción `hooks` de `/api/ia`, 1 crédito por cada tanda de 5 hooks (+ 3 frases de llamado a la acción).
+  Usan el MISMO criterio que el Generador de Guiones: las fórmulas de hook y los hooks prohibidos están una sola vez en
+  `netlify/lib/instrucciones.mjs` (`FORMULAS_HOOK` y `HOOKS_PROHIBIDOS`) y los usan las dos herramientas. Lo propio de las
+  historias está en `netlify/lib/instrucciones-historias.mjs`. Se registran en Netlify Blobs (`historias/<mes>/`) y se ven en el panel interno.
+- Descargas: las 3 salen numeradas en orden de publicación (`..._01-hook.png`, `..._02-info.png`, `..._03-flyer.png`).
+  El sticker de link se agrega al publicar (la API de Instagram no permite ponerlo); la vista previa marca dónde va.
