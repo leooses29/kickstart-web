@@ -208,7 +208,7 @@ hr.sep{border:0; border-top:1px solid var(--line); margin:10px 0 0;}
   const img = {};
   let fotoMuestra = null;
   try {
-    await Promise.all((P.fuentes || []).map(async f => { const ff = new FontFace(f.family, `url(${base + f.file})`, { weight: String(f.weight) }); await ff.load(); document.fonts.add(ff); }));
+    await Promise.all((P.fuentes || []).map(async f => { const ff = new FontFace(f.family, `url(${base + f.file})`, { weight: String(f.weight), style: f.style || 'normal' }); await ff.load(); document.fonts.add(ff); }));
     await Promise.all(Object.entries(P.imagenes || {}).map(async ([k, f]) => { img[k] = await loadImg(base + f); }));
     if (P.muestra) fotoMuestra = await loadImg(base + P.muestra.file);
   } catch (e) { estado('No pudimos cargar los archivos de tu plantilla. Probá recargar la página.'); return; }

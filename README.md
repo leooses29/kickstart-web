@@ -81,6 +81,9 @@ Variables de entorno en Netlify (Site configuration → Environment variables):
   dibuja cada plantilla, así que sirve para cualquier plantilla nueva sin configurar nada.
 - Plantillas cargadas: GF Travel y Aterrizar Villa María (las dos con historia 1080×1920 y cuadrado 1080×1080).
   La de Aterrizar usa las tipografías originales del PSD (Gilroy y Travellia), cargadas como .woff2 en su carpeta.
+  La de Netanya Viajes (`b03441d78ee8cf115e38f15015eaa4d5`, solo anuncios) replica el PSD "flyer_estetica_2"; usa Kanit
+  en lugar de Kiro (la del PSD, paga): para pasar a Kiro, subir sus .woff2 y cambiar `fuentes` y `FONT` en su plantilla.js.
+  Las fuentes aceptan `style: 'italic'` en `fuentes`.
 
 ## Portal de agencias — Secuencia de historias
 

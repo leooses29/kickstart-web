@@ -154,7 +154,7 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
   const loadImg = src => new Promise((ok, mal) => { const i = new Image(); i.onload = () => ok(i); i.onerror = mal; i.src = src; });
   const img = {}, view = { zoom: 1, ox: 0, oy: 0 }; let fondo = null;
   try {
-    await Promise.all((P.fuentes || []).map(async f => { const ff = new FontFace(f.family, `url(${base + f.file})`, { weight: String(f.weight) }); await ff.load(); document.fonts.add(ff); }));
+    await Promise.all((P.fuentes || []).map(async f => { const ff = new FontFace(f.family, `url(${base + f.file})`, { weight: String(f.weight), style: f.style || 'normal' }); await ff.load(); document.fonts.add(ff); }));
     await Promise.all(Object.entries(P.imagenes || {}).map(async ([k, f]) => { img[k] = await loadImg(base + f); }));
     if (P.muestra) { fondo = await loadImg(base + P.muestra.file); view.ox = P.muestra.ox || 0; view.oy = P.muestra.oy || 0; }
   } catch (e) { estado('No pudimos cargar los archivos de tu plantilla. Probá recargar la página.'); return; }
