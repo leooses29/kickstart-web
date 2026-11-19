@@ -170,11 +170,12 @@ hr.sep{border:0; border-top:1px solid var(--line); margin:10px 0 0;}
       <div class="hs-prev">
         <div class="historias js-historias"></div>
         <div class="btns"><button type="button" class="btn btn-primary js-todas">Descargar las 3 historias</button></div>
+        <div class="btns js-drive-box" hidden><button type="button" class="btn btn-ghost sm js-drive">Guardar en Drive · Paquetes vigentes › Secuencia de historias</button></div>
         <div class="msg js-msg" aria-live="polite"></div>
         <div class="tip">Arrastrá la foto dentro del hook y de la historia del medio para encuadrarla; con la ruedita del mouse hacés zoom. Las 3 salen numeradas para no confundir el orden.</div>
         <div class="guia"><b>Para publicar</b>
           <ol>
-            <li>Descargá las 3 historias.</li>
+            <li>Descargá las 3 historias o guardalas en Drive (quedan en Paquetes vigentes › Secuencia de historias, una carpeta por paquete).</li>
             <li>En Meta Business Suite → Planificador, programalas en orden (01, 02, 03) con 1 o 2 minutos de diferencia.</li>
             <li>En la última, sumá el sticker de link a tu WhatsApp.</li>
           </ol>
@@ -423,7 +424,10 @@ hr.sep{border:0; border-top:1px solid var(--line); margin:10px 0 0;}
     if (!r.ok) throw new Error(j.error || 'red');
     return j;
   }
-  apiDrive({ accion: 'estado' }).then(j => { if (j.fondos) $('.js-fondos').hidden = false; }).catch(() => {});
+  apiDrive({ accion: 'estado' }).then(j => {
+    if (j.fondos) $('.js-fondos').hidden = false;
+    if (j.carpeta && j.configurado) $('.js-drive-box').hidden = false;
+  }).catch(() => {});
   async function verFondos() {
     const btn = $('.js-fondos-ver'), msg = $('.js-fondos-msg');
     btn.disabled = true; btn.textContent = 'Buscando…'; msg.textContent = '';
@@ -472,6 +476,34 @@ hr.sep{border:0; border-top:1px solid var(--line); margin:10px 0 0;}
     $('.js-msg').textContent = 'Listo: ' + nombres.join(' · ');
   }
   $('.js-todas').onclick = () => descargar([0, 1, 2]);
+
+  // 10. Guardar las 3 en Drive: Paquetes vigentes / Secuencia de historias / <Destino - Fecha>.
+  // Una historia por pedido (las 3 juntas pesan demasiado). Si se vuelve a guardar el mismo paquete, se reemplazan.
+  const blobB64 = (c, tipo, q) => new Promise(ok => c.toBlob(b => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1]); fr.readAsDataURL(b); }, tipo, q));
+  $('.js-drive').onclick = async () => {
+    if (!flyer) { $('.js-msg').textContent = 'Primero subí el flyer (paso 1).'; return; }
+    const btn = $('.js-drive'), seq = secuencia(), etiqueta = btn.textContent;
+    const carpetaSeq = [destino1() || 'Paquete', v('fecha').trim()].filter(Boolean).join(' - ');
+    btn.disabled = true;
+    let ultimo = null;
+    try {
+      for (let i = 0; i < 3; i++) {
+        btn.innerHTML = `<span class="gira"></span>Guardando ${i + 1} de 3 en Drive…`;
+        const c = document.createElement('canvas'); c.width = W; c.height = H; dibujarHistoria(c.getContext('2d'), { tipo: seq[i] }, false);
+        let tipo = 'image/png', datos = await blobB64(c, tipo);
+        if (datos.length > 5_000_000) { tipo = 'image/jpeg'; datos = await blobB64(c, tipo, 0.92); }   // fotos muy pesadas
+        const nombre = `Historia ${i + 1} de 3` + (tipo === 'image/png' ? '.png' : '.jpg');   // por posición: siempre quedan exactamente 3
+        ultimo = await apiDrive({ accion: 'guardar-historia', nombre, tipo, datos, secuencia: carpetaSeq, primero: i === 0 });
+      }
+      $('.js-msg').innerHTML = `Guardadas en Drive: <a href="${esc(Portal.urlSegura(ultimo.carpetaUrl))}" target="_blank" rel="noopener">Secuencia de historias › ${esc(ultimo.carpetaNombre || carpetaSeq)} ↗</a>`;
+    } catch (e) {
+      if (e.message !== 'sesion') $('.js-msg').textContent = {
+        sin_carpeta: 'Tu carpeta de Paquetes vigentes todavía no está configurada. Avisale a Kickstart.',
+        script_viejo: 'Falta actualizar la conexión con Drive para guardar historias (no se guardó nada). Avisale a Kickstart; mientras tanto, descargalas.',
+        sin_configurar: 'La conexión con Drive todavía no está configurada. Mientras tanto, descargalas.'
+      }[e.message] || 'No pudimos guardarlas en Drive. Probá de nuevo; mientras tanto podés descargarlas.';
+    } finally { btn.disabled = false; btn.textContent = etiqueta; }
+  };
 })();
 </script>
 </body>

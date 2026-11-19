@@ -1,6 +1,9 @@
 /**
  * Google Drive para el Generador de flyers del portal de agencias:
- *  - guardar: guarda un flyer en la carpeta "Paquetes vigentes" de la agencia.
+ *  - guardar: guarda un flyer en la carpeta "Paquetes vigentes" de la agencia. Con "subcarpetas" (Secuencia de historias)
+ *    lo guarda en subcarpetas que crea si no existen, p. ej. Paquetes vigentes / Secuencia de historias / Punta Cana - Marzo 2027,
+ *    y con "reemplazar" manda a la papelera el archivo anterior con el mismo nombre (para volver a guardar una secuencia).
+ *  - version: responde la versión del script (la web la usa para saber si ya está actualizado).
  *  - fondos: lista las fotos del Banco de fondos para un destino (con miniaturas).
  *  - fondo: devuelve una foto del banco en tamaño grande (máx. 2000 px).
  * Se pega en script.google.com con la cuenta de Kickstart dueña (o editora) de las carpetas, y se publica como
@@ -14,6 +17,7 @@ function doPost(e) {
     var p = JSON.parse(e.postData.contents);
     var secreto = PropertiesService.getScriptProperties().getProperty('SECRETO');
     if (!secreto || p.secreto !== secreto) return respuesta({ ok: false, error: 'secreto' });
+    if (p.accion === 'version') return respuesta({ ok: true, version: VERSION });
     if (p.accion === 'fondos') return respuesta(listarFondos(p));
     if (p.accion === 'fondo') return respuesta(leerFondo(p));
     return respuesta(guardar(p));
@@ -22,14 +26,33 @@ function doPost(e) {
   }
 }
 
+var VERSION = 2;   // 2: subcarpetas (Secuencia de historias) y reemplazar
+
+function limpiarNombre(s, max) { return String(s || '').replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim().slice(0, max); }
+
+// Busca la subcarpeta por nombre dentro de "padre"; si no existe, la crea
+function subcarpeta(padre, nombre) {
+  var it = padre.getFoldersByName(nombre);
+  return it.hasNext() ? it.next() : padre.createFolder(nombre);
+}
+
 function guardar(p) {
   var carpeta = DriveApp.getFolderById(String(p.carpeta || ''));
   if (!/paquetes\s*vigentes/i.test(carpeta.getName())) return { ok: false, error: 'carpeta' };
+  var subs = Array.isArray(p.subcarpetas) ? p.subcarpetas.slice(0, 3) : [];
+  for (var i = 0; i < subs.length; i++) {
+    var n = limpiarNombre(subs[i], 80);
+    if (n) carpeta = subcarpeta(carpeta, n);
+  }
   var tipo = p.tipo === 'image/jpeg' ? 'image/jpeg' : 'image/png';
-  var nombre = String(p.nombre || 'flyer').replace(/[\\/:*?"<>|]/g, '-').slice(0, 150);
+  var nombre = limpiarNombre(p.nombre || 'flyer', 150) || 'flyer';
+  if (p.reemplazar) {   // a la papelera el archivo anterior con el mismo nombre (aunque haya sido .jpg y ahora .png)
+    var base = nombre.replace(/\.[^.]+$/, ''), viejos = carpeta.getFiles();
+    while (viejos.hasNext()) { var f = viejos.next(); if (f.getName().replace(/\.[^.]+$/, '') === base) f.setTrashed(true); }
+  }
   var blob = Utilities.newBlob(Utilities.base64Decode(p.datos), tipo, nombre);
   var archivo = carpeta.createFile(blob);
-  return { ok: true, id: archivo.getId(), url: archivo.getUrl(), nombre: archivo.getName() };
+  return { ok: true, id: archivo.getId(), url: archivo.getUrl(), nombre: archivo.getName(), carpetaUrl: carpeta.getUrl(), carpetaNombre: carpeta.getName() };
 }
 
 // --- Banco de fondos ---

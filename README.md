@@ -97,5 +97,12 @@ Variables de entorno en Netlify (Site configuration → Environment variables):
   Usan el MISMO criterio que el Generador de Guiones: las fórmulas de hook y los hooks prohibidos están una sola vez en
   `netlify/lib/instrucciones.mjs` (`FORMULAS_HOOK` y `HOOKS_PROHIBIDOS`) y los usan las dos herramientas. Lo propio de las
   historias está en `netlify/lib/instrucciones-historias.mjs`. Se registran en Netlify Blobs (`historias/<mes>/`) y se ven en el panel interno.
+- **Guardar en Drive**: el botón "Guardar en Drive" sube las 3 a `Paquetes vigentes / Secuencia de historias / <Destino - Fecha>`
+  (las carpetas se crean solas) como `Historia 1 de 3`, `2 de 3` y `3 de 3`. Si se vuelve a guardar el mismo paquete, se
+  reemplazan (las anteriores van a la papelera de Drive). Usa la misma carpeta y conexión que el Generador de flyers
+  (`netlify/lib/carpetas-paquetes.mjs` y `tools/drive-flyers.gs`), con la acción `guardar-historia` de `/api/flyer-drive`.
+  Necesita el script de Google en su **versión 2**: si está el viejo, la web no guarda nada y avisa. Para actualizarlo:
+  script.google.com → abrir el proyecto → reemplazar todo el código por `tools/drive-flyers.gs` → Guardar →
+  Implementar → Administrar implementaciones → lápiz → Versión: "Nueva versión" → Implementar (la URL no cambia).
 - Descargas: las 3 salen numeradas en orden de publicación (`..._01-hook.png`, `..._02-info.png`, `..._03-flyer.png`).
   El sticker de link se agrega al publicar (la API de Instagram no permite ponerlo); la vista previa marca dónde va.

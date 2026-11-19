@@ -1,6 +1,8 @@
 // Generador de flyers: guarda un flyer en la carpeta "Paquetes vigentes" de la agencia. POST /api/flyer-drive
 // Acciones: estado (¿la agencia tiene carpeta configurada?), guardar ({nombre, tipo, datos} con la imagen en base64),
-// fondos ({destino} o {carpetaNombre}: fotos sugeridas del Banco de fondos) y fondo ({id}: una foto en tamaño grande).
+// fondos ({destino} o {carpetaNombre}: fotos sugeridas del Banco de fondos), fondo ({id}: una foto en tamaño grande) y
+// guardar-historia ({nombre, tipo, datos, secuencia, primero}: una historia de la Secuencia de historias, en
+// Paquetes vigentes / Secuencia de historias / <secuencia>; se llama una vez por historia porque las 3 juntas pesan demasiado).
 // La subida la hace una aplicación web de Google Apps Script (tools/drive-flyers.gs) con la cuenta de Kickstart.
 import { verificarAgencia } from '../lib/portal-auth.mjs';
 import { CARPETAS_PAQUETES, BANCO_FONDOS, FONDOS_AGENCIA } from '../lib/carpetas-paquetes.mjs';
@@ -51,6 +53,31 @@ export default async (req) => {
       return json(200, { ok: true, nombre: out.nombre, url: out.url });
     } catch (e) {
       console.error('Flyer a Drive:', e.message);
+      return json(502, { error: 'drive' });
+    }
+  }
+  if (body.accion === 'guardar-historia') {
+    if (!carpeta) return json(404, { error: 'sin_carpeta' });
+    if (!configurado) return json(503, { error: 'sin_configurar' });
+    const tipo = body.tipo === 'image/jpeg' ? 'image/jpeg' : 'image/png';
+    const b64 = String(body.datos || '').replace(/^data:[^,]*,/, '');
+    if (!b64 || b64.length > MAX_B64) return json(400, { error: 'archivo' });
+    const nombre = String(body.nombre || 'historia.png').slice(0, 150);
+    const secuencia = String(body.secuencia || '').replace(/\s+/g, ' ').trim().slice(0, 80) || 'Sin destino';
+    const drive = pedido => fetch(process.env.DRIVE_WEBAPP_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, redirect: 'follow',
+      body: JSON.stringify({ secreto: process.env.DRIVE_SECRET, ...pedido }) }).then(r => r.json());
+    try {
+      // Antes de la primera historia: el script de Google tiene que estar actualizado (versión 2). Uno viejo ignora
+      // las subcarpetas y dejaría las historias sueltas en Paquetes vigentes, así que en ese caso no se guarda nada.
+      if (body.primero) {
+        const v = await drive({ accion: 'version' }).catch(() => ({}));
+        if (!(v && v.ok && v.version >= 2)) return json(409, { error: 'script_viejo' });
+      }
+      const out = await drive({ carpeta, subcarpetas: ['Secuencia de historias', secuencia], reemplazar: true, nombre, tipo, datos: b64 });
+      if (!out.ok) { console.error('Historia a Drive:', out.error, out.detalle || ''); return json(502, { error: 'drive' }); }
+      return json(200, { ok: true, nombre: out.nombre, url: out.url, carpetaUrl: out.carpetaUrl, carpetaNombre: out.carpetaNombre });
+    } catch (e) {
+      console.error('Historia a Drive:', e.message);
       return json(502, { error: 'drive' });
     }
   }
