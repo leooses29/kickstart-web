@@ -7,6 +7,8 @@ export const CARPETAS_PAQUETES = {
   fde3d5ab427a36814efab95c61efc39f: '1R8FmlAxxdlZzYoalaFp2TWGo2Xk5y1U-',
   // Aterrizar Villa María → Aterrizar / 11. At Villa Maria / Paquetes Vigentes
   '4477ac64fa38984db569f9cf1cde96bc': '1dV_cKTQ0xqVJEoaotZAyJntK8KhJ67ER',
+  // Aterrizar Oliva → Aterrizar / 13. At Oliva / Paquetes vigentes
+  '2f108da6f1888acd08b3528dd7046a5b': '1S3pmHB6kTOoR7ElhV_MpIAsJPlskvoXN',
 };
 
 // Banco de fondos de Kickstart (Drive → "Banco de fondos Kickstart"): una subcarpeta por destino y una "General".
