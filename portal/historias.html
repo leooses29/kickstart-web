@@ -56,7 +56,7 @@ hr.sep{border:0; border-top:1px solid var(--line); margin:10px 0 0;}
 .fondos-grid button{padding:0; border:2px solid transparent; border-radius:8px; overflow:hidden; cursor:pointer; background:#222; aspect-ratio:3/4;}
 .fondos-grid button:hover{border-color:var(--yellow);}
 .fondos-grid img{width:100%; height:100%; object-fit:cover; display:block;}
-.hs-prev{position:sticky; top:24px; display:flex; flex-direction:column; gap:16px;}
+.hs-prev{position:sticky; top:24px; display:flex; flex-direction:column; gap:12px;}
 .historias{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
 .hcard{display:flex; flex-direction:column; gap:8px; min-width:0;}
 .hcard .tit{display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;}
@@ -168,10 +168,11 @@ hr.sep{border:0; border-top:1px solid var(--line); margin:10px 0 0;}
       </form>
 
       <div class="hs-prev">
-        <div class="historias js-historias"></div>
+        <!-- Botones arriba de las historias: así se ven siempre, aun en pantallas de notebook -->
         <div class="btns"><button type="button" class="btn btn-primary js-todas">Descargar las 3 historias</button></div>
         <div class="btns js-drive-box" hidden><button type="button" class="btn btn-ghost sm js-drive">Guardar en Drive · Paquetes vigentes › Secuencia de historias</button></div>
         <div class="msg js-msg" aria-live="polite"></div>
+        <div class="historias js-historias"></div>
         <div class="tip">Arrastrá la foto dentro del hook y de la historia del medio para encuadrarla; con la ruedita del mouse hacés zoom. Las 3 salen numeradas para no confundir el orden.</div>
         <div class="guia"><b>Para publicar</b>
           <ol>
@@ -274,8 +275,8 @@ hr.sep{border:0; border-top:1px solid var(--line); margin:10px 0 0;}
       dibujarHistoria(t.ctx, { tipo }, true);
       if ($('#h-zonas').checked) zonasInstagram(t.ctx);
     });
-    $('.js-todas').disabled = !flyer;
-    $('.js-todas').textContent = flyer ? 'Descargar las 3 historias' : 'Subí el flyer para descargar';
+    // Sin flyer igual se puede descargar lo que está listo (hook y la historia del medio)
+    $('.js-todas').textContent = flyer ? 'Descargar las 3 historias' : 'Descargar las 2 historias (falta el flyer)';
   }
   let raf = 0; const redibujar = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(render); };
 
@@ -475,13 +476,13 @@ hr.sep{border:0; border-top:1px solid var(--line); margin:10px 0 0;}
     }
     $('.js-msg').textContent = 'Listo: ' + nombres.join(' · ');
   }
-  $('.js-todas').onclick = () => descargar([0, 1, 2]);
+  $('.js-todas').onclick = () => descargar([0, 1, 2].filter(i => flyer || secuencia()[i] !== 'flyer'));
 
   // 10. Guardar las 3 en Drive: Paquetes vigentes / Secuencia de historias / <Destino - Fecha>.
   // Una historia por pedido (las 3 juntas pesan demasiado). Si se vuelve a guardar el mismo paquete, se reemplazan.
   const blobB64 = (c, tipo, q) => new Promise(ok => c.toBlob(b => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1]); fr.readAsDataURL(b); }, tipo, q));
   $('.js-drive').onclick = async () => {
-    if (!flyer) { $('.js-msg').textContent = 'Primero subí el flyer (paso 1).'; return; }
+    if (!flyer) { $('.js-msg').textContent = 'Para guardar en Drive subí el flyer (paso 1): se guardan las 3 juntas. Mientras tanto podés descargar las otras 2.'; return; }
     const btn = $('.js-drive'), seq = secuencia(), etiqueta = btn.textContent;
     const carpetaSeq = [destino1() || 'Paquete', v('fecha').trim()].filter(Boolean).join(' - ');
     btn.disabled = true;
