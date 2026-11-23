@@ -36,6 +36,7 @@ window.PlantillaFlyer = {
   ia: { destino: 'destino', incluye: 'incluye', precio: 'precio', moneda: 'moneda', aclaracion: 'base' },
 
   ajustes: [
+    { id: 'tamDestino', label: 'Tamaño del destino', hint: 'agrandá los destinos cortos o achicá los largos', min: 0.7, max: 1.8, step: 0.01, valor: 1 },
     { id: 'altura', label: 'Altura del bloque de arriba', hint: 'más a la derecha = más abajo', min: 0, max: 200, step: 1, valor: 0 },
     { id: 'respaldo', label: 'Franja blanca detrás del precio', min: 0, max: 1.6, step: 0.01, valor: 1 }
   ],
@@ -78,13 +79,18 @@ window.PlantillaFlyer = {
 
     // 3. Destino (1 o 2 líneas) con la curva amarilla debajo
     const lines = v('destino').split('\n').map(x => x.trim()).filter(Boolean);
-    let ts = lines.length > 1 ? 104 : 126;
+    const kd = h.n('tamDestino') || 1;   // tamaño del destino elegido por la agencia
+    const ts0 = lines.length > 1 ? 104 : 126;
+    let ts = ts0 * kd;
     ctx.font = font(900, ts); ctx.textAlign = 'left'; ctx.fillStyle = C.white;
     const maxT = Math.max(1, ...lines.map(l => ctx.measureText(l).width));
     if (maxT > 1100) ts *= 1100 / maxT;
-    h.aviso('destino', ts < (lines.length > 1 ? 103.9 : 125.9) ? 'El texto es largo: se achicó para que entre.' : '');
+    h.aviso('destino', ts < ts0 * kd - .1 ? 'El texto es largo: se achicó para que entre.' : '');
     ctx.font = font(900, ts);
-    const lead = ts * .98, base0 = T + (lines.length > 1 ? 210 : 220);
+    // Si el destino quedó más grande que el diseño, baja lo que crecen las mayúsculas (así no pisa la frase de arriba)
+    let crece = 0;
+    if (lines.length) { const a = ctx.measureText(lines[0]).actualBoundingBoxAscent; ctx.font = font(900, ts0); crece = Math.max(0, a - ctx.measureText(lines[0]).actualBoundingBoxAscent); ctx.font = font(900, ts); }
+    const lead = ts * .98, base0 = T + (lines.length > 1 ? 210 : 220) + crece;
     let ultima = base0;
     lines.forEach((l, i) => { ultima = base0 + lead * i; ctx.fillText(l, 78, ultima); });
     if (lines.length) {

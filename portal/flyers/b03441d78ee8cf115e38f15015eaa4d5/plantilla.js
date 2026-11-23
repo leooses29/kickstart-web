@@ -42,6 +42,7 @@ window.PlantillaFlyer = {
   ia: { destino: 'destino', fecha: 'fecha', incluye: 'incluye', cta: 'cta', precio: 'precio', moneda: 'moneda', aclaracion: 'base' },
 
   ajustes: [
+    { id: 'tamDestino', label: 'Tamaño del destino', hint: 'agrandá los destinos cortos o achicá los largos', min: 0.7, max: 1.8, step: 0.01, valor: 1 },
     { id: 'altura', label: 'Altura del bloque de arriba', hint: 'más a la derecha = más abajo', min: -120, max: 260, step: 1, valor: 0 },
     { id: 'sombra', label: 'Sombra detrás del texto de arriba', hint: 'Para fotos claras. En 0 queda como el diseño original.', min: 0, max: 1, step: 0.01, valor: 0 }
   ],
@@ -86,11 +87,15 @@ window.PlantillaFlyer = {
     if (!cuadrado) ctx.translate(0, alt);
 
     const lines = v('destino').split('\n').map(x => x.trim()).filter(Boolean).slice(0, 2);
-    let ts = 148.6;
+    const kd = h.n('tamDestino') || 1;   // tamaño del destino elegido por la agencia
+    let ts = 148.6 * kd;
     ctx.font = font(700, ts); const mw = Math.max(1, ...lines.map(l => ctx.measureText(l).width));
     if (mw > 940) ts *= 940 / mw;
-    h.aviso('destino', ts < 148 ? 'El destino es largo: se achicó para que entre.' : '');
-    const lead = ts * K * .86, extra = lines.length > 1 ? lead : 0;   // con 2 líneas, lo de abajo baja una línea
+    h.aviso('destino', ts < 148.6 * kd - .5 ? 'El destino es largo: se achicó para que entre.' : '');
+    // Si el destino quedó más grande que el diseño, baja lo que crecen las mayúsculas (así no pisa la frase de arriba)
+    let crece = 0;
+    if (lines.length) { ctx.font = font(700, 148.6); const a0 = ctx.measureText(lines[0]).actualBoundingBoxAscent; ctx.font = font(700, ts); crece = Math.max(0, ctx.measureText(lines[0]).actualBoundingBoxAscent - a0); }
+    const lead = ts * K * .86, extra = (lines.length > 1 ? lead : 0) + crece;   // con 2 líneas, lo de abajo baja una línea
 
     sombra(true);
     const pre = v('prefijo').trim();
@@ -103,7 +108,7 @@ window.PlantillaFlyer = {
       ctx.font = font(700, f.s, true); ctx.textAlign = 'right'; ctx.fillStyle = C.white; ctx.fillText(fecha, 944, 400);
     }
     ctx.font = font(700, ts); ctx.textAlign = 'center'; ctx.fillStyle = C.white;
-    lines.forEach((l, i) => ctx.fillText(l, 544, 522 + i * lead));
+    lines.forEach((l, i) => ctx.fillText(l, 544, 522 + crece + i * lead));
     sombra(false);
 
     const crudo = v('incluye').trim();

@@ -47,6 +47,7 @@ window.PlantillaFlyer = {
   ia: { destino: 'destino', fecha: 'fecha', incluye: 'incluye', cta: 'cta', precio: 'precio', moneda: 'moneda', aclaracion: 'base' },
 
   ajustes: [
+    { id: 'tamDestino', label: 'Tamaño del destino', hint: 'agrandá los destinos cortos o achicá los largos', min: 0.7, max: 1.8, step: 0.01, valor: 1 },
     { id: 'altura', label: 'Altura del bloque de texto', hint: 'más a la derecha = más arriba', min: 0, max: 300, step: 1, valor: 170 },
     { id: 'oscuro', label: 'Oscurecido del fondo', min: 0, max: 1.3, step: 0.01, valor: 1 }
   ],
@@ -94,11 +95,12 @@ window.PlantillaFlyer = {
 
     // 2. Destino: crece hacia arriba, la última línea queda fija
     const lines = v('destino').split('\n').map(x => x.trim()).filter(Boolean);
-    let tSize = 154.4 * s, lead = 137.2 * s;
+    const kd = h.n('tamDestino') || 1;   // tamaño del destino elegido por la agencia
+    let tSize = 154.4 * s * kd, lead = 137.2 * s * kd;
     ctx.font = font(800, tSize);
     let maxW = Math.max(1, ...lines.map(l => ctx.measureText(l).width));
     if (maxW > L.titleMax) { const f = L.titleMax / maxW; tSize *= f; lead *= f; ctx.font = font(800, tSize); maxW = Math.max(...lines.map(l => ctx.measureText(l).width)); }
-    h.aviso('destino', tSize < 154.3 * s ? 'El texto es largo: se achicó para que entre.' : '');
+    h.aviso('destino', tSize < 154.3 * s * kd ? 'El texto es largo: se achicó para que entre.' : '');
     const asc = lines.length ? ctx.measureText(lines[0]).actualBoundingBoxAscent : 0;
     const conFecha = h.on('showFecha') && v('fecha').trim();
     let firstBase, lastBase;

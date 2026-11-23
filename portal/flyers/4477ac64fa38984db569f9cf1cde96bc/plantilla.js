@@ -36,6 +36,7 @@ window.PlantillaFlyer = {
   ia: { destino: 'destino', pais: 'pais', fecha: 'fecha', incluye: 'incluye', precio: 'precio', moneda: 'moneda', aclaracion: 'base' },
 
   ajustes: [
+    { id: 'tamDestino', label: 'Tamaño del destino', hint: 'agrandá los destinos cortos o achicá los largos', min: 0.7, max: 1.8, step: 0.01, valor: 1 },
     { id: 'altura', label: 'Altura del título', hint: 'más a la derecha = más arriba', min: -100, max: 200, step: 1, valor: 0 },
     { id: 'luz', label: 'Luz detrás del texto', hint: 'aclara la izquierda de la foto', min: 0, max: 2, step: 0.01, valor: 1 }
   ],
@@ -72,20 +73,28 @@ window.PlantillaFlyer = {
 
     // 2. Destino (1 o 2 líneas) con la frase arriba
     const lines = v('destino').split('\n').map(x => x.trim()).filter(Boolean);
-    let tSize = 185 * s, lead = 160 * s;
+    const kd = h.n('tamDestino') || 1;   // tamaño del destino elegido por la agencia
+    let tSize = 185 * s * kd, lead = 160 * s * kd;
     ctx.font = font(900, tSize);
     let maxW = Math.max(1, ...lines.map(l => ctx.measureText(l).width));
     const tope = 940;
     if (maxW > tope) { const f = tope / maxW; tSize *= f; lead *= f; ctx.font = font(900, tSize); maxW = Math.max(...lines.map(l => ctx.measureText(l).width)); }
-    h.aviso('destino', tSize < 184.9 * s ? 'El texto es largo: se achicó para que entre.' : '');
+    h.aviso('destino', tSize < 184.9 * s * kd ? 'El texto es largo: se achicó para que entre.' : '');
     // La última línea queda fija y el título crece hacia arriba (así no baja sobre la foto)
-    const lastBase = L.base - h.n('altura') * (cuadrado ? .6 : 1), firstBase = lastBase - lead * (lines.length - 1);
+    // Si el destino quedó más grande que el diseño, la frase sube lo que crecen las mayúsculas (así no queda tapada)
+    let crece = 0, asc = 0;
+    if (lines.length) { asc = ctx.measureText(lines[0]).actualBoundingBoxAscent; ctx.font = font(900, 185 * s); crece = Math.max(0, asc - ctx.measureText(lines[0]).actualBoundingBoxAscent); ctx.font = font(900, tSize); }
     const frase = v('frase').trim();
+    const sobreFrase = 115 * s + crece;   // distancia de la base de la primera línea a la base de la frase
+    let lastBase = L.base - h.n('altura') * (cuadrado ? .6 : 1), firstBase = lastBase - lead * (lines.length - 1);
+    // Que nada se salga por arriba: si el título (o la frase) queda muy arriba, todo el bloque baja
+    const techo = firstBase - (frase ? sobreFrase + 75 * s : asc), minTecho = cuadrado ? 24 : 120;
+    if (techo < minTecho) { lastBase += minTecho - techo; firstBase += minTecho - techo; }
     if (frase) {
       const ff = 102 * s;
       ctx.font = `400 ${ff}px 'Travellia AVM'`; ctx.textAlign = 'center';
       ctx.lineJoin = 'round'; ctx.lineWidth = 3 * s; ctx.strokeStyle = '#F0F2F4'; ctx.fillStyle = C.white;
-      ctx.strokeText(frase, 540 + 51 * s, firstBase - 115 * s); ctx.fillText(frase, 540 + 51 * s, firstBase - 115 * s);
+      ctx.strokeText(frase, 540 + 51 * s, firstBase - sobreFrase); ctx.fillText(frase, 540 + 51 * s, firstBase - sobreFrase);
     }
     ctx.font = font(900, tSize); ctx.fillStyle = C.white; ctx.textAlign = 'center';
     lines.forEach((l, i) => ctx.fillText(l, 540, firstBase + lead * i));
