@@ -9,6 +9,8 @@ export const CARPETAS_PAQUETES = {
   '4477ac64fa38984db569f9cf1cde96bc': '1dV_cKTQ0xqVJEoaotZAyJntK8KhJ67ER',
   // Aterrizar Oliva → Aterrizar / 13. At Oliva / Paquetes vigentes
   '2f108da6f1888acd08b3528dd7046a5b': '1S3pmHB6kTOoR7ElhV_MpIAsJPlskvoXN',
+  // Netanya Viajes → Netanya viajes / Paquetes Vigentes
+  b03441d78ee8cf115e38f15015eaa4d5: '1t-6Q6qmoPBXji_l5sXxbVBBIclogu5uh',
 };
 
 // Banco de fondos de Kickstart (Drive → "Banco de fondos Kickstart"): una subcarpeta por destino y una "General".
