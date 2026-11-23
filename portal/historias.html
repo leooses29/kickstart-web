@@ -227,7 +227,9 @@ hr.sep{border:0; border-top:1px solid var(--line); margin:10px 0 0;}
   let flyer = null;   // imagen del flyer (subida o traída del generador)
   const v = id => { const el = document.getElementById('h-' + id); return el ? el.value : ''; };
   const destino1 = () => v('destino').split('\n').map(x => x.trim()).filter(Boolean).join(' ');
-  const items = () => v('incluye').split(/\n|\s+-\s+|,|·/).map(x => x.trim()).filter(Boolean);
+  // Un ítem por línea; si está todo en una línea, se separa por guiones, comas o puntos medios.
+  // (Así "Traslados / in - out", como lo escribe el flyer de Aterrizar Oliva, queda como un solo ítem.)
+  const items = () => { const t = v('incluye'); return t.split(t.includes('\n') ? /\n/ : /\s+-\s+|,|·/).map(x => x.trim()).filter(Boolean); };
   const fotoDe = clave => clave === 'medio' && !$('#h-misma').checked ? (fotos.medio || fotos.hook || fotoMuestra) : (fotos.hook || fotoMuestra);
 
   function cubrir(ctx, im, vista) {
@@ -342,7 +344,7 @@ hr.sep{border:0; border-top:1px solid var(--line); margin:10px 0 0;}
       const c = t.campos || {}, set = (id, val) => { if (val != null && String(val).trim() !== '') { const el = document.getElementById('h-' + id); if (el) el.value = val; } };
       set('destino', c.destino); set('fecha', c.fecha); set('cta', c.cta); set('desde', c.desde); set('moneda', c.moneda);
       set('precio', c.precio); set('base', c.base); set('legales', c.legales);
-      if (c.incluye) set('incluye', String(c.incluye).split(/\s+-\s+|\n/).map(x => x.trim()).filter(Boolean).join('\n'));
+      if (c.incluye) { const t = String(c.incluye); set('incluye', t.split(t.includes('\n') ? /\n/ : /\s+-\s+/).map(x => x.trim()).filter(Boolean).join('\n')); }
       const d = (c.destino || '').replace(/\s+/g, ' ').trim(); if (d) set('hook', `3 cosas que no sabías de *${d}*`);
       if (t.fondo) { fotos.hook = await loadImg(URL.createObjectURL(t.fondo)); }
       await ponerFlyer(t.flyer, 'Flyer traído del Generador de flyers');

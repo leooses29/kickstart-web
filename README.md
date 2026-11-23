@@ -79,7 +79,7 @@ Variables de entorno en Netlify (Site configuration → Environment variables):
   de `/api/ia`, no usa créditos; tope de 400 por agencia por mes) y el generador elige para cada formato el zoom y la
   posición en que el texto de la plantilla no tape caras ni cuerpos. Las zonas de texto se miden solas a partir de lo que
   dibuja cada plantilla, así que sirve para cualquier plantilla nueva sin configurar nada.
-- Plantillas cargadas: GF Travel y Aterrizar Villa María (las dos con historia 1080×1920 y cuadrado 1080×1080).
+- Plantillas cargadas: GF Travel, Aterrizar Villa María, Aterrizar Oliva y Netanya (todas con historia 1080×1920 y cuadrado 1080×1080).
   La de Aterrizar usa las tipografías originales del PSD (Gilroy y Travellia), cargadas como .woff2 en su carpeta.
   La de Netanya Viajes (`b03441d78ee8cf115e38f15015eaa4d5`, solo anuncios) replica el PSD "flyer_estetica_2"; usa Kanit
   en lugar de Kiro (la del PSD, paga): para pasar a Kiro, subir sus .woff2 y cambiar `fuentes` y `FONT` en su plantilla.js.
@@ -92,7 +92,9 @@ Variables de entorno en Netlify (Site configuration → Environment variables):
   o **llamado a la acción** → **flyer** (con el precio). El orden se puede cambiar a hook → flyer → medio.
 - La estética de cada agencia está en `portal/flyers/<id>/historias.js`, en la misma carpeta que la plantilla del flyer
   (usa sus logos y tipografías). Solo las agencias que tienen ese archivo ven la herramienta en el menú y en el panel.
-  Para sumar una agencia: copiar `historias.js` de GF Travel a su carpeta y adaptar colores, logos y la función `dibujar`.
+  Plantillas cargadas: GF Travel, Netanya, Aterrizar Villa María y Aterrizar Oliva. Las de Netanya y las dos de Aterrizar
+  comparten la misma estructura (`dibujar`) y cambian solo en `tema()` (colores, tipografía, logos, etiquetas y pie):
+  para sumar una agencia, copiar una de esas tres a su carpeta y adaptar `tema()` y `valores`.
 - **Desde el Generador de flyers**: el botón "Armar secuencia de historias con este flyer" pasa el flyer, los datos y la
   foto a esta página (se guardan un momento en el navegador, en IndexedDB). También se puede subir un flyer ya hecho y
   leerlo con IA (acción `flyer`, 1 crédito).
