@@ -44,7 +44,10 @@ window.PlantillaFlyer = {
   ajustes: [
     { id: 'tamDestino', label: 'Tamaño del destino', hint: 'agrandá los destinos cortos o achicá los largos', min: 0.7, max: 1.8, step: 0.01, valor: 1 },
     { id: 'altura', label: 'Altura del bloque de arriba', hint: 'más a la derecha = más abajo', min: -120, max: 260, step: 1, valor: 0 },
-    { id: 'sombra', label: 'Sombra detrás del texto de arriba', hint: 'Para fotos claras. En 0 queda como el diseño original.', min: 0, max: 1, step: 0.01, valor: 0 }
+    { id: 'sombra', label: 'Sombra detrás del texto de arriba', hint: 'Para fotos claras. En 0 queda como el diseño original.', min: 0, max: 1, step: 0.01, valor: 0 },
+    { id: 'altDesde', label: 'Altura de «desde»', hint: 'más a la derecha = más arriba', min: -15, max: 30, step: 1, valor: 0 },
+    { id: 'tamMoneda', label: 'Tamaño del símbolo de la moneda', hint: 'más a la izquierda = más chico', min: 0.5, max: 1, step: 0.01, valor: 1 },
+    { id: 'altBase', label: 'Altura de «por persona»', hint: 'más a la derecha = más abajo', min: -15, max: 25, step: 1, valor: 0 }
   ],
 
   dibujar(ctx, h) {
@@ -137,16 +140,26 @@ window.PlantillaFlyer = {
     if (p) {
       const MON = { usd: 'US$', ars: '$', $: '$', eur: '€' };
       const mon = MON[v('moneda')] ?? v('moneda');
-      const pt = (mon ? mon + ' ' : '') + p;
-      const fp = fit(pt, 700, 106.2, 820);
+      // Ajustes de la agencia: "desde" y la aclaración se mueven solos; el símbolo de la moneda puede ir más chico
+      const km = h.n('tamMoneda') || 1, yDesde = 1347 - h.n('altDesde'), yBase = 1474.8 + h.n('altBase');
+      // Precio = símbolo (al km del tamaño) + número, en la misma línea de base y centrados como un todo
+      const medir = sz => { ctx.font = font(700, sz * km); const wm = mon ? ctx.measureText(mon + ' ').width : 0; ctx.font = font(700, sz); return { wm, wn: ctx.measureText(p).width }; };
+      let ps = 106.2, m = medir(ps);
+      if (m.wm + m.wn > 820) { ps *= 820 / (m.wm + m.wn); m = medir(ps); }
+      const fpw = m.wm + m.wn;
       const fd = desde ? fit(desde, 300, 42.4, 820) : { w: 0, s: 42.4 };
       const fb = base ? fit(base, 300, 42.4, 820) : { w: 0, s: 42.4 };
-      const bw = Math.max(509, Math.max(fp.w, fd.w, fb.w) + 70), bx = 537.5 - bw / 2;
-      ctx.fillStyle = C.orange; rr(bx, 1298, bw, 192, 24.5); ctx.fill();
+      // La caja naranja crece si "desde" sube o la aclaración baja más allá del diseño
+      const top = Math.min(1298, yDesde - 49), bottom = Math.max(1490, yBase + 15.2);
+      const bw = Math.max(509, Math.max(fpw, fd.w, fb.w) + 70), bx = 537.5 - bw / 2;
+      ctx.fillStyle = C.orange; rr(bx, top, bw, bottom - top, 24.5); ctx.fill();
       sombra(true); ctx.fillStyle = C.white; ctx.textAlign = 'center';
-      if (desde) { ctx.font = font(300, fd.s); ctx.fillText(desde, 542.7, 1347); }
-      ctx.font = font(700, fp.s); ctx.fillText(pt, 547.5, 1431.4);
-      if (base) { ctx.font = font(300, fb.s); ctx.fillText(base, 549.7, 1474.8); }
+      if (desde) { ctx.font = font(300, fd.s); ctx.fillText(desde, 542.7, yDesde); }
+      ctx.textAlign = 'left'; const x0 = 547.5 - fpw / 2;
+      if (mon) { ctx.font = font(700, ps * km); ctx.fillText(mon + ' ', x0, 1431.4); }
+      ctx.font = font(700, ps); ctx.fillText(p, x0 + m.wm, 1431.4);
+      ctx.textAlign = 'center';
+      if (base) { ctx.font = font(300, fb.s); ctx.fillText(base, 549.7, yBase); }
       sombra(false);
     }
     const cta = v('cta').trim();
