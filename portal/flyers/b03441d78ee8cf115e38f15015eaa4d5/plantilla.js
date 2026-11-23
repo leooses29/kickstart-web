@@ -1,6 +1,6 @@
 /* Plantilla de flyer de Netanya Viajes y Turismo, del PSD "flyer_estetica_2" (historia 1080×1920).
    Historia: réplica del PSD (posiciones y tamaños de sus capas). Cuadrado 1080×1080: adaptación con el bloque de arriba
-   y el de abajo al 70 %.
+   al 70 % y el de abajo en horizontal ("Reservá Hoy!" y logo a la izquierda, precio a la derecha).
    Tipografía: el PSD usa Kiro (paga, no viene en el archivo). Mientras tanto va Kanit (Google Fonts, gratis), con los
    tamaños llevados a la misma altura de mayúsculas que Kiro. Para usar Kiro: subir los .woff2 a esta carpeta y cambiar
    "fuentes" (y FONT abajo).
@@ -132,9 +132,11 @@ window.PlantillaFlyer = {
     }
     ctx.restore();
 
-    // 3. Bloque de abajo: precio, "Reservá Hoy!" y logo con la leyenda legal
+    // 3. Bloque de abajo: precio, "Reservá Hoy!" y logo con la leyenda legal.
+    // Historia: uno debajo del otro, como el PSD. Cuadrado: en horizontal, "Reservá Hoy!" y el logo a la izquierda
+    // y el precio a la derecha. pon() lleva el punto (px, py) del PSD a (x, y) del cuadrado con escala sc.
+    const pon = (px, py, x, y, sc) => { if (!cuadrado) return; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.translate(x, y); ctx.scale(sc, sc); ctx.translate(-px, -py); };
     ctx.save();
-    if (cuadrado) bloque(1826, 1060);
     const desde = v('desde').trim(), base = v('base').trim();
     let p = v('precio').trim();
     if (p) {
@@ -152,6 +154,7 @@ window.PlantillaFlyer = {
       // La caja naranja crece si "desde" sube o la aclaración baja más allá del diseño
       const top = Math.min(1298, yDesde - 49), bottom = Math.max(1490, yBase + 15.2);
       const bw = Math.max(509, Math.max(fpw, fd.w, fb.w) + 70), bx = 537.5 - bw / 2;
+      ctx.save(); pon(537.5, (top + bottom) / 2, 795, 945, Math.min(.8, 470 / bw));
       ctx.fillStyle = C.orange; rr(bx, top, bw, bottom - top, 24.5); ctx.fill();
       sombra(true); ctx.fillStyle = C.white; ctx.textAlign = 'center';
       if (desde) { ctx.font = font(300, fd.s); ctx.fillText(desde, 542.7, yDesde); }
@@ -161,9 +164,11 @@ window.PlantillaFlyer = {
       ctx.textAlign = 'center';
       if (base) { ctx.font = font(300, fb.s); ctx.fillText(base, 549.7, yBase); }
       sombra(false);
+      ctx.restore();
     }
     const cta = v('cta').trim();
     if (cta && h.on('showCta')) {
+      ctx.save(); pon(577, 1570, 285, 885, .72);
       const norm = cta.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z]/g, '');
       if (norm === 'reservahoy') {   // las letras originales del PSD
         ctx.drawImage(h.img.reserva, 309, 1537, 287, 62);
@@ -178,7 +183,9 @@ window.PlantillaFlyer = {
         ctx.font = font(700, 64 * k2, true); ctx.fillStyle = C.orange; ctx.fillText(a, x0, 1597);
         if (b) { sombra(true); ctx.font = font(700, 100 * k2, true); ctx.fillStyle = C.white; ctx.fillText(' ' + b, x0 + wa, 1597); sombra(false); }
       }
+      ctx.restore();
     }
+    pon(554.5, 1773.5, 285, 990, .9);
     ctx.drawImage(h.img.logoInf, 378, 1721, 353, 105);
     ctx.restore();
   }
