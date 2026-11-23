@@ -126,7 +126,7 @@ window.PlantillaFlyer = {
     const promo = v('promo').trim();
     if (promo) {
       const f = fit(promo, 700, 37.5, 900, true);
-      const pw = f.w + 42, px = 532.5 - pw / 2, py = 698 + extra;
+      const pw = f.w + 42, px = 532.5 - pw / 2, py = 672 + extra;   // 30 px debajo de la etiqueta naranja (el PSD dejaba 56)
       ctx.fillStyle = C.pill; rr(px, py, pw, 54, 16); ctx.fill();
       ctx.font = font(700, f.s, true); ctx.fillStyle = C.orange; ctx.textAlign = 'center'; ctx.fillText(promo, 532.5, py + 37.8);
     }
