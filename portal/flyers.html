@@ -229,12 +229,22 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
   function elegirFormato(f) {
     fmt = f; vw = views[f.id]; F = fmt; V = vw;
     cv.width = f.W; cv.height = f.H; $('.js-stage').style.aspectRatio = f.W + ' / ' + f.H;
-    // Alto máximo = la pantalla menos los formatos y el botón de descarga, así el flyer se ve entero al mover los ajustes
-    $('.js-stage').style.setProperty('--stage-max', `calc((100vh - 180px) * ${f.W / f.H})`);
+    ajustarStage();
     $('#aj-zoom').value = vw.zoom;
     document.querySelectorAll('.js-fmts button').forEach(b => b.setAttribute('aria-pressed', b.dataset.id === f.id));
     draw();
   }
+  // El flyer entra entero en la pantalla junto con los formatos (arriba) y "Descargar PNG" (abajo), midiendo la
+  // pantalla real de cada uno: así se ve completo mientras se mueven los ajustes del formulario.
+  function ajustarStage() {
+    const st = $('.js-stage'), pv = $('.fl-prev'), bj = $('.js-bajar');
+    if (innerWidth <= 900) { st.style.removeProperty('--stage-max'); return; }
+    const rs = st.getBoundingClientRect(), rp = pv.getBoundingClientRect(), rb = bj.getBoundingClientRect();
+    const arriba = rs.top - rp.top, abajo = rb.bottom - rs.bottom;
+    const alto = Math.max(260, innerHeight - 24 - arriba - abajo - 16);
+    st.style.setProperty('--stage-max', Math.round(alto * fmt.W / fmt.H) + 'px');
+  }
+  addEventListener('resize', ajustarStage);
   if (FORMATOS.length > 1) {
     $('.js-fmts').innerHTML = FORMATOS.map(f => `<button type="button" data-id="${esc(f.id)}">${esc(f.nombre)}<small>${f.W}×${f.H}</small></button>`).join('');
     $('.js-fmts').hidden = false; $('.js-bajar-todo').hidden = false;
