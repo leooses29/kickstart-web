@@ -131,10 +131,11 @@ export async function manejarCot(body, deps) {
       const c = await store.get(`cot/${id}`, { type: 'json' });
       if (!c || c.borrada) continue;
       const seg = await store.get(`seg/${id}`, { type: 'json' });
-      out.push({ id, titulo: c.datos.titulo, pasajero: c.datos.pasajero, fechasTexto: c.datos.fechasTexto, creado: c.creado, actualizado: c.actualizado, seg: resumenSeg(seg) });
+      out.push({ id, titulo: c.datos.titulo, pasajero: c.datos.pasajero, fechasTexto: c.datos.fechasTexto, asesor: (c.datos.asesor && c.datos.asesor.nombre) || '',
+        etapa: c.etapa || '', etapaFecha: c.etapaFecha || '', creado: c.creado, actualizado: c.actualizado, seg: resumenSeg(seg) });
     }
     out.sort((a, b) => b.actualizado.localeCompare(a.actualizado));
-    return [200, { cotizaciones: out.slice(0, 60) }];
+    return [200, { cotizaciones: out.slice(0, 200) }];
   }
 
   if (accion === 'leer') {
@@ -158,6 +159,17 @@ export async function manejarCot(body, deps) {
     await store.setJSON(`cot/${id}`, { id, slug, agencia, creado: previo ? previo.creado : t, actualizado: t, datos });
     if (!previo) await store.setJSON(`idx/${slug}/${id}`, { creado: t });
     return [200, { id, url: `/c/${id}` }];
+  }
+
+  if (accion === 'etapa') {
+    // Etapa que marca el agente a mano en el pipeline: reservó, no avanzó, o '' para volver a la automática (según aperturas)
+    if (!idOk(body.id)) return [404, { error: 'no_encontrada' }];
+    const etapa = ['reservo', 'no_avanzo'].includes(body.etapa) ? body.etapa : '';
+    const c = await store.get(`cot/${body.id}`, { type: 'json' });
+    if (!c || c.slug !== slug || c.borrada) return [404, { error: 'no_encontrada' }];
+    c.etapa = etapa; c.etapaFecha = etapa ? ahora.toISOString() : '';
+    await store.setJSON(`cot/${body.id}`, c);
+    return [200, { ok: true, etapa }];
   }
 
   if (accion === 'borrar') {

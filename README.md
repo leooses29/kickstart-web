@@ -101,6 +101,10 @@ Variables de entorno en Netlify (Site configuration → Environment variables):
   el título y la foto para la vista previa del link en WhatsApp). Toma los datos de `/api/cot` (acción `ver`).
 - Funciones: `netlify/functions/cotizaciones.mjs` (`/api/cot`), lógica en `netlify/lib/cotizador-core.mjs`. Acciones de la agencia:
   `lista`, `leer`, `guardar`, `borrar`, `foto` (sube una foto, se sirve en `/api/cot?img=…`). Públicas: `ver` y `evento`.
+- Pipeline: la página del agente muestra las cotizaciones en columnas por etapa (Enviada, Abierta, Leída, Tocó WhatsApp,
+  Reservó, No avanzó), con filtro por asesor/a (se agrupan por el nombre cargado en cada cotización, sin importar mayúsculas
+  ni tildes), números del período y una tabla por asesor/a con su conversión. Las 4 primeras etapas son automáticas; "Reservó"
+  y "No avanzó" las marca el agente (acción `etapa` de `/api/cot`) y se pueden deshacer.
 - Seguimiento: la página del pasajero avisa cuando la abre (`abrio`, a los 1,5 s con la pestaña visible), cuando la lee
   (`leyo`: bajó más del 60 % o la tuvo abierta 25 s), qué pestaña mira, qué tarifa toca y si toca WhatsApp. Los robots que
   arman la vista previa del link no ejecutan JavaScript, así que no cuentan como aperturas. El agente lo ve en su lista.

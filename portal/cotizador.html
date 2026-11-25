@@ -74,6 +74,31 @@ textarea{resize:vertical;}
 .est.abierta{background:rgba(255,193,7,.12); color:var(--yellow);}
 .est.leida{background:rgba(120,220,140,.12); color:#9BE3AA;}
 .est.whatsapp{background:#25D366; color:#062b13;}
+.asesoras{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;}
+.asesoras button{background:none; border:1px solid var(--line-2); color:var(--muted); border-radius:999px; padding:7px 14px; font:600 12.5px var(--f); cursor:pointer;}
+.asesoras button[aria-pressed="true"]{background:var(--yellow); border-color:var(--yellow); color:#0A0A0A;}
+.asesoras small{opacity:.7; margin-left:4px;}
+.resumen{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;}
+.kpi{border:1px solid var(--line); border-radius:12px; padding:10px 14px; min-width:120px;}
+.kpi b{display:block; font-size:22px; font-weight:700;}
+.kpi span{font-size:12px; color:var(--muted-2);}
+.tabla{width:100%; border-collapse:collapse; font-size:13px; margin:4px 0 16px;}
+.tabla th,.tabla td{padding:8px 10px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap;}
+.tabla th:first-child,.tabla td:first-child{text-align:left;}
+.tabla th{font-size:11px; font-weight:600; color:var(--muted-2); text-transform:uppercase; letter-spacing:.06em;}
+.tabla-w{overflow-x:auto;}
+.board{display:grid; grid-template-columns:repeat(6,minmax(220px,1fr)); gap:12px; overflow-x:auto; padding-bottom:8px;}
+.col{background:rgba(255,255,255,.02); border:1px solid var(--line); border-radius:14px; padding:10px; display:flex; flex-direction:column; gap:8px; min-height:120px;}
+.col-h{display:flex; justify-content:space-between; align-items:center; font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); padding:2px 4px 6px;}
+.col-h i{font-style:normal; background:rgba(255,255,255,.08); border-radius:999px; padding:1px 8px; color:var(--white);}
+.col-h .pt{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px;}
+.tj{background:#141414; border:1px solid var(--line); border-radius:12px; padding:10px; display:flex; flex-direction:column; gap:6px;}
+.tj b{font-size:14px; font-weight:600; line-height:1.3;}
+.tj .meta{font-size:12px; color:var(--muted-2); line-height:1.4;}
+.tj .who{font-size:11.5px; font-weight:600; color:var(--yellow);}
+.tj .acc{display:flex; gap:6px; flex-wrap:wrap;}
+.tj .acc .mini{padding:5px 9px; font-size:11.5px;}
+.tj select{padding:6px 8px; font-size:12px; border-radius:9px;}
 .top-acc{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;}
 @media (max-width:1100px){ .ct-grid{grid-template-columns:1fr;} .prev-col{position:static;} .phone{height:640px; max-width:420px; margin:0 auto;} }
 @media (max-width:700px){ .g3,.g4{grid-template-columns:1fr 1fr;} .portal-main{padding:28px 16px;} .us-grid{grid-template-columns:repeat(3,1fr);} .cot{grid-template-columns:1fr;} .cot .acc{justify-content:flex-start;} }
@@ -89,22 +114,24 @@ textarea{resize:vertical;}
     <div style="margin-bottom:24px;">
       <div class="mono" style="color:var(--yellow); font-size:12px; letter-spacing:.1em; margin-bottom:6px;">HERRAMIENTAS</div>
       <h1 style="font-size:34px;">Cotizador</h1>
-      <p style="color:var(--muted); font-size:14px; max-width:66ch; margin-top:8px; line-height:1.55;">Pegá lo que te mandó el mayorista y armamos una propuesta con la estética de tu agencia, lista para mandar por WhatsApp. Te avisamos acá cuando el pasajero la abre y la lee.</p>
+      <p style="color:var(--muted); font-size:14px; max-width:66ch; margin-top:8px; line-height:1.55;">Pegá lo que te mandó el mayorista y armamos una propuesta con la estética de tu agencia, lista para mandar por WhatsApp. En el pipeline ves, por asesor/a, quién abrió y leyó cada propuesta.</p>
     </div>
 
     <div class="js-estado" style="color:var(--muted);">Cargando…</div>
 
-    <!-- Lista de cotizaciones -->
+    <!-- Pipeline de cotizaciones -->
     <section class="card js-vista-lista" style="padding:20px;" hidden>
       <div class="top-acc">
-        <div class="sec-t" style="margin:0;">Mis cotizaciones</div>
-        <div style="display:flex; gap:8px;">
+        <div class="sec-t" style="margin:0;">Pipeline de cotizaciones</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button type="button" class="mini js-refrescar">Actualizar estados</button>
           <button type="button" class="btn btn-primary sm js-nueva" style="min-height:42px; padding:0 18px;">+ Nueva cotización</button>
         </div>
       </div>
-      <div class="lista js-lista"></div>
-      <div class="hint js-lista-vacia" hidden>Todavía no armaste cotizaciones. Tocá "Nueva cotización" para empezar.</div>
+      <div class="asesoras js-asesoras" role="group" aria-label="Filtrar por asesor/a"></div>
+      <div class="resumen js-resumen"></div>
+      <div class="board js-board"></div>
+      <div class="hint js-lista-vacia" hidden>Todavía no hay cotizaciones. Tocá "Nueva cotización" para empezar.</div>
     </section>
 
     <!-- Editor -->
@@ -135,7 +162,7 @@ textarea{resize:vertical;}
           <div class="g2">
             <div><label for="f-pasajero">Nombre del pasajero</label><input id="f-pasajero" data-p="pasajero" maxlength="60" placeholder="Ej: Laura y Martín"></div>
             <div><label for="f-pax">Cantidad de pasajeros</label><input id="f-pax" data-p="pasajeros" data-t="num" type="number" min="1" max="60" placeholder="2"></div>
-            <div><label for="f-asesor">Asesor/a</label><input id="f-asesor" data-p="asesor.nombre" maxlength="40" placeholder="Ej: Carla"></div>
+            <div><label for="f-asesor">Asesor/a</label><input id="f-asesor" data-p="asesor.nombre" maxlength="40" placeholder="Ej: Carla" list="asesores-l"><datalist id="asesores-l"></datalist></div>
             <div><label for="f-wa">WhatsApp del asesor/a</label><input id="f-wa" data-p="asesor.whatsapp" inputmode="tel" maxlength="20" placeholder="549351…"></div>
             <div><label for="f-vig">Precio vigente hasta</label><input id="f-vig" data-p="vigencia" type="date"></div>
             <div><label for="f-fondo">Fondo</label><select id="f-fondo" data-p="fondo"><option value="blanco">Blanco</option><option value="negro">Negro</option></select></div>
@@ -229,46 +256,85 @@ textarea{resize:vertical;}
   }
   const cot = b => api('/api/cot', b);
 
-  // ---------- Lista ----------
-  const hace = iso => { if (!iso) return ''; const m = Math.round((Date.now() - new Date(iso)) / 60000); return m < 1 ? 'recién' : m < 60 ? `hace ${m} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `hace ${Math.round(m / 1440)} d`; };
-  const ESTADO = { sin_abrir: 'Sin abrir', abierta: 'Abierta', leida: 'Leída', whatsapp: 'Tocó WhatsApp' };
   // Links neutros, sin la marca Kickstart: propuesta-de-viaje.netlify.app/<alias de la agencia>/<id> (carpeta propuestas/ del repo).
-  // Se activa por agencia con "neutro": true en su tema.json (cuando el sitio neutro ya está publicado).
-  // Si la agencia tiene su propio dominio apuntado al sitio, va en "dominio" de su tema.json y se usa ese.
+  // Se activa por agencia con "neutro": true en su tema.json. Si la agencia tiene su propio dominio apuntado al sitio, va en "dominio".
   const DOMINIO_PROPUESTAS = 'https://propuesta-de-viaje.netlify.app';
   const temaAg = await fetch('cotizador/' + encodeURIComponent(s.slug) + '/tema.json', { cache: 'no-store' }).then(r => r.json()).catch(() => ({}));
+  const memo = k => { try { return JSON.parse(localStorage.getItem('kickstart.cot.' + s.slug) || '{}')[k]; } catch (e) { return undefined; } };
+  const recordar = (k, v) => { try { const o = JSON.parse(localStorage.getItem('kickstart.cot.' + s.slug) || '{}'); o[k] = v; localStorage.setItem('kickstart.cot.' + s.slug, JSON.stringify(o)); } catch (e) {} };
+  // ---------- Pipeline ----------
+  const hace = iso => { if (!iso) return ''; const m = Math.round((Date.now() - new Date(iso)) / 60000); return m < 1 ? 'recién' : m < 60 ? `hace ${m} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `hace ${Math.round(m / 1440)} d`; };
+  const ETAPAS = [
+    { k: 'sin_abrir', n: 'Enviada', c: '#8E8E8E' }, { k: 'abierta', n: 'Abierta', c: '#FFC107' }, { k: 'leida', n: 'Leída', c: '#9BE3AA' },
+    { k: 'whatsapp', n: 'Tocó WhatsApp', c: '#25D366' }, { k: 'reservo', n: 'Reservó', c: '#4FC3F7' }, { k: 'no_avanzo', n: 'No avanzó', c: '#FF9B9B' } ];
+  const etapaDe = c => c.etapa || (c.seg && c.seg.estado) || 'sin_abrir';
+  const clave = n => String(n || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim() || '_sin';
+  let lista = [], filtro = memo('filtro') || '';
   const linkDe = id => temaAg.dominio ? 'https://' + String(temaAg.dominio).replace(/^https?:\/\//, '').replace(/\/$/, '') + '/' + (temaAg.alias ? temaAg.alias + '/' : 'c/') + id
     : temaAg.alias && temaAg.neutro ? `${DOMINIO_PROPUESTAS}/${temaAg.alias}/${id}` : location.origin + '/c/' + id;
   async function cargarLista() {
     estado('');
-    try {
-      const { cotizaciones } = await cot({ accion: 'lista' });
-      $('.js-lista-vacia').hidden = cotizaciones.length > 0;
-      $('.js-lista').innerHTML = cotizaciones.map(c => {
-        const g = c.seg || {};
-        const det = g.aperturas ? `${g.aperturas} ${g.aperturas === 1 ? 'vez' : 'veces'} · última ${hace(g.ultima)}${g.segundos ? ` · leyó ${Math.max(1, Math.round(g.segundos / 60))} min` : ''}${g.tarifa ? ` · miró "${esc(g.tarifa)}"` : ''}` : 'Todavía no la abrió';
-        return `<div class="cot"><div><b>${esc(c.titulo || 'Sin título')}</b>${c.pasajero ? ` · ${esc(c.pasajero)}` : ''}
-          <div class="meta"><span class="est ${esc(g.estado || 'sin_abrir')}">${ESTADO[g.estado] || 'Sin abrir'}</span>${det}</div>
-          <div class="meta">${esc(c.fechasTexto || '')}${c.fechasTexto ? ' · ' : ''}Editada ${hace(c.actualizado)}</div></div>
-          <div class="acc"><button type="button" class="mini" data-copiar="${esc(c.id)}">Copiar link</button><button type="button" class="mini" data-editar="${esc(c.id)}">Editar</button><a class="mini" href="${esc(linkDe(c.id))}" target="_blank" rel="noopener" style="text-decoration:none;">Ver</a><button type="button" class="mini del" data-borrar="${esc(c.id)}">Borrar</button></div></div>`;
-      }).join('');
-    } catch (e) { if (e.message !== 'sesion') estado('No pudimos traer tus cotizaciones. Probá recargar.'); }
+    try { lista = (await cot({ accion: 'lista' })).cotizaciones || []; pintarPipeline(); }
+    catch (e) { if (e.message !== 'sesion') estado('No pudimos traer tus cotizaciones. Probá recargar.'); }
+  }
+  function asesoras() {
+    const m = new Map();
+    lista.forEach(c => { const k = clave(c.asesor); if (!m.has(k)) m.set(k, { k, n: c.asesor || 'Sin asesor/a', total: 0 }); m.get(k).total++; });
+    return [...m.values()].sort((a, b) => b.total - a.total);
+  }
+  function pintarPipeline() {
+    const as = asesoras();
+    if (filtro && !as.some(a => a.k === filtro)) filtro = '';
+    $('.js-asesoras').innerHTML = as.length > 0 ? [`<button type="button" data-f="" aria-pressed="${!filtro}">Todas<small>${lista.length}</small></button>`]
+      .concat(as.map(a => `<button type="button" data-f="${esc(a.k)}" aria-pressed="${filtro === a.k}">${esc(a.n)}<small>${a.total}</small></button>`)).join('') : '';
+    const ver = lista.filter(c => !filtro || clave(c.asesor) === filtro);
+    $('.js-lista-vacia').hidden = ver.length > 0;
+    // resumen
+    const cuenta = arr => { const o = { total: arr.length, abiertas: 0, leidas: 0, wa: 0, reservas: 0, perdidas: 0 };
+      arr.forEach(c => { const g = c.seg || {}; if (g.aperturas) o.abiertas++; if (g.lecturas || g.estado === 'leida' || g.whatsapp) o.leidas++; if (g.whatsapp || g.estado === 'whatsapp') o.wa++; if (c.etapa === 'reservo') o.reservas++; if (c.etapa === 'no_avanzo') o.perdidas++; }); return o; };
+    const pct = (a, b) => b ? Math.round(a * 100 / b) + '%' : '–';
+    const r = cuenta(ver);
+    $('.js-resumen').innerHTML = ver.length ? `<div class="kpi"><b>${r.total}</b><span>Enviadas</span></div><div class="kpi"><b>${pct(r.abiertas, r.total)}</b><span>Las abrieron</span></div>
+      <div class="kpi"><b>${pct(r.leidas, r.total)}</b><span>Las leyeron</span></div><div class="kpi"><b>${r.wa}</b><span>Tocaron WhatsApp</span></div>
+      <div class="kpi"><b>${r.reservas}</b><span>Reservas · ${pct(r.reservas, r.total)}</span></div>` +
+      (!filtro && as.length > 1 ? `<div class="tabla-w" style="flex-basis:100%;"><table class="tabla"><thead><tr><th>Asesor/a</th><th>Enviadas</th><th>Abiertas</th><th>Leídas</th><th>WhatsApp</th><th>Reservas</th><th>Conversión</th></tr></thead><tbody>${
+        as.map(a => { const x = cuenta(lista.filter(c => clave(c.asesor) === a.k)); return `<tr><td>${esc(a.n)}</td><td>${x.total}</td><td>${x.abiertas}</td><td>${x.leidas}</td><td>${x.wa}</td><td>${x.reservas}</td><td>${pct(x.reservas, x.total)}</td></tr>`; }).join('')}</tbody></table></div>` : '') : '';
+    // tablero
+    $('.js-board').innerHTML = ver.length ? ETAPAS.map(et => {
+      const cs = ver.filter(c => etapaDe(c) === et.k);
+      return `<div class="col"><div class="col-h"><span><span class="pt" style="background:${et.c}"></span>${et.n}</span><i>${cs.length}</i></div>${cs.map(tarjeta).join('')}</div>`;
+    }).join('') : '';
+  }
+  function tarjeta(c) {
+    const g = c.seg || {};
+    const det = c.etapa ? (c.etapa === 'reservo' ? 'Marcada como reservada ' : 'Marcada como no avanzó ') + hace(c.etapaFecha)
+      : g.aperturas ? `Abierta ${g.aperturas} ${g.aperturas === 1 ? 'vez' : 'veces'} · última ${hace(g.ultima)}${g.segundos ? ` · leyó ${Math.max(1, Math.round(g.segundos / 60))} min` : ''}${g.tarifa ? ` · miró "${esc(g.tarifa)}"` : ''}` : `Enviada ${hace(c.creado)}`;
+    return `<div class="tj"><div class="who">${esc(c.asesor || 'Sin asesor/a')}</div><b>${esc(c.titulo || 'Sin título')}${c.pasajero ? ` · ${esc(c.pasajero)}` : ''}</b>
+      <div class="meta">${c.fechasTexto ? esc(c.fechasTexto) + '<br>' : ''}${det}</div>
+      <div class="acc"><button type="button" class="mini" data-copiar="${esc(c.id)}">Copiar link</button><button type="button" class="mini" data-editar="${esc(c.id)}">Editar</button><a class="mini" href="${esc(linkDe(c.id))}" target="_blank" rel="noopener" style="text-decoration:none;">Ver</a></div>
+      <select data-mover="${esc(c.id)}" aria-label="Mover cotización"><option value="">Mover a…</option><option value="reservo">Reservó</option><option value="no_avanzo">No avanzó</option>${c.etapa ? '<option value="auto">Volver a seguimiento automático</option>' : ''}<option value="borrar">Borrar cotización</option></select></div>`;
   }
   const copiar = async t => { try { await navigator.clipboard.writeText(t); return true; } catch (e) { return false; } };
-  $('.js-lista').addEventListener('click', async e => {
+  $('.js-asesoras').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; filtro = b.dataset.f; recordar('filtro', filtro); pintarPipeline(); });
+  $('.js-board').addEventListener('click', async e => {
     const b = e.target.closest('button'); if (!b) return;
-    if (b.dataset.copiar) { const ok = await copiar(linkDe(b.dataset.copiar)); b.textContent = ok ? 'Copiado' : linkDe(b.dataset.copiar); setTimeout(() => b.textContent = 'Copiar link', 2500); }
+    if (b.dataset.copiar) { const ok = await copiar(linkDe(b.dataset.copiar)); b.textContent = ok ? 'Copiado' : 'No se pudo copiar'; setTimeout(() => b.textContent = 'Copiar link', 2500); }
     if (b.dataset.editar) abrirEditor(b.dataset.editar);
-    if (b.dataset.borrar && confirmarBorrado(b)) { await cot({ accion: 'borrar', id: b.dataset.borrar }).catch(() => {}); cargarLista(); }
   });
-  // Borrar pide un segundo toque (en vez de un diálogo del navegador)
-  function confirmarBorrado(b) { if (b.dataset.seguro) return true; b.dataset.seguro = '1'; b.textContent = '¿Seguro? Tocá de nuevo'; setTimeout(() => { delete b.dataset.seguro; b.textContent = 'Borrar'; }, 4000); return false; }
+  $('.js-board').addEventListener('change', async e => {
+    const sel = e.target.closest('select[data-mover]'); if (!sel) return;
+    const id = sel.dataset.mover, v = sel.value; if (!v) return;
+    sel.disabled = true;
+    try {
+      if (v === 'borrar') { if (!sel.dataset.seguro) { sel.dataset.seguro = '1'; sel.value = ''; sel.disabled = false; sel.options[sel.options.length - 1].text = '¿Seguro? Elegí de nuevo para borrar'; return; } await cot({ accion: 'borrar', id }); }
+      else await cot({ accion: 'etapa', id, etapa: v === 'auto' ? '' : v });
+      await cargarLista();
+    } catch (err) { sel.disabled = false; sel.value = ''; }
+  });
   $('.js-refrescar').onclick = cargarLista;
   $('.js-nueva').onclick = () => abrirEditor(null);
 
   // ---------- Editor ----------
-  const memo = k => { try { return JSON.parse(localStorage.getItem('kickstart.cot.' + s.slug) || '{}')[k]; } catch (e) { return undefined; } };
-  const recordar = (k, v) => { try { const o = JSON.parse(localStorage.getItem('kickstart.cot.' + s.slug) || '{}'); o[k] = v; localStorage.setItem('kickstart.cot.' + s.slug, JSON.stringify(o)); } catch (e) {} };
   const enDias = n => { const d = new Date(Date.now() + n * 864e5 - 3 * 36e5); return d.toISOString().slice(0, 10); };
   const vacia = () => ({ pasajero: '', pasajeros: 2, titulo: '', frase: '', gancho: '', fechasTexto: '', noches: null, conVuelos: false, destinos: [], fotos: [], ruta: [], hoteles: [], vuelos: [], incluye: [], avisos: [],
     tarifas: [], condiciones: '', asesor: { nombre: memo('asesor') || '', whatsapp: memo('whatsapp') || '' }, vigencia: enDias(7), fondo: 'blanco' });
@@ -280,6 +346,8 @@ textarea{resize:vertical;}
       try { const r = await cot({ accion: 'leer', id }); d = Object.assign(vacia(), r.datos); idActual = id; mostrarLink(); }
       catch (e) { if (e.message !== 'sesion') estado('No pudimos abrir esa cotización.'); return; }
     } else { d = vacia(); idActual = null; $('.js-ia-texto').value = ''; adjunto = null; $('.js-ia-nombre').innerHTML = ''; }
+    $('#asesores-l').innerHTML = asesoras().filter(x => x.k !== '_sin').map(x => `<option value="${esc(x.n)}">`).join('');
+    if (!id && filtro && filtro !== '_sin') { const a = asesoras().find(x => x.k === filtro); if (a) d.asesor.nombre = a.n; }
     $('.js-editando').textContent = idActual ? 'Editando una cotización ya enviada' : 'Nueva cotización';
     $('.js-vista-lista').hidden = true; $('.js-vista-editor').hidden = false;
     pintarTodo(); scrollTo(0, 0);
