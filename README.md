@@ -75,6 +75,13 @@ Variables de entorno en Netlify (Site configuration → Environment variables):
   generales. Para agregar fotos alcanza con subirlas a la carpeta del destino: no hay que publicar nada. Fotos propias de
   una agencia: agregar su carpeta en `FONDOS_AGENCIA` (`netlify/lib/carpetas-paquetes.mjs`) y aparecen primero.
   Lo sirve el mismo script de Google (`tools/drive-flyers.gs`, acciones `fondos` y `fondo`).
+- **Buscar fotos en Unsplash**: debajo de los fondos sugeridos, el agente busca fotos en Unsplash (por defecto con el
+  destino cargado) y toca una para usarla de fondo. Función `netlify/functions/fotos.mjs` (`/api/fotos`, acciones
+  `estado`, `buscar` y `usar`). Se activa sola cuando existe la variable `UNSPLASH_ACCESS_KEY` en Netlify (la Access Key de
+  la app "Portal Kickstart" en unsplash.com/oauth/applications); sin ella el bloque no aparece. Reglas de Unsplash que la
+  herramienta ya cumple: las fotos se cargan desde las direcciones de Unsplash (hotlinking), se muestra el crédito del
+  fotógrafo con link y, al elegir una foto, se le avisa a Unsplash (acción `usar`). En modo demo Unsplash permite 50
+  búsquedas por hora para todo el portal; para más, pedir "Apply for production" en la página de la app.
 - **Encuadre automático**: al poner una foto (subida o del banco), la IA marca dónde están las personas (acción `encuadre`
   de `/api/ia`, no usa créditos; tope de 400 por agencia por mes) y el generador elige para cada formato el zoom y la
   posición en que el texto de la plantilla no tape caras ni cuerpos. Las zonas de texto se miden solas a partir de lo que

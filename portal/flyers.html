@@ -44,6 +44,10 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
 .fondos-grid button:hover, .fondos-grid button[aria-pressed="true"]{border-color:var(--yellow);}
 .fondos-grid img{width:100%; height:100%; object-fit:cover; display:block;}
 .fondos-grid small{display:none;}
+.us-row{display:grid; grid-template-columns:1fr auto; gap:8px;}
+.fondos-grid .us-it{position:relative;}
+.fondos-grid .us-cr{position:absolute; left:0; right:0; bottom:0; font-size:10px; line-height:1.2; padding:12px 5px 4px; color:#fff; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:linear-gradient(transparent, rgba(0,0,0,.75));}
+.js-us-msg a{color:var(--yellow);}
 .lbl{display:flex; justify-content:space-between; align-items:baseline; gap:10px;}
 .cnt{font-size:11px; color:var(--muted-2); font-variant-numeric:tabular-nums; white-space:nowrap;}
 .cnt.lleno{color:var(--yellow);}
@@ -111,6 +115,16 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
           </div>
           <div class="fondos-grid js-fondos-grid"></div>
           <div class="hint js-fondos-msg" style="margin:0;"></div>
+        </div>
+        <div class="js-unsplash" style="display:flex; flex-direction:column; gap:10px;" hidden>
+          <div class="sec-t" style="margin:6px 0 0;">Buscar fotos en Unsplash</div>
+          <div class="us-row">
+            <input type="search" class="js-us-q" placeholder="Ej.: Punta Cana playa" aria-label="Qué foto buscás en Unsplash" maxlength="80">
+            <button type="button" class="btn btn-ghost sm js-us-buscar" style="justify-content:center;">Buscar</button>
+          </div>
+          <div class="fondos-grid js-us-grid"></div>
+          <button type="button" class="btn btn-ghost sm js-us-mas" style="justify-content:center;" hidden>Ver más fotos</button>
+          <div class="hint js-us-msg" style="margin:0;"></div>
         </div>
         <div>
           <label for="aj-zoom">Zoom</label>
@@ -529,6 +543,52 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
       if (e.message !== 'sesion') $('.js-msg').textContent = e.message === 'sin_carpeta' ? 'Tu carpeta de Paquetes vigentes todavía no está configurada. Avisale a Kickstart.' : 'No pudimos guardarlo en Drive. Probá de nuevo; mientras tanto podés descargarlo.';
     } finally { btn.disabled = false; btn.textContent = 'Guardar en Paquetes vigentes (Drive)'; }
   };
+  // 9. Buscar fotos en Unsplash (/api/fotos). Las fotos se cargan desde Unsplash y se muestra el crédito del fotógrafo,
+  // como piden sus reglas; al elegir una se le avisa a Unsplash que se usó.
+  async function apiFotos(body) {
+    const r = await fetch('/api/fotos', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: s.slug, code: s.code, ...body }) });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 401) { Portal.salir(); throw new Error('sesion'); }
+    if (!r.ok) throw new Error(j.error || 'red');
+    return j;
+  }
+  const us = { q: '', pagina: 1, paginas: 0, fotos: [] };
+  apiFotos({ accion: 'estado' }).then(j => { if (j.configurado) $('.js-unsplash').hidden = false; }).catch(() => {});
+  const creditoHtml = f => `Foto de <a href="${esc(f.autorUrl)}" target="_blank" rel="noopener">${esc(f.autor)}</a> en <a href="${esc(f.unsplashUrl)}" target="_blank" rel="noopener">Unsplash</a>`;
+  async function buscarUnsplash(mas) {
+    const btn = $('.js-us-buscar'), msg = $('.js-us-msg');
+    let q = $('.js-us-q').value.replace(/\s+/g, ' ').trim();
+    if (!q) { q = h.v('destino').replace(/\s+/g, ' ').trim(); $('.js-us-q').value = q; }
+    if (!q) { msg.textContent = 'Escribí qué foto buscás, por ejemplo "Punta Cana playa".'; return; }
+    if (!mas) { us.q = q; us.pagina = 1; us.fotos = []; } else us.pagina++;
+    btn.disabled = true; btn.textContent = 'Buscando…'; msg.textContent = '';
+    try {
+      const j = await apiFotos({ accion: 'buscar', q: us.q, pagina: us.pagina, orientacion: fmt && fmt.H > fmt.W ? 'portrait' : '' });
+      us.fotos = us.fotos.concat(j.fotos || []); us.paginas = j.paginas || 0;
+      $('.js-us-grid').innerHTML = us.fotos.map((f, i) => `<button type="button" class="us-it" data-i="${i}" title="Foto de ${esc(f.autor)} en Unsplash" style="background:${esc(f.color)}"><img alt="${esc(f.descripcion || us.q)}" src="${esc(f.miniatura)}" loading="lazy"><span class="us-cr">${esc(f.autor)}</span></button>`).join('');
+      $('.js-us-mas').hidden = us.pagina >= us.paginas;
+      msg.textContent = us.fotos.length ? 'Tocá una foto para usarla de fondo. Si no encontrás lo que buscás, probá en inglés (ej.: "Punta Cana beach").' : 'No encontramos fotos con esa búsqueda. Probá con otras palabras o en inglés.';
+    } catch (e) {
+      if (e.message !== 'sesion') msg.textContent = e.message === 'limite' ? 'Llegamos al límite de búsquedas de esta hora. Probá en un rato o usá el Banco de fondos.' : 'No pudimos buscar en Unsplash. Probá de nuevo.';
+    } finally { btn.disabled = false; btn.textContent = 'Buscar'; }
+  }
+  $('.js-us-buscar').onclick = () => buscarUnsplash(false);
+  $('.js-us-q').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); buscarUnsplash(false); } });
+  $('.js-us-mas').onclick = () => buscarUnsplash(true);
+  $('.js-us-grid').addEventListener('click', async e => {
+    const b = e.target.closest('button'); if (!b) return;
+    const f = us.fotos[+b.dataset.i]; if (!f) return;
+    document.querySelectorAll('.js-us-grid button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    const msg = $('.js-us-msg'); msg.textContent = 'Cargando la foto…';
+    try {
+      const r = await fetch(f.grande, { mode: 'cors' });
+      if (!r.ok) throw new Error('foto');
+      usarFondo(await loadImg(URL.createObjectURL(await r.blob())));
+      msg.innerHTML = creditoHtml(f);
+      apiFotos({ accion: 'usar', id: f.id }).catch(() => {});
+    } catch (err) { msg.textContent = 'No pudimos cargar esa foto. Probá con otra.'; }
+  });
+
 })();
 </script>
 </body>
