@@ -553,7 +553,10 @@ input[type=range]{width:100%; accent-color:var(--yellow); padding:0; border:none
     return j;
   }
   const us = { q: '', pagina: 1, paginas: 0, fotos: [] };
-  apiFotos({ accion: 'estado' }).then(j => { if (j.configurado) $('.js-unsplash').hidden = false; }).catch(() => {});
+  const usOff = t => { $('.js-us-buscar').disabled = true; $('.js-us-q').disabled = true; $('.js-us-msg').textContent = t; };
+  $('.js-unsplash').hidden = false;
+  apiFotos({ accion: 'estado' }).then(j => { if (!j.configurado) usOff('El buscador de Unsplash se está configurando. Mientras tanto usá los fondos sugeridos o subí una foto.'); })
+    .catch(e => { if (e.message !== 'sesion') usOff('El buscador de Unsplash no está disponible en este momento (' + e.message + ').'); });
   const creditoHtml = f => `Foto de <a href="${esc(f.autorUrl)}" target="_blank" rel="noopener">${esc(f.autor)}</a> en <a href="${esc(f.unsplashUrl)}" target="_blank" rel="noopener">Unsplash</a>`;
   async function buscarUnsplash(mas) {
     const btn = $('.js-us-buscar'), msg = $('.js-us-msg');
