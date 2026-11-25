@@ -107,6 +107,10 @@ Variables de entorno en Netlify (Site configuration → Environment variables):
 - Datos en Netlify Blobs, store `cotizaciones`: `cot/<id>` (la cotización), `idx/<agencia>/<id>`, `seg/<id>` (seguimiento) e `img/…` (fotos).
 - Fotos: búsqueda en Unsplash (usa `/api/fotos`, ver Generador de flyers) y fotos propias subidas por el agente (se achican a 1600 px).
   Al armar con IA se sugiere sola una foto por destino.
+- Links sin la marca Kickstart: `propuesta-de-viaje.netlify.app/<alias>/<id>`. Es un segundo proyecto de Netlify, gratis,
+  conectado a este repositorio con "Base directory" = `propuestas` (ver `propuestas/netlify.toml`): no tiene contenido propio,
+  muestra las cotizaciones de este sitio. Cada agencia tiene su `alias` en su tema.json (ej. `gftravel`) y se activa con
+  `"neutro": true`. Si una agencia apunta un subdominio propio a este sitio, va en `"dominio"` y se usa ese.
 - Estética por agencia: `portal/cotizador/<id de la agencia>/tema.json` (colores, fuente de Google Fonts, logos, legales,
   Instagram y condiciones generales) más sus logos. Solo las agencias con esa carpeta ven el Cotizador en el menú.
   Cargada: GF Travel (`fde3d5ab427a36814efab95c61efc39f`).

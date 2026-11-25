@@ -1,0 +1,32 @@
+# Sitio neutro para los links de las cotizaciones: propuesta-de-viaje.netlify.app/<agencia>/<id>
+# No tiene contenido propio: muestra las cotizaciones de kickstartmarketing.com.ar sin que se vea esa dirección.
+# Proyecto de Netlify aparte, conectado a este mismo repositorio con "Base directory" = propuestas.
+[build]
+  publish = "."
+  command = ""
+  # Solo se vuelve a publicar cuando cambia esta carpeta (no en cada cambio de la web principal)
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- ."
+
+# Lo que usa la página de la cotización (datos, seguimiento, fotos subidas, estética de la agencia)
+[[redirects]]
+  from = "/api/*"
+  to = "https://kickstartmarketing.com.ar/api/:splat"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/portal/cotizador/*"
+  to = "https://kickstartmarketing.com.ar/portal/cotizador/:splat"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/cotizacion/*"
+  to = "https://kickstartmarketing.com.ar/cotizacion/:splat"
+  status = 200
+  force = true
+
+# El link de cada cotización: /<nombre corto de la agencia>/<id>
+[[redirects]]
+  from = "/:agencia/:id"
+  to = "https://kickstartmarketing.com.ar/c/:id"
+  status = 200
+  force = true

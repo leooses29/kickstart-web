@@ -232,7 +232,13 @@ textarea{resize:vertical;}
   // ---------- Lista ----------
   const hace = iso => { if (!iso) return ''; const m = Math.round((Date.now() - new Date(iso)) / 60000); return m < 1 ? 'recién' : m < 60 ? `hace ${m} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `hace ${Math.round(m / 1440)} d`; };
   const ESTADO = { sin_abrir: 'Sin abrir', abierta: 'Abierta', leida: 'Leída', whatsapp: 'Tocó WhatsApp' };
-  const linkDe = id => location.origin + '/c/' + id;
+  // Links neutros, sin la marca Kickstart: propuesta-de-viaje.netlify.app/<alias de la agencia>/<id> (carpeta propuestas/ del repo).
+  // Se activa por agencia con "neutro": true en su tema.json (cuando el sitio neutro ya está publicado).
+  // Si la agencia tiene su propio dominio apuntado al sitio, va en "dominio" de su tema.json y se usa ese.
+  const DOMINIO_PROPUESTAS = 'https://propuesta-de-viaje.netlify.app';
+  const temaAg = await fetch('cotizador/' + encodeURIComponent(s.slug) + '/tema.json', { cache: 'no-store' }).then(r => r.json()).catch(() => ({}));
+  const linkDe = id => temaAg.dominio ? 'https://' + String(temaAg.dominio).replace(/^https?:\/\//, '').replace(/\/$/, '') + '/' + (temaAg.alias ? temaAg.alias + '/' : 'c/') + id
+    : temaAg.alias && temaAg.neutro ? `${DOMINIO_PROPUESTAS}/${temaAg.alias}/${id}` : location.origin + '/c/' + id;
   async function cargarLista() {
     estado('');
     try {
@@ -244,7 +250,7 @@ textarea{resize:vertical;}
         return `<div class="cot"><div><b>${esc(c.titulo || 'Sin título')}</b>${c.pasajero ? ` · ${esc(c.pasajero)}` : ''}
           <div class="meta"><span class="est ${esc(g.estado || 'sin_abrir')}">${ESTADO[g.estado] || 'Sin abrir'}</span>${det}</div>
           <div class="meta">${esc(c.fechasTexto || '')}${c.fechasTexto ? ' · ' : ''}Editada ${hace(c.actualizado)}</div></div>
-          <div class="acc"><button type="button" class="mini" data-copiar="${esc(c.id)}">Copiar link</button><button type="button" class="mini" data-editar="${esc(c.id)}">Editar</button><a class="mini" href="/c/${esc(c.id)}" target="_blank" rel="noopener" style="text-decoration:none;">Ver</a><button type="button" class="mini del" data-borrar="${esc(c.id)}">Borrar</button></div></div>`;
+          <div class="acc"><button type="button" class="mini" data-copiar="${esc(c.id)}">Copiar link</button><button type="button" class="mini" data-editar="${esc(c.id)}">Editar</button><a class="mini" href="${esc(linkDe(c.id))}" target="_blank" rel="noopener" style="text-decoration:none;">Ver</a><button type="button" class="mini del" data-borrar="${esc(c.id)}">Borrar</button></div></div>`;
       }).join('');
     } catch (e) { if (e.message !== 'sesion') estado('No pudimos traer tus cotizaciones. Probá recargar.'); }
   }
