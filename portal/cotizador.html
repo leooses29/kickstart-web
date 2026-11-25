@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cotizador — Portal de Agencias · Kickstart Marketing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+/* Cotizador: el agente pega lo que mandó el mayorista, la IA arma la cotización, la revisa acá y la publica como link.
+   La página que ve el pasajero es /cotizacion/index.html (servida en /c/<id>); la estética de cada agencia está en
+   portal/cotizador/<id de la agencia>/tema.json. */
+.portal-main{overflow:clip; min-width:0;}
+[hidden]{display:none !important;}
+.btn[disabled]{opacity:.5; pointer-events:none;}
+.ct-grid{display:grid; grid-template-columns:minmax(0,1fr) 400px; gap:24px; align-items:start;}
+.ct-form{display:flex; flex-direction:column; gap:16px; padding:22px;}
+.card:hover{transform:none;}
+.sec{border-top:1px solid var(--line); padding-top:16px; display:flex; flex-direction:column; gap:12px;}
+.sec:first-child{border-top:0; padding-top:0;}
+.sec-t{font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--yellow); display:flex; justify-content:space-between; align-items:center; gap:10px;}
+.hint{font-size:12px; color:var(--muted-2); line-height:1.45;}
+.g2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.g3{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+.g4{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+label{margin-bottom:5px;}
+input,select,textarea{padding:10px 12px; font-size:14px;}
+textarea{resize:vertical;}
+.item{border:1px solid var(--line); border-radius:var(--r-sm); padding:12px; display:flex; flex-direction:column; gap:10px; background:rgba(255,255,255,.02);}
+.item-h{display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:13px; font-weight:600;}
+.mini{background:none; border:1px solid var(--line-2); color:var(--white); border-radius:10px; padding:7px 12px; font:600 12px var(--f); cursor:pointer; white-space:nowrap;}
+.mini:hover{border-color:var(--yellow);}
+.mini.del{color:#FF9B9B;}
+.check{display:flex; align-items:center; gap:10px; font-size:14px; color:var(--muted); cursor:pointer; text-transform:none; letter-spacing:0; font-weight:500; margin:0;}
+.check input{width:18px; height:18px; accent-color:var(--yellow); margin:0;}
+.ia-box{display:flex; flex-direction:column; gap:12px; padding:18px; border:1px solid rgba(255,193,7,.35); border-radius:var(--r-md); background:rgba(255,193,7,.05);}
+.ia-box textarea{min-height:120px;}
+.aviso{font-size:13px; line-height:1.5; border-radius:var(--r-sm); padding:12px 14px; border:1px solid rgba(255,193,7,.3); background:rgba(255,193,7,.07); color:var(--yellow);}
+.aviso.err{border-color:rgba(255,99,99,.35); background:rgba(255,99,99,.08); color:#FF9B9B;}
+.aviso.ok{border-color:rgba(120,220,140,.35); background:rgba(120,220,140,.07); color:#9BE3AA;}
+.aviso ul{margin:6px 0 0; padding-left:18px;}
+.gira{display:inline-block; width:14px; height:14px; border-radius:50%; border:2px solid rgba(10,10,10,.25); border-top-color:#0A0A0A; animation:gira 1s linear infinite; vertical-align:-2px; margin-right:8px;}
+@keyframes gira{to{transform:rotate(360deg);}}
+.thumbs{display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px;}
+.thumb{border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#101010;}
+.thumb img{width:100%; aspect-ratio:4/3; object-fit:cover; display:block;}
+.thumb .tb{padding:6px; display:flex; flex-direction:column; gap:6px;}
+.thumb input{padding:6px 8px; font-size:12px;}
+.thumb .row{display:flex; gap:4px;}
+.thumb .row .mini{padding:5px 8px; flex:1;}
+.us-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:6px;}
+.us-grid button{padding:0; border:2px solid transparent; border-radius:8px; overflow:hidden; cursor:pointer; background:#222; aspect-ratio:3/4; position:relative;}
+.us-grid button:hover{border-color:var(--yellow);}
+.us-grid img{width:100%; height:100%; object-fit:cover; display:block;}
+.us-grid span{position:absolute; left:0; right:0; bottom:0; font-size:10px; padding:10px 4px 3px; color:#fff; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:linear-gradient(transparent,rgba(0,0,0,.75));}
+.us-row{display:grid; grid-template-columns:1fr auto auto; gap:8px;}
+.hfoto{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+.hfoto img{width:72px; height:54px; object-fit:cover; border-radius:8px;}
+.prev-col{position:sticky; top:20px; display:flex; flex-direction:column; gap:12px;}
+.phone{width:100%; height:min(78vh,760px); border:1px solid var(--line-2); border-radius:28px; overflow:hidden; background:#fff;}
+.phone iframe{width:100%; height:100%; border:0; display:block;}
+.pub{display:flex; flex-direction:column; gap:10px; padding:16px;}
+.link{display:flex; gap:8px; align-items:center;}
+.link input{font-size:13px;}
+.lista{display:flex; flex-direction:column;}
+.cot{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px 12px; padding:14px 4px; border-top:1px solid var(--line); align-items:center;}
+.cot:first-child{border-top:0;}
+.cot b{font-size:15px; font-weight:600;}
+.cot .meta{font-size:12.5px; color:var(--muted-2);}
+.cot .acc{display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;}
+.est{display:inline-block; font-size:11.5px; font-weight:600; border-radius:999px; padding:3px 10px; margin-right:6px; white-space:nowrap;}
+.est.sin_abrir{background:rgba(255,255,255,.08); color:var(--muted);}
+.est.abierta{background:rgba(255,193,7,.12); color:var(--yellow);}
+.est.leida{background:rgba(120,220,140,.12); color:#9BE3AA;}
+.est.whatsapp{background:#25D366; color:#062b13;}
+.top-acc{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;}
+@media (max-width:1100px){ .ct-grid{grid-template-columns:1fr;} .prev-col{position:static;} .phone{height:640px; max-width:420px; margin:0 auto;} }
+@media (max-width:700px){ .g3,.g4{grid-template-columns:1fr 1fr;} .portal-main{padding:28px 16px;} .us-grid{grid-template-columns:repeat(3,1fr);} .cot{grid-template-columns:1fr;} .cot .acc{justify-content:flex-start;} }
+</style>
+</head>
+<body>
+
+<div class="page-frame" style="max-width:none;">
+<div class="portal-shell">
+  <div class="portal-sidebar"></div>
+
+  <div class="portal-main">
+    <div style="margin-bottom:24px;">
+      <div class="mono" style="color:var(--yellow); font-size:12px; letter-spacing:.1em; margin-bottom:6px;">HERRAMIENTAS</div>
+      <h1 style="font-size:34px;">Cotizador</h1>
+      <p style="color:var(--muted); font-size:14px; max-width:66ch; margin-top:8px; line-height:1.55;">Pegá lo que te mandó el mayorista y armamos una propuesta con la estética de tu agencia, lista para mandar por WhatsApp. Te avisamos acá cuando el pasajero la abre y la lee.</p>
+    </div>
+
+    <div class="js-estado" style="color:var(--muted);">Cargando…</div>
+
+    <!-- Lista de cotizaciones -->
+    <section class="card js-vista-lista" style="padding:20px;" hidden>
+      <div class="top-acc">
+        <div class="sec-t" style="margin:0;">Mis cotizaciones</div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="mini js-refrescar">Actualizar estados</button>
+          <button type="button" class="btn btn-primary sm js-nueva" style="min-height:42px; padding:0 18px;">+ Nueva cotización</button>
+        </div>
+      </div>
+      <div class="lista js-lista"></div>
+      <div class="hint js-lista-vacia" hidden>Todavía no armaste cotizaciones. Tocá "Nueva cotización" para empezar.</div>
+    </section>
+
+    <!-- Editor -->
+    <div class="ct-grid js-vista-editor" hidden>
+      <form class="card ct-form js-form" novalidate autocomplete="off">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+          <button type="button" class="mini js-volver">‹ Volver a mis cotizaciones</button>
+          <span class="hint js-editando"></span>
+        </div>
+
+        <div class="ia-box js-ia">
+          <div class="sec-t">1 · Pegá la info del mayorista</div>
+          <div class="hint" style="color:var(--muted); font-size:13px;">Texto, foto del presupuesto o PDF del operador. La IA ordena vuelos, hoteles, qué incluye y precios, y escribe los textos de venta. Después revisás todo abajo.</div>
+          <textarea class="js-ia-texto" maxlength="8000" placeholder="Ej: Punta Cana y Miami. Salida 6 de mayo, regreso 21 de mayo. Aéreo con Copa… 6 noches Iberostar Selection Bávaro… Precio por persona base doble USD 3.389…"></textarea>
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:13px; color:var(--muted);">
+            <button type="button" class="mini js-ia-subir">Adjuntar imagen o PDF</button>
+            <span class="js-ia-nombre"></span>
+            <input type="file" class="js-ia-file" accept="image/*,application/pdf" hidden>
+          </div>
+          <div class="aviso err js-ia-err" role="alert" hidden></div>
+          <button type="button" class="btn btn-primary sm js-ia-go" style="justify-content:center;">Armar la cotización con IA · 1 crédito</button>
+          <div class="hint js-ia-cred"></div>
+          <div class="aviso js-dudas" hidden></div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-t">2 · Pasajero y asesor/a</div>
+          <div class="g2">
+            <div><label for="f-pasajero">Nombre del pasajero</label><input id="f-pasajero" data-p="pasajero" maxlength="60" placeholder="Ej: Laura y Martín"></div>
+            <div><label for="f-pax">Cantidad de pasajeros</label><input id="f-pax" data-p="pasajeros" data-t="num" type="number" min="1" max="60" placeholder="2"></div>
+            <div><label for="f-asesor">Asesor/a</label><input id="f-asesor" data-p="asesor.nombre" maxlength="40" placeholder="Ej: Carla"></div>
+            <div><label for="f-wa">WhatsApp del asesor/a</label><input id="f-wa" data-p="asesor.whatsapp" inputmode="tel" maxlength="20" placeholder="549351…"></div>
+            <div><label for="f-vig">Precio vigente hasta</label><input id="f-vig" data-p="vigencia" type="date"></div>
+            <div><label for="f-fondo">Fondo</label><select id="f-fondo" data-p="fondo"><option value="blanco">Blanco</option><option value="negro">Negro</option></select></div>
+          </div>
+          <div class="hint">El WhatsApp va con código de país, sin + ni espacios (ej: 5493511234567). Lo recordamos en esta compu para la próxima.</div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-t">3 · El viaje</div>
+          <div><label for="f-titulo">Título</label><input id="f-titulo" data-p="titulo" maxlength="50" placeholder="Ej: Punta Cana & Miami"></div>
+          <div><label for="f-frase">Frase principal</label><input id="f-frase" data-p="frase" maxlength="140"></div>
+          <div><label for="f-gancho">Frase del recorrido</label><input id="f-gancho" data-p="gancho" maxlength="200"></div>
+          <div class="g3">
+            <div><label for="f-fechas">Fechas</label><input id="f-fechas" data-p="fechasTexto" maxlength="40" placeholder="6 al 21 de mayo"></div>
+            <div><label for="f-noches">Noches</label><input id="f-noches" data-p="noches" data-t="num" type="number" min="0" max="120"></div>
+            <div style="display:flex; align-items:end; padding-bottom:10px;"><label class="check"><input type="checkbox" data-p="conVuelos" data-t="bool"> Incluye vuelos</label></div>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-t">4 · Fotos del destino <span class="hint js-nfotos" style="text-transform:none; letter-spacing:0;"></span></div>
+          <div class="thumbs js-fotos"></div>
+          <div class="us-row">
+            <input type="search" class="js-us-q" placeholder="Buscar en Unsplash (ej.: Punta Cana beach)" maxlength="80" aria-label="Buscar fotos en Unsplash">
+            <button type="button" class="mini js-us-go">Buscar</button>
+            <button type="button" class="mini js-subir-foto">Subir foto</button>
+          </div>
+          <input type="file" class="js-file-foto" accept="image/*" multiple hidden>
+          <div class="us-grid js-us-grid"></div>
+          <button type="button" class="mini js-us-mas" hidden>Ver más fotos</button>
+          <div class="hint js-us-msg">Tocá una foto de la búsqueda para sumarla a la galería. En inglés suele haber más resultados.</div>
+        </div>
+
+        <div class="sec"><div class="sec-t">5 · Recorrido <button type="button" class="mini js-add" data-add="ruta">+ Parada</button></div><div class="js-ruta" style="display:flex; flex-direction:column; gap:8px;"></div></div>
+        <div class="sec"><div class="sec-t">6 · Hoteles <button type="button" class="mini js-add" data-add="hoteles">+ Hotel</button></div><div class="js-hoteles" style="display:flex; flex-direction:column; gap:10px;"></div></div>
+        <div class="sec"><div class="sec-t">7 · Vuelos <button type="button" class="mini js-add" data-add="vuelos">+ Vuelo</button></div><div class="js-vuelos" style="display:flex; flex-direction:column; gap:10px;"></div></div>
+
+        <div class="sec">
+          <div class="sec-t">8 · Qué incluye</div>
+          <div><label for="f-inc">Incluye (uno por línea)</label><textarea id="f-inc" class="js-lineas" data-p="incluye" rows="5"></textarea></div>
+          <div><label for="f-avi">A tener en cuenta (uno por línea)</label><textarea id="f-avi" class="js-lineas" data-p="avisos" rows="3"></textarea></div>
+        </div>
+
+        <div class="sec"><div class="sec-t">9 · Tarifas <button type="button" class="mini js-add" data-add="tarifas">+ Opción</button></div><div class="js-tarifas" style="display:flex; flex-direction:column; gap:10px;"></div>
+          <div class="hint">Con 2 o más opciones, el pasajero elige y el precio se actualiza. La etiqueta ayuda a decidir ("Mejor precio", "Más flexibilidad").</div></div>
+
+        <div class="sec">
+          <div class="sec-t">10 · Condiciones</div>
+          <textarea data-p="condiciones" rows="3" maxlength="600" placeholder="Condiciones del mayorista que el pasajero tiene que saber (opcional)"></textarea>
+          <div class="hint">Abajo de esto se suman solas las condiciones generales de tu agencia y la fecha de vigencia.</div>
+        </div>
+      </form>
+
+      <aside class="prev-col">
+        <div class="phone"><iframe class="js-prev" title="Vista previa de la cotización" src="/cotizacion/index.html?preview=1"></iframe></div>
+        <div class="card pub">
+          <div class="aviso err js-pub-err" role="alert" hidden></div>
+          <button type="button" class="btn btn-primary sm js-guardar" style="justify-content:center;">Guardar y obtener el link</button>
+          <div class="js-link" hidden>
+            <div class="link"><input class="js-link-url" readonly aria-label="Link de la cotización"><button type="button" class="mini js-copiar">Copiar</button></div>
+            <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+              <a class="mini js-enviar" target="_blank" rel="noopener" style="text-decoration:none;">Enviar por WhatsApp</a>
+              <a class="mini js-abrir" target="_blank" rel="noopener" style="text-decoration:none;">Abrir como la ve el pasajero</a>
+            </div>
+            <div class="hint" style="margin-top:8px;">Si después cambiás algo, tocá "Guardar" de nuevo: el link sigue siendo el mismo.</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+</div>
+
+<script src="js/portal.js"></script>
+<script>
+(async function () {
+  const s = Portal.requerirSesion(); if (!s) return;
+  Portal.sidebar('cotizador');
+  Portal.abrir(s.slug, s.code).then(d => Portal.sidebar('cotizador', d)).catch(e => { if (e.message === 'codigo') Portal.salir(); });
+  const $ = q => document.querySelector(q), $$ = q => [...document.querySelectorAll(q)], esc = Portal.esc;
+  const estado = t => { $('.js-estado').textContent = t; $('.js-estado').hidden = !t; };
+
+  if (!(await Portal.tieneCotizador())) { estado('El Cotizador todavía no está activado para tu agencia. Escribinos y lo configuramos con tu estética.'); return; }
+
+  async function api(url, body) {
+    const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: s.slug, code: s.code, ...body }) });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 401) { Portal.salir(); throw new Error('sesion'); }
+    if (!r.ok) { const e = new Error(j.error || 'red'); e.datos = j; throw e; }
+    return j;
+  }
+  const cot = b => api('/api/cot', b);
+
+  // ---------- Lista ----------
+  const hace = iso => { if (!iso) return ''; const m = Math.round((Date.now() - new Date(iso)) / 60000); return m < 1 ? 'recién' : m < 60 ? `hace ${m} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `hace ${Math.round(m / 1440)} d`; };
+  const ESTADO = { sin_abrir: 'Sin abrir', abierta: 'Abierta', leida: 'Leída', whatsapp: 'Tocó WhatsApp' };
+  const linkDe = id => location.origin + '/c/' + id;
+  async function cargarLista() {
+    estado('');
+    try {
+      const { cotizaciones } = await cot({ accion: 'lista' });
+      $('.js-lista-vacia').hidden = cotizaciones.length > 0;
+      $('.js-lista').innerHTML = cotizaciones.map(c => {
+        const g = c.seg || {};
+        const det = g.aperturas ? `${g.aperturas} ${g.aperturas === 1 ? 'vez' : 'veces'} · última ${hace(g.ultima)}${g.segundos ? ` · leyó ${Math.max(1, Math.round(g.segundos / 60))} min` : ''}${g.tarifa ? ` · miró "${esc(g.tarifa)}"` : ''}` : 'Todavía no la abrió';
+        return `<div class="cot"><div><b>${esc(c.titulo || 'Sin título')}</b>${c.pasajero ? ` · ${esc(c.pasajero)}` : ''}
+          <div class="meta"><span class="est ${esc(g.estado || 'sin_abrir')}">${ESTADO[g.estado] || 'Sin abrir'}</span>${det}</div>
+          <div class="meta">${esc(c.fechasTexto || '')}${c.fechasTexto ? ' · ' : ''}Editada ${hace(c.actualizado)}</div></div>
+          <div class="acc"><button type="button" class="mini" data-copiar="${esc(c.id)}">Copiar link</button><button type="button" class="mini" data-editar="${esc(c.id)}">Editar</button><a class="mini" href="/c/${esc(c.id)}" target="_blank" rel="noopener" style="text-decoration:none;">Ver</a><button type="button" class="mini del" data-borrar="${esc(c.id)}">Borrar</button></div></div>`;
+      }).join('');
+    } catch (e) { if (e.message !== 'sesion') estado('No pudimos traer tus cotizaciones. Probá recargar.'); }
+  }
+  const copiar = async t => { try { await navigator.clipboard.writeText(t); return true; } catch (e) { return false; } };
+  $('.js-lista').addEventListener('click', async e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.copiar) { const ok = await copiar(linkDe(b.dataset.copiar)); b.textContent = ok ? 'Copiado' : linkDe(b.dataset.copiar); setTimeout(() => b.textContent = 'Copiar link', 2500); }
+    if (b.dataset.editar) abrirEditor(b.dataset.editar);
+    if (b.dataset.borrar && confirmarBorrado(b)) { await cot({ accion: 'borrar', id: b.dataset.borrar }).catch(() => {}); cargarLista(); }
+  });
+  // Borrar pide un segundo toque (en vez de un diálogo del navegador)
+  function confirmarBorrado(b) { if (b.dataset.seguro) return true; b.dataset.seguro = '1'; b.textContent = '¿Seguro? Tocá de nuevo'; setTimeout(() => { delete b.dataset.seguro; b.textContent = 'Borrar'; }, 4000); return false; }
+  $('.js-refrescar').onclick = cargarLista;
+  $('.js-nueva').onclick = () => abrirEditor(null);
+
+  // ---------- Editor ----------
+  const memo = k => { try { return JSON.parse(localStorage.getItem('kickstart.cot.' + s.slug) || '{}')[k]; } catch (e) { return undefined; } };
+  const recordar = (k, v) => { try { const o = JSON.parse(localStorage.getItem('kickstart.cot.' + s.slug) || '{}'); o[k] = v; localStorage.setItem('kickstart.cot.' + s.slug, JSON.stringify(o)); } catch (e) {} };
+  const enDias = n => { const d = new Date(Date.now() + n * 864e5 - 3 * 36e5); return d.toISOString().slice(0, 10); };
+  const vacia = () => ({ pasajero: '', pasajeros: 2, titulo: '', frase: '', gancho: '', fechasTexto: '', noches: null, conVuelos: false, destinos: [], fotos: [], ruta: [], hoteles: [], vuelos: [], incluye: [], avisos: [],
+    tarifas: [], condiciones: '', asesor: { nombre: memo('asesor') || '', whatsapp: memo('whatsapp') || '' }, vigencia: enDias(7), fondo: 'blanco' });
+  let d = vacia(), idActual = null;
+
+  async function abrirEditor(id) {
+    $('.js-pub-err').hidden = true; $('.js-dudas').hidden = true; $('.js-link').hidden = true;
+    if (id) {
+      try { const r = await cot({ accion: 'leer', id }); d = Object.assign(vacia(), r.datos); idActual = id; mostrarLink(); }
+      catch (e) { if (e.message !== 'sesion') estado('No pudimos abrir esa cotización.'); return; }
+    } else { d = vacia(); idActual = null; $('.js-ia-texto').value = ''; adjunto = null; $('.js-ia-nombre').innerHTML = ''; }
+    $('.js-editando').textContent = idActual ? 'Editando una cotización ya enviada' : 'Nueva cotización';
+    $('.js-vista-lista').hidden = true; $('.js-vista-editor').hidden = false;
+    pintarTodo(); scrollTo(0, 0);
+  }
+  $('.js-volver').onclick = () => { $('.js-vista-editor').hidden = true; $('.js-vista-lista').hidden = false; cargarLista(); };
+
+  // ruta "a.b.0.c" dentro de d
+  const leer = p => p.split('.').reduce((o, k) => o == null ? undefined : o[k], d);
+  const poner = (p, v) => { const ks = p.split('.'); let o = d; ks.slice(0, -1).forEach(k => { if (o[k] == null) o[k] = {}; o = o[k]; }); o[ks[ks.length - 1]] = v; };
+  const valor = el => el.dataset.t === 'num' ? (el.value === '' ? null : Number(el.value)) : el.dataset.t === 'bool' ? el.checked : el.classList.contains('js-lineas') ? el.value.split('\n').map(x => x.trim()).filter(Boolean) : el.value;
+  function cargarCampos(raiz = document) {
+    raiz.querySelectorAll('[data-p]').forEach(el => {
+      const v = leer(el.dataset.p);
+      if (el.dataset.t === 'bool') el.checked = !!v;
+      else if (el.classList.contains('js-lineas')) el.value = (v || []).join('\n');
+      else el.value = v == null ? '' : v;
+    });
+  }
+  $('.js-form').addEventListener('input', e => {
+    const el = e.target.closest('[data-p]'); if (!el) return;
+    poner(el.dataset.p, valor(el));
+    if (el.dataset.p === 'asesor.nombre') recordar('asesor', el.value);
+    if (el.dataset.p === 'asesor.whatsapp') recordar('whatsapp', el.value.replace(/[^\d]/g, ''));
+    vista();
+  });
+  $('.js-form').addEventListener('change', e => { const el = e.target.closest('[data-p]'); if (el) { poner(el.dataset.p, valor(el)); vista(); } });
+
+  // listas (recorrido, hoteles, vuelos, tarifas)
+  const inp = (p, label, extra = '') => `<div><label>${label}</label><input data-p="${p}" ${extra}></div>`;
+  const quitar = (lista, i) => `<button type="button" class="mini del" data-quitar="${lista}.${i}">Quitar</button>`;
+  const PINTA = {
+    ruta: () => d.ruta.map((r, i) => `<div class="g4" style="align-items:end;">${inp(`ruta.${i}.nombre`, 'Lugar', 'maxlength="30"')}${inp(`ruta.${i}.detalle`, 'Detalle', 'maxlength="24" placeholder="6 noches"')}
+      <div><label>Tipo</label><select data-p="ruta.${i}.tipo"><option value="salida">Salida</option><option value="destino">Destino</option><option value="regreso">Regreso</option></select></div><div>${quitar('ruta', i)}</div></div>`).join('') || '<div class="hint">Sin paradas.</div>',
+    hoteles: () => d.hoteles.map((h, i) => `<div class="item"><div class="item-h">Hotel ${i + 1}${quitar('hoteles', i)}</div>
+      <div class="g2">${inp(`hoteles.${i}.nombre`, 'Nombre', 'maxlength="70"')}${inp(`hoteles.${i}.zona`, 'Zona', 'maxlength="70"')}</div>
+      <div class="g3">${inp(`hoteles.${i}.noches`, 'Noches', 'data-t="num" type="number" min="0"')}${inp(`hoteles.${i}.fechas`, 'Fechas', 'maxlength="40"')}${inp(`hoteles.${i}.regimen`, 'Régimen', 'maxlength="40"')}</div>
+      ${inp(`hoteles.${i}.descripcion`, 'Descripción', 'maxlength="200"')}${inp(`hoteles.${i}.web`, 'Link del hotel (opcional)', 'maxlength="300" placeholder="https://…"')}
+      <div class="hfoto">${h.foto && h.foto.url ? `<img src="${esc(h.foto.url)}" alt="">` : '<span class="hint">Sin foto</span>'}
+        <button type="button" class="mini" data-hfoto-us="${i}">Buscar foto</button><button type="button" class="mini" data-hfoto-subir="${i}">Subir foto</button>${h.foto ? `<button type="button" class="mini del" data-hfoto-quitar="${i}">Quitar foto</button>` : ''}</div></div>`).join('') || '<div class="hint">Sin hoteles.</div>',
+    vuelos: () => d.vuelos.map((v, i) => `<div class="item"><div class="item-h">Vuelo ${i + 1}${quitar('vuelos', i)}</div>
+      <div class="g2">${inp(`vuelos.${i}.titulo`, 'Título', 'maxlength="60" placeholder="Ida · 6 de mayo"')}${inp(`vuelos.${i}.aerolinea`, 'Aerolínea', 'maxlength="50"')}</div>
+      ${(v.tramos || []).map((t, j) => `<div class="g4" style="grid-template-columns:70px 1fr 70px 1fr auto; align-items:end;">${inp(`vuelos.${i}.tramos.${j}.sale`, 'Sale', 'maxlength="5" placeholder="00:50"')}${inp(`vuelos.${i}.tramos.${j}.origen`, 'Desde', 'maxlength="30"')}${inp(`vuelos.${i}.tramos.${j}.llega`, 'Llega', 'maxlength="5"')}${inp(`vuelos.${i}.tramos.${j}.destino`, 'Hasta', 'maxlength="30"')}<div>${quitar(`vuelos.${i}.tramos`, j)}</div></div>`).join('')}
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;"><button type="button" class="mini" data-add-tramo="${i}">+ Escala / tramo</button></div>
+      ${inp(`vuelos.${i}.nota`, 'Nota', 'maxlength="160" placeholder="Ej: incluye valija en bodega"')}</div>`).join('') || '<div class="hint">Sin vuelos.</div>',
+    tarifas: () => d.tarifas.map((t, i) => `<div class="item"><div class="item-h">Opción ${i + 1}${quitar('tarifas', i)}</div>
+      <div class="g2">${inp(`tarifas.${i}.nombre`, 'Nombre', 'maxlength="50" placeholder="Tarifa reembolsable"')}${inp(`tarifas.${i}.etiqueta`, 'Etiqueta', 'maxlength="24" placeholder="Mejor precio"')}</div>
+      ${inp(`tarifas.${i}.detalle`, 'Detalle', 'maxlength="140"')}
+      <div class="g3">${inp(`tarifas.${i}.precio`, 'Precio', 'data-t="num" type="number" min="0" step="1"')}<div><label>Moneda</label><select data-p="tarifas.${i}.moneda"><option>USD</option><option>ARS</option><option>EUR</option></select></div>${inp(`tarifas.${i}.base`, 'Base', 'maxlength="50" placeholder="por persona en base doble"')}</div></div>`).join('') || '<div class="hint">Sin tarifas: el pasajero no ve precio.</div>',
+  };
+  function pintar(lista) { const el = $('.js-' + lista); el.innerHTML = PINTA[lista](); cargarCampos(el); }
+  const NUEVO = { ruta: () => ({ nombre: '', detalle: '', tipo: 'destino' }), hoteles: () => ({ nombre: '', zona: '', noches: null, fechas: '', regimen: '', descripcion: '', web: '', foto: null }),
+    vuelos: () => ({ titulo: '', aerolinea: '', nota: '', tramos: [{ sale: '', origen: '', llega: '', destino: '', llegaOtroDia: false }] }),
+    tarifas: () => ({ etiqueta: '', nombre: '', detalle: '', precio: null, moneda: (d.tarifas[0] || {}).moneda || 'USD', base: (d.tarifas[0] || {}).base || 'por persona' }) };
+  const LIM = { ruta: 6, hoteles: 6, vuelos: 8, tarifas: 4 };
+  $$('.js-add').forEach(b => b.onclick = () => { const l = b.dataset.add; if (d[l].length >= LIM[l]) return; d[l].push(NUEVO[l]()); pintar(l); vista(); });
+  $('.js-form').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.quitar) { const ks = b.dataset.quitar.split('.'), i = +ks.pop(); leer(ks.join('.')).splice(i, 1); pintar(ks[0]); vista(); }
+    if (b.dataset.addTramo != null) { const v = d.vuelos[+b.dataset.addTramo]; if (v.tramos.length < 4) v.tramos.push({ sale: '', origen: '', llega: '', destino: '', llegaOtroDia: false }); pintar('vuelos'); vista(); }
+    if (b.dataset.hfotoQuitar != null) { d.hoteles[+b.dataset.hfotoQuitar].foto = null; pintar('hoteles'); vista(); }
+    if (b.dataset.hfotoSubir != null) { destinoFoto = { hotel: +b.dataset.hfotoSubir }; $('.js-file-foto').multiple = false; $('.js-file-foto').click(); }
+    if (b.dataset.hfotoUs != null) { const h = d.hoteles[+b.dataset.hfotoUs]; destinoFoto = { hotel: +b.dataset.hfotoUs }; $('.js-us-q').value = [h.nombre, h.zona].filter(Boolean).join(' ') || d.titulo; buscar(false); $('.js-us-q').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  });
+
+  // ---------- Fotos ----------
+  let destinoFoto = null;   // null = galería; {hotel: i} = foto de un hotel
+  function pintarFotos() {
+    $('.js-nfotos').textContent = d.fotos.length ? `${d.fotos.length} de 12` : '';
+    $('.js-fotos').innerHTML = d.fotos.map((f, i) => `<div class="thumb"><img src="${esc(f.url)}" alt=""><div class="tb">
+      <input data-p="fotos.${i}.lugar" maxlength="60" placeholder="Lugar (ej: Playa Bávaro)" aria-label="Lugar de la foto ${i + 1}">
+      <select data-p="fotos.${i}.y" data-t="num" aria-label="Encuadre"><option value="50">Encuadre: centro</option><option value="15">Encuadre: arriba</option><option value="85">Encuadre: abajo</option></select>
+      <div class="row"><button type="button" class="mini" data-mover="${i}" data-dir="-1" aria-label="Mover antes">‹</button><button type="button" class="mini" data-mover="${i}" data-dir="1" aria-label="Mover después">›</button><button type="button" class="mini del" data-borrar-foto="${i}">Quitar</button></div></div></div>`).join('')
+      || '<div class="hint">Todavía no hay fotos. Buscá en Unsplash o subí las tuyas: la primera es la portada.</div>';
+    cargarCampos($('.js-fotos'));
+  }
+  $('.js-fotos').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.borrarFoto != null) d.fotos.splice(+b.dataset.borrarFoto, 1);
+    if (b.dataset.mover != null) { const i = +b.dataset.mover, j = i + +b.dataset.dir; if (j < 0 || j >= d.fotos.length) return; [d.fotos[i], d.fotos[j]] = [d.fotos[j], d.fotos[i]]; }
+    pintarFotos(); vista();
+  });
+  const us = { q: '', pagina: 1, paginas: 0, fotos: [] };
+  async function buscar(mas) {
+    const q = $('.js-us-q').value.replace(/\s+/g, ' ').trim(); if (!q) return;
+    if (!mas) { us.q = q; us.pagina = 1; us.fotos = []; } else us.pagina++;
+    $('.js-us-msg').textContent = 'Buscando…';
+    try {
+      const j = await api('/api/fotos', { accion: 'buscar', q: us.q, pagina: us.pagina, orientacion: destinoFoto ? '' : 'landscape' });
+      us.fotos = us.fotos.concat(j.fotos || []); us.paginas = j.paginas || 0;
+      $('.js-us-grid').innerHTML = us.fotos.map((f, i) => `<button type="button" data-i="${i}" title="Foto de ${esc(f.autor)} en Unsplash" style="background:${esc(f.color)}"><img src="${esc(f.miniatura)}" alt="${esc(f.descripcion || us.q)}" loading="lazy"><span>${esc(f.autor)}</span></button>`).join('');
+      $('.js-us-mas').hidden = us.pagina >= us.paginas;
+      $('.js-us-msg').textContent = us.fotos.length ? (destinoFoto ? `Tocá una foto para ponerla en el hotel ${destinoFoto.hotel + 1}.` : 'Tocá una foto para sumarla a la galería.') : 'Sin resultados. Probá con otras palabras o en inglés.';
+    } catch (e) { if (e.message !== 'sesion') $('.js-us-msg').textContent = e.message === 'limite' ? 'Llegamos al límite de búsquedas de esta hora. Probá en un rato o subí una foto.' : e.message === 'sin_configurar' ? 'El buscador de Unsplash no está configurado: subí tus fotos.' : 'No pudimos buscar. Probá de nuevo.'; }
+  }
+  const fotoDeUnsplash = f => ({ url: f.grande, lugar: '', x: 50, y: 50, unsplashId: f.id, credito: { autor: f.autor, autorUrl: f.autorUrl, unsplashUrl: f.unsplashUrl } });
+  function ponerFoto(foto) {
+    if (destinoFoto && d.hoteles[destinoFoto.hotel]) { d.hoteles[destinoFoto.hotel].foto = foto; destinoFoto = null; pintar('hoteles'); }
+    else if (d.fotos.length < 12) { d.fotos.push(foto); pintarFotos(); }
+    vista();
+  }
+  $('.js-us-go').onclick = () => { destinoFoto = null; buscar(false); };
+  $('.js-us-q').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); destinoFoto = null; buscar(false); } });
+  $('.js-us-mas').onclick = () => buscar(true);
+  $('.js-us-grid').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return; const f = us.fotos[+b.dataset.i]; if (!f) return;
+    const foto = fotoDeUnsplash(f); if (!destinoFoto) foto.lugar = (d.destinos[0] && d.destinos.find(x => us.q.toLowerCase().includes(x.nombre.toLowerCase().split(' ')[0]))?.nombre) || '';
+    ponerFoto(foto); api('/api/fotos', { accion: 'usar', id: f.id }).catch(() => {});
+  });
+  // subir: se achica en el navegador (máx. 1600 px) antes de mandarla
+  const achicar = f => new Promise((ok, mal) => { const im = new Image(); im.onload = () => { const k = Math.min(1, 1600 / Math.max(im.width, im.height)); const c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', 0.82).split(',')[1]); }; im.onerror = mal; im.src = URL.createObjectURL(f); });
+  $('.js-subir-foto').onclick = () => { destinoFoto = null; $('.js-file-foto').multiple = true; $('.js-file-foto').click(); };
+  $('.js-file-foto').onchange = async e => {
+    const files = [...e.target.files].filter(f => f.type.startsWith('image/')).slice(0, 12); e.target.value = '';
+    for (const f of files) {
+      $('.js-us-msg').textContent = 'Subiendo ' + f.name + '…';
+      try { const datos = await achicar(f); const j = await api('/api/cot', { accion: 'foto', tipo: 'image/jpeg', datos }); ponerFoto({ url: j.url, lugar: '', x: 50, y: 50 }); $('.js-us-msg').textContent = 'Foto subida.'; }
+      catch (err) { if (err.message !== 'sesion') $('.js-us-msg').textContent = 'No pudimos subir ' + f.name + '. Probá con otra foto.'; }
+    }
+  };
+
+  // ---------- IA ----------
+  let adjunto = null;
+  const iaErr = t => { $('.js-ia-err').textContent = t || ''; $('.js-ia-err').hidden = !t; };
+  const leerB64 = f => new Promise((ok, mal) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1]); fr.onerror = mal; fr.readAsDataURL(f); });
+  $('.js-ia-subir').onclick = () => $('.js-ia-file').click();
+  $('.js-ia-file').onchange = async e => {
+    const f = e.target.files[0]; e.target.value = ''; iaErr(''); if (!f) return;
+    try {
+      if (f.type === 'application/pdf') { if (f.size > 4 * 1024 * 1024) { iaErr('El PDF pesa más de 4 MB. Probá con una captura o pegá el texto.'); return; } adjunto = { tipo: 'application/pdf', datos: await leerB64(f) }; }
+      else if (f.type.startsWith('image/')) adjunto = { tipo: 'image/jpeg', datos: await achicar(f) };
+      else { iaErr('Subí una imagen (JPG o PNG) o un PDF.'); return; }
+      $('.js-ia-nombre').innerHTML = `<b style="color:var(--white); font-weight:500;">${esc(f.name)}</b> <button type="button" class="mini js-ia-quitar">Quitar</button>`;
+      $('.js-ia-quitar').onclick = () => { adjunto = null; $('.js-ia-nombre').innerHTML = ''; };
+    } catch (err) { iaErr('No pudimos leer ese archivo. Probá con otro.'); }
+  };
+  const ERR = { vacio: 'Pegá la información o adjuntá una imagen o PDF.', tipo_archivo: 'Subí una imagen o un PDF.', archivo_grande: 'El archivo es muy pesado. Probá con uno más liviano o pegá el texto.',
+    sin_creditos: 'Te quedaste sin créditos este mes. Escribinos y te sumamos.', sin_configurar: 'La IA se está configurando. Probá en un rato.', ia: 'No pudimos armar la cotización esta vez (no se descontó el crédito). Probá de nuevo.' };
+  const cred = c => { if (c) $('.js-ia-cred').textContent = `Te quedan ${c.restantes} de ${c.limite} créditos este mes (los comparten todas las herramientas de IA).`; };
+  api('/api/ia', { accion: 'estado' }).then(j => cred(j.creditos)).catch(() => {});
+  $('.js-ia-go').onclick = async () => {
+    iaErr(''); const texto = $('.js-ia-texto').value.trim();
+    if (!texto && !adjunto) { iaErr(ERR.vacio); return; }
+    const btn = $('.js-ia-go'); btn.disabled = true; btn.innerHTML = '<span class="gira"></span>Armando la cotización… (puede tardar 30 segundos)';
+    try {
+      const { resultado: r, creditos } = await api('/api/ia', { accion: 'cotizacion', texto, archivo: adjunto });
+      cred(creditos);
+      const conservar = { pasajero: d.pasajero || '', asesor: d.asesor, vigencia: d.vigencia, fondo: d.fondo, fotos: d.fotos };
+      d = Object.assign(vacia(), r, conservar, { pasajeros: r.pasajeros || d.pasajeros || 2 });
+      $('.js-dudas').innerHTML = r.dudas && r.dudas.length ? '<b>Revisá esto antes de enviar:</b><ul>' + r.dudas.map(x => `<li>${esc(x)}</li>`).join('') + '</ul>' : '';
+      $('.js-dudas').hidden = !(r.dudas && r.dudas.length);
+      pintarTodo();
+      await fotosAutomaticas();
+    } catch (e) { if (e.message !== 'sesion') { iaErr(ERR[e.message] || ERR.ia); if (e.datos) cred(e.datos.creditos); } }
+    finally { btn.disabled = false; btn.textContent = 'Armar la cotización con IA · 1 crédito'; }
+  };
+  // Una foto de portada por destino, sugerida desde Unsplash (el agente las puede cambiar)
+  async function fotosAutomaticas() {
+    if (d.fotos.length) return;
+    for (const dest of d.destinos.slice(0, 4)) {
+      try {
+        const j = await api('/api/fotos', { accion: 'buscar', q: dest.busquedaFoto || dest.nombre, orientacion: 'landscape' });
+        const f = (j.fotos || [])[0]; if (!f) continue;
+        const foto = fotoDeUnsplash(f); foto.lugar = [dest.nombre, dest.pais].filter(Boolean).join(' · ');
+        d.fotos.push(foto); api('/api/fotos', { accion: 'usar', id: f.id }).catch(() => {});
+      } catch (e) { break; }
+    }
+    if (d.destinos[0]) $('.js-us-q').value = d.destinos[0].busquedaFoto || d.destinos[0].nombre;
+    pintarFotos(); vista();
+  }
+
+  // ---------- Vista previa ----------
+  const frame = $('.js-prev');
+  let t = null;
+  const enviar = () => { try { frame.contentWindow.postMessage({ tipo: 'cotizacion', datos: d, slug: s.slug }, location.origin); } catch (e) {} };
+  const vista = () => { clearTimeout(t); t = setTimeout(enviar, 250); };
+  addEventListener('message', e => { if (e.origin === location.origin && e.data && e.data.tipo === 'lista') enviar(); });
+  function pintarTodo() { cargarCampos($('.js-form')); ['ruta', 'hoteles', 'vuelos', 'tarifas'].forEach(pintar); pintarFotos(); vista(); }
+
+  // ---------- Guardar ----------
+  function mostrarLink() {
+    const u = linkDe(idActual);
+    $('.js-link-url').value = u; $('.js-abrir').href = u;
+    const msg = `${d.pasajero ? '¡Hola ' + d.pasajero + '! ' : '¡Hola! '}Te paso la propuesta de ${d.titulo || 'tu viaje'} que armamos para ${(d.pasajeros || 2) > 1 ? 'ustedes' : 'vos'}: ${u}`;
+    $('.js-enviar').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+    $('.js-link').hidden = false;
+  }
+  $('.js-copiar').onclick = async () => { const ok = await copiar($('.js-link-url').value); $('.js-copiar').textContent = ok ? 'Copiado' : 'Seleccioná y copiá'; if (!ok) $('.js-link-url').select(); setTimeout(() => $('.js-copiar').textContent = 'Copiar', 2500); };
+  $('.js-guardar').onclick = async () => {
+    const err = t => { $('.js-pub-err').textContent = t || ''; $('.js-pub-err').hidden = !t; };
+    err('');
+    if (!d.titulo.trim()) { err('Poné un título (ej: Punta Cana & Miami).'); $('#f-titulo').focus(); return; }
+    if (!d.asesor.whatsapp) { err('Completá el WhatsApp del asesor/a: es donde le escribe el pasajero.'); $('#f-wa').focus(); return; }
+    const btn = $('.js-guardar'); btn.disabled = true; btn.textContent = 'Guardando…';
+    try { const j = await cot({ accion: 'guardar', id: idActual || undefined, datos: d }); idActual = j.id; mostrarLink(); $('.js-editando').textContent = 'Guardada'; }
+    catch (e) { if (e.message !== 'sesion') err(e.message === 'grande' ? 'La cotización quedó muy larga. Sacá algún texto o foto y probá de nuevo.' : 'No pudimos guardarla. Probá de nuevo.'); }
+    finally { btn.disabled = false; btn.textContent = 'Guardar y obtener el link'; }
+  };
+
+  $('.js-vista-lista').hidden = false;
+  cargarLista();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Propuesta de viaje</title>
+<!--OG-->
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link id="fuente" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@300;400;700;800&display=swap">
+<style>
+/* Página que ve el pasajero: la cotización con la estética de la agencia (portal/cotizador/<id agencia>/tema.json).
+   La arma el Cotizador del portal; los datos llegan de /api/cot (acción "ver"). Con ?preview=1 la usa el editor. */
+:root{color-scheme:light;--bg:#fff;--card:#fff;--ink:#1A1B14;--mute:#6f6a69;--line:#ebe7e4;--soft:#faf6f2;--p:#B30F16;--a:#FAAF3A;--s:#2AB2AB;--dark:#1A1B14;--kick:var(--p);--pill:#fbe9ea;--f:'Lexend Deca'}
+:root[data-bg=negro]{color-scheme:dark;--bg:#121310;--card:#1d1e19;--ink:#F9F7F7;--mute:#aaa59f;--line:#33342c;--soft:#28261f;--kick:var(--a);--pill:rgba(250,175,58,.15)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:300 15px/1.5 var(--f),system-ui,sans-serif;overflow-x:clip;padding-bottom:80px}
+b,strong{font-weight:700}
+h1,h2,h3{font-weight:800;line-height:1.08;margin:0;letter-spacing:-.01em;text-wrap:balance}
+a{color:inherit}button{font-family:inherit}
+[hidden]{display:none!important}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px}
+.top{border-bottom:1px solid var(--line)}
+.topin{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-block:12px;min-height:56px}
+.brand{height:28px;display:block}.b-w{display:none}
+:root[data-bg=negro] .b-r{display:none}:root[data-bg=negro] .b-w{display:block}
+.doc{font-size:12.5px;font-weight:700;color:var(--kick);background:var(--pill);border-radius:999px;padding:4px 11px;white-space:nowrap}
+.galwrap{position:relative;margin-top:14px}
+.gal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;border-radius:24px;scrollbar-width:none;aspect-ratio:4/3;max-height:62vh;background:var(--soft)}
+.gal::-webkit-scrollbar{display:none}
+@media(min-width:760px){.gal{aspect-ratio:16/8;max-height:420px}}
+.ph{flex:0 0 100%;scroll-snap-align:start;position:relative;margin:0;overflow:hidden}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.place{position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.93);color:#1A1B14;border-radius:999px;padding:5px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.cr{position:absolute;left:12px;top:12px;max-width:60%;background:rgba(26,27,20,.45);border-radius:999px;padding:3px 9px;font-size:10.5px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);text-decoration:none;max-width:45%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.count{position:absolute;right:12px;top:12px;background:rgba(26,27,20,.55);color:#fff;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700}
+.nav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.9);color:#1A1B14;font-size:20px;font-weight:800;cursor:pointer;display:grid;place-items:center;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.prev{left:10px}.next{right:10px}
+.dots{display:flex;justify-content:center;gap:6px;margin-top:10px}
+.dots button{width:8px;height:8px;border-radius:99px;border:0;padding:0;background:var(--line);cursor:pointer;transition:width .3s}
+.dots button.on{width:22px;background:var(--p)}
+.intro{padding-top:16px}
+.for{font-size:14px;color:var(--mute);margin:0 0 4px}.for b{color:var(--ink)}
+h1{font-size:clamp(32px,9vw,52px)}.amp{color:var(--p)}
+.tag1{margin:8px 0 0;font-size:15px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700;white-space:nowrap}
+.chip.y{background:var(--a);border-color:var(--a);color:#1A1B14}
+.price{margin-top:16px;background:var(--p);color:#fff;border-radius:22px;padding:16px 18px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.price .lab{font-size:13px;opacity:.9}
+.price .big{font-size:clamp(30px,8vw,42px);font-weight:800;line-height:1.05;white-space:nowrap}
+.per{font-size:13px;opacity:.92}
+.timer{display:inline-block;margin-top:6px;background:var(--a);color:#1A1B14;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 20px;border-radius:999px;font-weight:700;font-size:15px;text-decoration:none;border:0;cursor:pointer;white-space:nowrap}
+.btn svg{width:19px;height:19px}
+.wa{background:var(--a);color:#1A1B14}
+.btn:focus-visible,button:focus-visible{outline:3px solid var(--a);outline-offset:2px}
+@media(max-width:560px){.price{grid-template-columns:1fr}.price .btn{width:100%;margin-top:6px}}
+.glance{margin-top:16px;border:1px solid var(--line);border-radius:22px;padding:14px 10px 12px;background:var(--card)}
+.glance p{margin:0 6px 12px;font-size:14px}
+.route{list-style:none;margin:0;padding:0;display:grid;position:relative}
+.route::before{content:"";position:absolute;top:17px;left:12%;right:12%;border-top:2px dashed var(--line)}
+.route li{text-align:center;position:relative}
+.dot{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;margin:0 auto 6px;color:#fff}
+.dot svg{width:18px;height:18px}
+.route b{display:block;font-size:13.5px;line-height:1.15}
+.route span{font-size:11.5px;color:var(--mute)}
+.tabs{display:flex;gap:6px;margin-top:20px;overflow-x:auto;scrollbar-width:none}
+.tabs button{flex:1 0 auto;font-size:14px;font-weight:700;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;min-height:42px;padding:0 16px;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected=true]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.panel{margin-top:12px}
+.box{border:1px solid var(--line);border-radius:20px;background:var(--card);overflow:hidden}
+.hrow{display:grid;grid-template-columns:104px minmax(0,1fr);gap:12px;padding:12px;border-top:1px solid var(--line)}
+.hrow.sin{grid-template-columns:1fr}
+.hrow:first-child{border-top:0}
+.hrow figure{margin:0;width:104px;height:104px;border-radius:14px;overflow:hidden;background:var(--soft)}
+.hrow figure img{width:100%;height:100%;object-fit:cover;display:block}
+.nights{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11.5px;font-weight:700}
+.hrow h3{font-size:16px;margin:5px 0 1px}
+.where{font-size:12.5px;color:var(--mute)}
+.hrow p{margin:5px 0 4px;font-size:13.5px;line-height:1.4}
+.links{display:flex;gap:14px;font-size:13px;font-weight:700;flex-wrap:wrap}
+.links a{color:var(--kick);text-decoration:none;min-height:32px;display:inline-flex;align-items:center}
+.leg{padding:12px 14px;border-top:1px solid var(--line)}
+.leg:first-child{border-top:0}
+.lh{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:13px}
+.air{font-size:12px;color:var(--mute)}
+.hops{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.hop{background:var(--soft);border-radius:12px;padding:6px 10px;font-size:13px;white-space:nowrap}
+.hop strong{font-weight:800}
+.note{font-size:12px;color:var(--mute);margin-top:5px}
+.inc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px;padding:12px 14px;list-style:none;margin:0}
+.inc li{display:grid;grid-template-columns:18px 1fr;gap:8px;padding:6px 0;font-size:13.5px;line-height:1.35}
+.ic{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;margin-top:1px}
+.warn{border-top:1px solid var(--line);background:var(--soft)}
+@media(max-width:520px){.inc{grid-template-columns:1fr}}
+.sec{margin-top:22px}
+.sec h2{font-size:21px}
+.sec .sub{font-size:13.5px;color:var(--mute);margin:3px 0 10px}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px}
+.opt{display:block;border:1.5px solid var(--line);border-radius:18px;padding:12px 14px;cursor:pointer;background:var(--card);position:relative}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt.on{border-color:var(--p);box-shadow:0 0 0 3px color-mix(in srgb,var(--p) 14%,transparent)}
+.badge{display:inline-block;font-size:11px;font-weight:700;color:var(--kick);background:var(--pill);border-radius:999px;padding:2px 8px}
+.opt b{display:block;font-size:14px;margin-top:6px}
+.opt .d{font-size:12.5px;color:var(--mute);line-height:1.35;display:block;margin-top:2px}
+.opt .pr{font-size:22px;font-weight:800;margin-top:8px;white-space:nowrap}
+.opt .pr small{font-size:11.5px;font-weight:300;color:var(--mute);margin-left:4px}
+.save{display:inline-block;background:var(--a);color:#1A1B14;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;margin-top:6px}
+.total{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:10px;font-weight:700;font-size:14px}
+.total strong{font-size:22px;font-weight:800;white-space:nowrap}
+.adv{margin-top:22px;border:1px solid var(--line);border-radius:22px;padding:14px;background:var(--card)}
+.who{display:grid;grid-template-columns:48px minmax(0,1fr);gap:12px;align-items:center}
+.av{width:48px;height:48px;border-radius:50%;background:var(--p);color:#fff;display:grid;place-items:center;font-size:20px;font-weight:800}
+.who span{font-size:13px;color:var(--mute)}
+.adv p{margin:10px 0 0;font-size:14px}
+.cta{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.cond{font-size:12px;color:var(--mute);margin-top:16px;white-space:pre-line}
+footer{text-align:center;padding:26px 16px 14px;color:var(--mute);font-size:12px}
+footer img{height:36px;margin-bottom:6px}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--bg);border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(0,0,0,.06);padding:9px 16px calc(9px + env(safe-area-inset-bottom))}
+.bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0}
+.bar .v{font-size:22px;font-weight:800;white-space:nowrap}
+.bar span{font-size:11.5px;color:var(--mute);display:block}
+.msg{max-width:40ch;margin:80px auto;text-align:center;color:var(--mute);font-size:15px;padding:0 16px}
+@media(prefers-reduced-motion:reduce){.dots button{transition:none}}
+@media print{.nav,.dots,.tabs,.bar,.cta{display:none!important}.panel[hidden]{display:block!important}body{padding:0}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap topin" id="top"></div></header>
+<main class="wrap" id="app"><p class="msg">Cargando tu propuesta…</p></main>
+<footer id="pie"></footer>
+<div class="bar" id="bar" hidden></div>
+
+<script>
+{
+  const WA = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.8 4.9-1.3A10 10 0 1 0 12 2zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9 0-1.4.7-2 1-2.3.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.2z"/></svg>';
+  const ICO = {
+    salida: '<path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/>',
+    destino: '<path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/>',
+    regreso: '<path d="M12 3 2 11h3v9h5v-6h4v6h5v-9h3z"/>'
+  };
+  const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const url = u => { const s = String(u || ''); if (/^\/api\/cot\?img=/.test(s)) return s; try { const x = new URL(s); return x.protocol === 'https:' ? x.href : ''; } catch (e) { return ''; } };
+  const fmt = (v, m) => (m === 'ARS' ? '$ ' : m === 'EUR' ? '€ ' : 'USD ') + Math.round(v).toLocaleString('es-AR');
+  const qs = new URLSearchParams(location.search), preview = qs.get('preview') === '1';
+  const id = (location.pathname.match(/\/c\/([A-Za-z0-9]{12})/) || [])[1] || qs.get('id') || '';
+
+  /* seguimiento: solo navegadores reales (la vista previa de WhatsApp no ejecuta JavaScript) */
+  const ev = (tipo, valor, beacon) => {
+    if (preview || !id) return;
+    const body = JSON.stringify({ accion: 'evento', id, tipo, valor });
+    try { if (beacon && navigator.sendBeacon) { navigator.sendBeacon('/api/cot', new Blob([body], { type: 'application/json' })); return; } } catch (e) {}
+    fetch('/api/cot', { method: 'POST', headers: { 'content-type': 'application/json' }, body, keepalive: true }).catch(() => {});
+  };
+  function seguir() {
+    if (preview || !id) return;
+    const t0 = Date.now(); let leyo = false;
+    setTimeout(() => { if (document.visibilityState === 'visible') ev('abrio'); }, 1500);
+    const marcar = () => { if (leyo) return; leyo = true; ev('leyo', Math.round((Date.now() - t0) / 1000)); };
+    addEventListener('scroll', () => { if ((scrollY + innerHeight) / document.body.scrollHeight > 0.6) marcar(); }, { passive: true });
+    setTimeout(() => { if (document.visibilityState === 'visible') marcar(); }, 25000);
+  }
+
+  function render(d, tema, slug) {
+    const base = '/portal/cotizador/' + encodeURIComponent(slug) + '/';
+    const c = tema.colores || {};
+    const r = document.documentElement.style;
+    if (c.principal) r.setProperty('--p', c.principal); if (c.acento) r.setProperty('--a', c.acento); if (c.secundario) r.setProperty('--s', c.secundario); if (c.oscuro) r.setProperty('--dark', c.oscuro);
+    if (tema.fuente && tema.fuente !== 'Lexend Deca') { $('#fuente').href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(tema.fuente) + ':wght@300;400;700;800&display=swap'; r.setProperty('--f', "'" + tema.fuente + "'"); }
+    document.documentElement.dataset.bg = d.fondo === 'negro' ? 'negro' : 'blanco';
+    const plural = (d.pasajeros || 2) > 1, ust = plural ? 'ustedes' : 'vos';
+    const tarifas = (d.tarifas || []).filter(t => t.precio || t.nombre);
+    const nombreAg = tema.nombre || 'la agencia';
+
+    $('#top').innerHTML = (tema.logo ? `<img src="${base + esc(tema.logo)}" alt="${esc(nombreAg)}" class="brand b-r">` : `<b>${esc(nombreAg)}</b>`) +
+      (tema.logoBlanco ? `<img src="${base + esc(tema.logoBlanco)}" alt="${esc(nombreAg)}" class="brand b-w">` : '') + '<span class="doc">Propuesta de viaje</span>';
+
+    const fotos = (d.fotos || []).filter(f => url(f.url));
+    const gal = fotos.length ? `<div class="galwrap"><div class="gal" id="gal" aria-label="Fotos del viaje">${fotos.map(f => `<figure class="ph"><img src="${esc(url(f.url))}" alt="${esc(f.lugar || d.titulo)}" style="object-position:${+f.x || 50}% ${+f.y || 50}%" loading="lazy">${f.lugar ? `<span class="place">${esc(f.lugar)}</span>` : ''}${f.credito && f.credito.autor ? `<a class="cr" href="${esc(url(f.credito.autorUrl) || '#')}" target="_blank" rel="noopener">Foto: ${esc(f.credito.autor)} / Unsplash</a>` : ''}</figure>`).join('')}</div>${fotos.length > 1 ? '<span class="count" id="count"></span><button class="nav prev" id="prev" type="button" aria-label="Foto anterior">‹</button><button class="nav next" id="next" type="button" aria-label="Foto siguiente">›</button>' : ''}</div>${fotos.length > 1 ? '<div class="dots" id="dots"></div>' : ''}` : '';
+
+    const titulo = esc(d.titulo || 'Tu próximo viaje').replace(/ &amp; /g, ' <span class="amp">&amp;</span> ');
+    const chips = [d.fechasTexto && `<span class="chip y">${esc(d.fechasTexto)}</span>`, d.noches && `<span class="chip">${d.noches} noches</span>`,
+      d.pasajeros && `<span class="chip">${d.pasajeros} pasajero${d.pasajeros > 1 ? 's' : ''}</span>`, d.conVuelos && '<span class="chip">Con vuelos incluidos</span>'].filter(Boolean).join('');
+
+    const ruta = (d.ruta || []);
+    const colorRuta = (t, i) => t === 'salida' ? 'var(--dark)' : t === 'regreso' ? 'var(--p)' : (i % 2 ? 'var(--a);color:#1A1B14' : 'var(--s)');
+    const glance = (d.gancho || ruta.length) ? `<div class="glance">${d.gancho ? `<p>${esc(d.gancho)}</p>` : ''}${ruta.length ? `<ol class="route" style="grid-template-columns:repeat(${ruta.length},minmax(0,1fr))">${ruta.map((p, i) => `<li><div class="dot" style="background:${colorRuta(p.tipo, i)}"><svg viewBox="0 0 24 24" fill="currentColor">${ICO[p.tipo] || ICO.destino}</svg></div><b>${esc(p.nombre)}</b><span>${esc(p.detalle)}</span></li>`).join('')}</ol>` : ''}</div>` : '';
+
+    const hoteles = (d.hoteles || []).map((h, i) => {
+      const f = h.foto && url(h.foto.url);
+      const mapa = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent([h.nombre, h.zona].filter(Boolean).join(' '));
+      return `<div class="hrow${f ? '' : ' sin'}">${f ? `<figure><img src="${esc(f)}" alt="${esc(h.nombre)}" loading="lazy" style="object-position:${+h.foto.x || 50}% ${+h.foto.y || 50}%"></figure>` : ''}<div>
+        ${h.noches || h.fechas ? `<span class="nights" style="${i % 2 ? 'background:var(--a);color:#1A1B14' : 'background:var(--s);color:#fff'}">${[h.noches && h.noches + ' noches', h.fechas].filter(Boolean).map(esc).join(' · ')}</span>` : ''}
+        <h3>${esc(h.nombre)}</h3>${h.zona || h.regimen ? `<div class="where">${[h.zona, h.regimen].filter(Boolean).map(esc).join(' · ')}</div>` : ''}
+        ${h.descripcion ? `<p>${esc(h.descripcion)}</p>` : ''}
+        <div class="links">${url(h.web) ? `<a href="${esc(url(h.web))}" target="_blank" rel="noopener">Ver hotel ↗</a>` : ''}<a href="${esc(mapa)}" target="_blank" rel="noopener">Mapa ↗</a></div></div></div>`;
+    }).join('');
+    const vuelos = (d.vuelos || []).map(v => `<div class="leg"><div class="lh"><b>${esc(v.titulo)}</b>${v.aerolinea ? `<span class="air">${esc(v.aerolinea)}</span>` : ''}</div>
+      <div class="hops">${(v.tramos || []).map(t => `<span class="hop"><strong>${esc(t.sale)}</strong> ${esc(t.origen)} → <strong>${esc(t.llega)}</strong> ${esc(t.destino)}${t.llegaOtroDia ? ' (+1)' : ''}</span>`).join('')}</div>
+      ${v.nota ? `<div class="note">${esc(v.nota)}</div>` : ''}</div>`).join('');
+    const inc = (d.incluye || []).map(x => `<li><span class="ic" style="background:var(--p);color:#fff">✓</span><span>${esc(x)}</span></li>`).join('');
+    const avi = (d.avisos || []).map(x => `<li><span class="ic" style="background:var(--a);color:#1A1B14">!</span><span>${esc(x)}</span></li>`).join('');
+    const tabs = [hoteles && ['Hoteles', `<div class="box">${hoteles}</div>`], vuelos && ['Vuelos', `<div class="box">${vuelos}</div>`],
+      (inc || avi) && ['Qué incluye', `<div class="box">${inc ? `<ul class="inc">${inc}</ul>` : ''}${avi ? `<ul class="inc warn">${avi}</ul>` : ''}</div>`]].filter(Boolean);
+    const tabsHtml = tabs.length ? `<div class="tabs" role="tablist">${tabs.map((t, i) => `<button role="tab" id="b${i}" aria-controls="t${i}" aria-selected="${i === 0}">${t[0]}</button>`).join('')}</div>` +
+      tabs.map((t, i) => `<div class="panel" id="t${i}" role="tabpanel" aria-labelledby="b${i}"${i ? ' hidden' : ''}>${t[1]}</div>`).join('') : '';
+
+    // ahorro entre la tarifa más cara y cada una de las otras (misma moneda)
+    const max = Math.max(...tarifas.filter(t => t.precio).map(t => t.precio), 0), pax = d.pasajeros || 1;
+    const opts = tarifas.length > 1 ? `<section class="sec"><h2>¿Cuál ${plural ? 'prefieren' : 'preferís'}?</h2><p class="sub">${plural ? 'Toquen' : 'Tocá'} una opción y el precio se actualiza.</p><div class="opts" role="radiogroup">${tarifas.map((t, i) => {
+      const ah = t.precio && max > t.precio && tarifas.every(x => x.moneda === t.moneda) ? (max - t.precio) * pax : 0;
+      return `<label class="opt${i ? '' : ' on'}"><input type="radio" name="t" value="${i}"${i ? '' : ' checked'}>${t.etiqueta ? `<span class="badge">${esc(t.etiqueta)}</span>` : ''}<b>${esc(t.nombre)}</b>${t.detalle ? `<span class="d">${esc(t.detalle)}</span>` : ''}${t.precio ? `<div class="pr">${fmt(t.precio, t.moneda)}<small>${esc(t.base || 'por persona')}</small></div>` : ''}${ah ? `<span class="save">${plural ? 'Ahorran' : 'Ahorrás'} ${fmt(ah, t.moneda)}${pax > 1 ? ' entre ' + (pax === 2 ? 'los dos' : 'todos') : ''}</span>` : ''}</label>`;
+    }).join('')}</div>${pax > 1 ? '<div class="total"><span>Total para ' + pax + ' pasajeros</span><strong id="tot"></strong></div>' : ''}</section>` : '';
+
+    const as = d.asesor || {};
+    const adv = `<section class="adv"><div class="who"><div class="av">${esc((as.nombre || nombreAg).trim().charAt(0).toUpperCase())}</div><div><b>${esc(as.nombre || nombreAg)}</b>${as.nombre ? ' · Asesor/a de viajes en ' + esc(nombreAg) : ''}<br><span>Con ${ust} antes, durante y después del viaje.</span></div></div>
+      <p>¿${plural ? 'Quieren' : 'Querés'} ajustar algo o ${plural ? 'tienen' : 'tenés'} dudas? ${plural ? 'Escríbanme' : 'Escribime'} y lo vemos juntos.</p>
+      <div class="cta"><a class="btn wa js-wa" href="#" target="_blank" rel="noopener">${WA}Hablemos por WhatsApp</a></div></section>`;
+    const vig = d.vigencia ? new Date(d.vigencia + 'T23:59:00-03:00') : null;
+    const cond = [d.condiciones, tema.condiciones, vig ? 'Propuesta válida hasta el ' + vig.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', timeZone: 'America/Argentina/Buenos_Aires' }) + '.' : ''].filter(Boolean).map(esc).join('\n');
+
+    $('#app').innerHTML = `${gal}<section class="intro">${d.pasajero ? `<p class="for"><b>${esc(d.pasajero)}</b>, este viaje lo armamos para ${ust}</p>` : ''}<h1>${titulo}</h1>${d.frase ? `<p class="tag1">${esc(d.frase)}</p>` : ''}${chips ? `<div class="chips">${chips}</div>` : ''}</section>
+      ${tarifas.length ? `<div class="price"><div><div class="lab" id="lab"></div><div class="big" id="pp"></div><div class="per" id="per"></div>${vig ? '<span class="timer" id="timer"></span>' : ''}</div><a class="btn wa js-wa" href="#" target="_blank" rel="noopener">${WA}Quiero avanzar</a></div>` : ''}
+      ${glance}${tabsHtml}${opts}${adv}${cond ? `<p class="cond"><b>Condiciones.</b> ${cond}</p>` : ''}`;
+    $('#pie').innerHTML = `${tema.icono ? `<img src="${base + esc(tema.icono)}" alt="">` : ''}<div>${[tema.legales, tema.instagram && '@' + tema.instagram].filter(Boolean).map(esc).join(' · ')}</div>`;
+    $('#bar').hidden = !tarifas.length;
+    if (tarifas.length) $('#bar').innerHTML = `<div class="wrap"><div><span id="bl"></span><div class="v" id="pp2"></div></div><a class="btn wa js-wa" href="#" target="_blank" rel="noopener">${WA}Quiero avanzar</a></div>`;
+
+    // tarifa elegida → precios y mensaje de WhatsApp
+    const set = i => {
+      const t = tarifas[i] || {};
+      if (tarifas.length) {
+        $('#lab').textContent = 'Precio ' + (t.base || 'por persona'); $('#pp').textContent = t.precio ? fmt(t.precio, t.moneda) : 'Consultar';
+        $('#pp2').textContent = $('#pp').textContent; $('#bl').textContent = t.base || 'por persona';
+        $('#per').textContent = t.precio && d.noches ? `Son unos ${fmt(t.precio / d.noches, t.moneda)} por noche por persona${d.conVuelos ? ', con vuelos incluidos' : ''}.` : '';
+        if ($('#tot')) $('#tot').textContent = t.precio ? fmt(t.precio * pax, t.moneda) : '';
+      }
+      const msg = `¡Hola${as.nombre ? ' ' + as.nombre : ''}! ${plural ? 'Vimos' : 'Vi'} la propuesta de ${d.titulo || 'viaje'}${d.fechasTexto ? ' (' + d.fechasTexto + ')' : ''}${t.nombre && tarifas.length > 1 ? ' con la opción "' + t.nombre + '"' : ''}${t.precio ? ' (' + fmt(t.precio, t.moneda) + ' ' + (t.base || 'por persona') + ')' : ''} y ${plural ? 'queremos' : 'quiero'} avanzar.`;
+      $$('.js-wa').forEach(a => { a.href = 'https://wa.me/' + (as.whatsapp || '') + '?text=' + encodeURIComponent(msg); });
+      $$('.opt').forEach((l, j) => l.classList.toggle('on', j === i));
+    };
+    $$('.opt input').forEach(x => x.addEventListener('change', () => { set(+x.value); ev('tarifa', (tarifas[+x.value] || {}).nombre || ''); }));
+    $$('.js-wa').forEach(a => a.addEventListener('click', () => ev('whatsapp', '', true)));
+    set(0);
+    if (vig && $('#timer')) { const n = Math.ceil((vig - new Date()) / 864e5); $('#timer').textContent = n > 1 ? `Precio vigente por ${n} días más` : n === 1 ? 'El precio vence mañana' : n === 0 ? 'El precio vence hoy' : `Precio vencido: ${plural ? 'consulten' : 'consultá'} disponibilidad`; }
+
+    // pestañas
+    const tb = $$('[role=tab]');
+    const pick = t => tb.forEach(x => { const on = x === t; x.setAttribute('aria-selected', on); $('#' + x.getAttribute('aria-controls')).hidden = !on; });
+    tb.forEach((t, i) => { t.addEventListener('click', () => { pick(t); ev('pestana', t.textContent); });
+      t.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { const n = tb[(i + (e.key === 'ArrowRight' ? 1 : tb.length - 1)) % tb.length]; pick(n); n.focus(); } }); });
+
+    // galería
+    const g = $('#gal');
+    if (g && fotos.length > 1) {
+      let cur = 0, auto = null;
+      const paint = () => { $('#count').textContent = (cur + 1) + ' / ' + fotos.length; $('#dots').innerHTML = fotos.map((_, j) => `<button type="button" aria-label="Foto ${j + 1}"${j === cur ? ' class="on"' : ''}></button>`).join(''); [...$('#dots').children].forEach((b, j) => b.onclick = () => { stop(); go(j); }); };
+      const go = i => { cur = (i + fotos.length) % fotos.length; g.scrollTo({ left: g.children[cur].offsetLeft, behavior: 'smooth' }); paint(); };
+      const stop = () => { clearInterval(auto); auto = null; };
+      g.addEventListener('scroll', () => { clearTimeout(g.t); g.t = setTimeout(() => { const i = Math.round(g.scrollLeft / g.clientWidth); if (i !== cur) { cur = i; paint(); } }, 80); });
+      g.addEventListener('pointerdown', stop);
+      $('#prev').onclick = () => { stop(); go(cur - 1); }; $('#next').onclick = () => { stop(); go(cur + 1); };
+      paint();
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches && !preview) auto = setInterval(() => go(cur + 1), 5000);
+    }
+    if (d.titulo) document.title = (d.pasajero ? d.pasajero + ': ' : '') + d.titulo + ' · ' + nombreAg;
+  }
+
+  const temas = {};
+  const tema = slug => temas[slug] || (temas[slug] = fetch('/portal/cotizador/' + encodeURIComponent(slug) + '/tema.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : {}).catch(() => ({})));
+  const falla = t => { $('#app').innerHTML = `<p class="msg">${esc(t)}</p>`; };
+
+  if (preview) {
+    addEventListener('message', async e => {
+      if (e.origin !== location.origin || !e.data || e.data.tipo !== 'cotizacion') return;
+      const y = scrollY; render(e.data.datos || {}, await tema(e.data.slug), e.data.slug); scrollTo(0, y);
+    });
+    parent.postMessage({ tipo: 'lista' }, location.origin);
+  } else if (!id) falla('No encontramos esta propuesta. Pedile el link de nuevo a tu asesor/a.');
+  else {
+    fetch('/api/cot', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ accion: 'ver', id }) })
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(async j => { render(j.datos, await tema(j.slug), j.slug); seguir(); })
+      .catch(st => falla(st === 404 ? 'Esta propuesta ya no está disponible. Escribile a tu asesor/a para pedir una actualizada.' : 'No pudimos abrir la propuesta. Probá recargar la página.'));
+  }
+}
+</script>
+</body>
+</html>

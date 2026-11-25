@@ -92,6 +92,25 @@ Variables de entorno en Netlify (Site configuration → Environment variables):
   en lugar de Kiro (la del PSD, paga): para pasar a Kiro, subir sus .woff2 y cambiar `fuentes` y `FONT` en su plantilla.js.
   Las fuentes aceptan `style: 'italic'` en `fuentes`.
 
+## Portal de agencias — Cotizador
+
+- Página del agente: `/portal/cotizador.html`. El agente pega lo que mandó el mayorista (texto, imagen o PDF), la IA arma la
+  cotización (acción `cotizacion` de `/api/ia`, usa 1 crédito; instrucciones en `netlify/lib/instrucciones-cotizacion.mjs`),
+  la revisa en el formulario con vista previa y la guarda: queda un link `kickstartmarketing.com.ar/c/<id>` para mandar por WhatsApp.
+- Página del pasajero: `cotizacion/index.html`, servida en `/c/<id>` por `netlify/functions/cot-pagina.mjs` (que además completa
+  el título y la foto para la vista previa del link en WhatsApp). Toma los datos de `/api/cot` (acción `ver`).
+- Funciones: `netlify/functions/cotizaciones.mjs` (`/api/cot`), lógica en `netlify/lib/cotizador-core.mjs`. Acciones de la agencia:
+  `lista`, `leer`, `guardar`, `borrar`, `foto` (sube una foto, se sirve en `/api/cot?img=…`). Públicas: `ver` y `evento`.
+- Seguimiento: la página del pasajero avisa cuando la abre (`abrio`, a los 1,5 s con la pestaña visible), cuando la lee
+  (`leyo`: bajó más del 60 % o la tuvo abierta 25 s), qué pestaña mira, qué tarifa toca y si toca WhatsApp. Los robots que
+  arman la vista previa del link no ejecutan JavaScript, así que no cuentan como aperturas. El agente lo ve en su lista.
+- Datos en Netlify Blobs, store `cotizaciones`: `cot/<id>` (la cotización), `idx/<agencia>/<id>`, `seg/<id>` (seguimiento) e `img/…` (fotos).
+- Fotos: búsqueda en Unsplash (usa `/api/fotos`, ver Generador de flyers) y fotos propias subidas por el agente (se achican a 1600 px).
+  Al armar con IA se sugiere sola una foto por destino.
+- Estética por agencia: `portal/cotizador/<id de la agencia>/tema.json` (colores, fuente de Google Fonts, logos, legales,
+  Instagram y condiciones generales) más sus logos. Solo las agencias con esa carpeta ven el Cotizador en el menú.
+  Cargada: GF Travel (`fde3d5ab427a36814efab95c61efc39f`).
+
 ## Portal de agencias — Secuencia de historias
 
 - Página: `/portal/historias.html`. Con el flyer de un paquete vigente arma 3 historias 1080×1920 para publicar seguidas:

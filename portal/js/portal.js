@@ -83,6 +83,7 @@
     ads: '<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
     reel: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
     flyer: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>',
+    cot: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/>',
     hist: '<rect x="2" y="4" width="6" height="16" rx="1.5"/><rect x="9" y="4" width="6" height="16" rx="1.5"/><rect x="16" y="4" width="6" height="16" rx="1.5"/>'
   };
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -101,7 +102,8 @@
       <div class="mono" style="font-size:11px; color:var(--muted); padding:16px 16px 6px; letter-spacing:.08em;">HERRAMIENTAS IA</div>
       ${link('guiones-ads.html', 'ads', 'Guiones para anuncios', active === 'ads')}
       ${navFlyer(active, '')}
-      ${navHistorias(active)}`
+      ${navHistorias(active)}
+      ${navCotizador(active)}`
       : `${link('dashboard.html', 'panel', 'Panel', active === 'panel')}
       ${link('planificacion.html', 'plan', 'Planificación', active === 'plan')}
       ${link('reportes.html', 'rep', 'Reportes', active === 'reportes')}
@@ -110,7 +112,8 @@
       ${link('guiones-ads.html', 'ads', 'Guiones para anuncios', active === 'ads')}
       ${off('reel', 'Guiones para reels')}
       ${navFlyer(active, off('flyer', 'Generador de flyers'))}
-      ${navHistorias(active)}`;
+      ${navHistorias(active)}
+      ${navCotizador(active)}`;
     el.innerHTML = `
     <a href="${soloAnuncios(s) ? 'reportes.html' : 'dashboard.html'}" style="display:flex; align-items:center; gap:10px; padding:0 6px;">
       <img src="../images/logo-2026/kickstart-icono.svg" alt="Kickstart" style="width:34px; height:34px; object-fit:contain;">
@@ -127,6 +130,10 @@
     if (active !== 'flyers') tieneFlyer().then(ok => {
       const ph = el.querySelector('.js-nav-flyer');
       if (ok && ph) ph.outerHTML = link('flyers.html', 'flyer', 'Generador de flyers', false);
+    });
+    if (active !== 'cotizador') tieneCotizador().then(ok => {
+      const ph = el.querySelector('.js-nav-cot');
+      if (ok && ph) ph.outerHTML = link('cotizador.html', 'cot', 'Cotizador', false);
     });
     if (active !== 'historias') tieneHistorias().then(ok => {
       const ph = el.querySelector('.js-nav-hist');
@@ -160,6 +167,19 @@
     return _hist;
   }
 
+  // Cotizador: solo para las agencias que tienen su estética en portal/cotizador/<id>/tema.json
+  function navCotizador(active) {
+    if (active === 'cotizador') return link('cotizador.html', 'cot', 'Cotizador', true);
+    return '<div class="js-nav-cot" style="display:contents;"></div>';
+  }
+  let _cot = null;
+  function tieneCotizador() {
+    const s = leer(); if (!s || !s.slug) return Promise.resolve(false);
+    if (!_cot) _cot = fetch('cotizador/' + encodeURIComponent(s.slug) + '/tema.json', { method: 'HEAD', cache: 'no-store' })
+      .then(r => r.ok).catch(() => false);
+    return _cot;
+  }
+
   // Traspaso del Generador de flyers a la Secuencia de historias: guarda el flyer (y la foto) en este navegador
   // (IndexedDB, porque una imagen no entra en sessionStorage) y la otra página lo toma una sola vez.
   const traspaso = {
@@ -185,5 +205,5 @@
     }
   };
 
-  window.Portal = { sidebar, tieneFlyer, tieneHistorias, traspaso, urlSegura, esc, abrir, abrirArchivo, ingresar, guardar, leer, salir, requerirSesion, soloAnuncios, normUsuario, idUsuario };
+  window.Portal = { sidebar, tieneFlyer, tieneHistorias, tieneCotizador, traspaso, urlSegura, esc, abrir, abrirArchivo, ingresar, guardar, leer, salir, requerirSesion, soloAnuncios, normUsuario, idUsuario };
 })();

@@ -3,6 +3,8 @@
 import { INSTRUCCIONES } from './instrucciones.mjs';
 import { INSTRUCCIONES_FLYER, INSTRUCCIONES_ENCUADRE } from './instrucciones-flyer.mjs';
 import { INSTRUCCIONES_HOOKS_HISTORIA } from './instrucciones-historias.mjs';
+import { INSTRUCCIONES_COTIZACION } from './instrucciones-cotizacion.mjs';
+import { extraerCotizacion } from './cotizador-core.mjs';
 
 export const CREDITOS_POR_DEFECTO = 40;
 const MAX = { destino: 80, paquete: 900, precio: 160, publico: 120, palabra: 24, extra: 400, ajuste: 300 };
@@ -290,6 +292,36 @@ export async function manejar(body, deps) {
     return [200, { resultado: salida, creditos: resumenCreditos(datos, c2, env, mes) }];
   }
 
+  if (accion === 'cotizacion') {
+    // Cotizador: ordena el material del mayorista (texto, imagen o PDF) y escribe los textos de venta. Usa 1 crédito.
+    const entrada = limpiarEntradaFlyer(body);
+    if (entrada.error) return [400, { error: entrada.error }];
+    const limite = limiteDe(datos, c, env);
+    if ((c.usados || 0) >= limite) return [402, { error: 'sin_creditos', creditos: resumenCreditos(datos, c, env, mes) }];
+    let salida, uso;
+    try {
+      const bloques = armarPedidoFlyer(entrada);
+      bloques[bloques.length - 1] = { type: 'text', text: 'Armá la cotización con esta información.' + (entrada.archivo ? ' La información principal está en el archivo adjunto.' : '') +
+        (entrada.texto ? `\n\nInformación que cargó la agencia:\n${entrada.texto}` : '') };
+      const r = await ia(bloques, { system: INSTRUCCIONES_COTIZACION, maxTokens: 5000 });
+      uso = r.uso;
+      try { salida = extraerCotizacion(r.texto); }
+      catch (e) { e.detalle = String(r.texto || '').slice(0, 300); throw e; }
+    } catch (e) {
+      console.error('Cotizador:', e.message, e.status || '', e.detalle || '');
+      return [502, { error: 'ia', creditos: resumenCreditos(datos, c, env, mes) }];
+    }
+    const c2 = await leerCreditos(store, slug, mes);
+    c2.usados = (c2.usados || 0) + 1;
+    await store.setJSON(`creditos/${slug}/${mes}`, c2);
+    await store.setJSON(`cotizador/${mes}/${ahora.getTime()}-${slug}`, {
+      fecha: ahora.toISOString(), slug, agencia, texto: entrada.texto.slice(0, 2000),
+      archivo: entrada.archivo ? { tipo: entrada.archivo.tipo, kb: Math.round(entrada.archivo.datos.length * 0.75 / 1024) } : null,
+      salida: { titulo: salida.titulo, dudas: salida.dudas }, modelo: env.ANTHROPIC_MODEL || '', uso: uso || {},
+    });
+    return [200, { resultado: salida, creditos: resumenCreditos(datos, c2, env, mes) }];
+  }
+
   if (accion === 'encuadre') {
     // Encuadre automático: no descuenta créditos, pero tiene un tope mensual propio por agencia
     const datosImg = String(body.imagen || '').replace(/^data:[^,]*,/, '');
@@ -375,6 +407,16 @@ export async function manejarAdmin(body, deps) {
     const r = await store.get(b.key, { type: 'json' }); if (!r) continue;
     const a = agencias[r.slug] || (agencias[r.slug] = { slug: r.slug, agencia: r.agencia, guiones: 0, positivos: 0, negativos: 0, tokensEntrada: 0, tokensSalida: 0 });
     a.historias = (a.historias || 0) + 1;
+    const u = r.uso || {};
+    a.tokensEntrada += (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0);
+    a.tokensSalida += u.output_tokens || 0;
+  }
+  // Cotizaciones armadas con IA (usan los mismos créditos)
+  const lc = await store.list({ prefix: `cotizador/${mes}/` });
+  for (const b of lc.blobs || []) {
+    const r = await store.get(b.key, { type: 'json' }); if (!r) continue;
+    const a = agencias[r.slug] || (agencias[r.slug] = { slug: r.slug, agencia: r.agencia, guiones: 0, positivos: 0, negativos: 0, tokensEntrada: 0, tokensSalida: 0 });
+    a.cotizaciones = (a.cotizaciones || 0) + 1;
     const u = r.uso || {};
     a.tokensEntrada += (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0);
     a.tokensSalida += u.output_tokens || 0;
