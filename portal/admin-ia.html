@@ -98,7 +98,7 @@ td.n{font-variant-numeric:tabular-nums;}
       const guion = (g.guion || []).map(l => `${l.tiempo}  ${l.texto}`).join('\n');
       const voto = r.voto === 1 ? '👍' : r.voto === -1 ? '👎' : 'sin voto';
       return `<div class="reg">
-        <div class="meta">${esc(new Date(r.fecha).toLocaleString('es-AR'))} · <b style="color:var(--white);">${esc(r.agencia)}</b> · ${esc(r.form.destino)} · ${voto}${r.ajuste ? ' · ajuste: ' + esc(r.ajuste) : ''}</div>
+        <div class="meta">${esc(new Date(r.fecha).toLocaleString('es-AR'))} · <b style="color:var(--white);">${esc(r.agencia)}</b> · ${esc(r.form.destino)}${r.archivo ? ' · desde ' + (r.archivo.tipo === 'application/pdf' ? 'PDF' : 'imagen') : ''} · ${voto}${r.ajuste ? ' · ajuste: ' + esc(r.ajuste) : ''}</div>
         ${r.comentario ? `<div style="color:var(--yellow); font-size:14px;">“${esc(r.comentario)}”</div>` : ''}
         <div style="font-weight:600; color:var(--white);">${esc(g.hookPrincipal)}</div>
         <pre>${esc(guion)}</pre>

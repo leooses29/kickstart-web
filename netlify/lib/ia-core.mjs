@@ -28,19 +28,41 @@ export function limpiarFormulario(f = {}) {
   };
 }
 
-export function armarPedido(form, agencia, ajuste, anterior) {
-  const l = [`Agencia: ${agencia}`, `Destino: ${form.destino}`, `Paquete (qué incluye, noches, salida y fechas): ${form.paquete || 'no informado'}`,
-    `Precio: ${form.precio || 'no informado'}`];
+export function armarPedido(form, agencia, ajuste, anterior, archivo = null) {
+  const l = [`Agencia: ${agencia}`, `Destino: ${form.destino || (archivo ? 'sacalo del archivo adjunto' : 'no informado')}`,
+    `Paquete (qué incluye, noches, salida y fechas): ${form.paquete || (archivo ? 'sacalo del archivo adjunto' : 'no informado')}`,
+    `Precio: ${form.precio || (archivo ? 'sacalo del archivo adjunto' : 'no informado')}`];
   if (form.publico) l.push(`Público: ${form.publico}`);
   if (form.palabra) l.push(`Palabra clave para el CTA: ${form.palabra}`);
   if (form.extra) l.push(`Indicaciones de la agencia: ${form.extra}`);
-  let txt = 'Escribí un guion para este anuncio.\n\n' + l.join('\n');
+  let txt = 'Escribí un guion para este anuncio.' +
+    (archivo ? ' La información del paquete está en el archivo adjunto (flyer, captura o PDF). Lo que la agencia escribió abajo tiene prioridad sobre el archivo.' : '') +
+    '\n\n' + l.join('\n');
   if (anterior) {
     txt += `\n\nVersión anterior (no repitas sus hooks):\n${JSON.stringify(anterior)}`;
     txt += `\n\nLa agencia pide este cambio: ${ajuste || 'otra versión distinta, con otro hook principal'}`;
   }
-  return txt;
+  if (!archivo) return txt;
+  return [bloqueArchivo(archivo), { type: 'text', text: txt }];
 }
+
+// Archivo adjunto (imagen o PDF) que manda la agencia: se valida y se pasa a la IA como bloque.
+const TIPOS_ARCHIVO = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
+const MAX_ARCHIVO_B64 = 5_500_000;
+export function limpiarArchivo(a) {
+  if (!a || !a.datos) return { archivo: null };
+  const tipo = String(a.tipo || '');
+  const datos = String(a.datos).replace(/^data:[^,]*,/, '');
+  if (!TIPOS_ARCHIVO.includes(tipo)) return { error: 'tipo_archivo' };
+  if (datos.length > MAX_ARCHIVO_B64 || !/^[A-Za-z0-9+/=\s]+$/.test(datos.slice(0, 2000))) return { error: 'archivo_grande' };
+  return { archivo: { tipo, datos } };
+}
+export function bloqueArchivo(archivo) {
+  return archivo.tipo === 'application/pdf'
+    ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: archivo.datos } }
+    : { type: 'image', source: { type: 'base64', media_type: archivo.tipo, data: archivo.datos } };
+}
+const metaArchivo = (a) => a ? { tipo: a.tipo, kb: Math.round(a.datos.length * 0.75 / 1024) } : null;
 
 export function extraerJSON(texto) {
   const a = texto.indexOf('{'), b = texto.lastIndexOf('}');
@@ -49,6 +71,7 @@ export function extraerJSON(texto) {
   if (!o.hookPrincipal || !Array.isArray(o.guion) || !o.guion.length) throw new Error('respuesta_invalida');
   o.hooksAlternativos = Array.isArray(o.hooksAlternativos) ? o.hooksAlternativos.slice(0, 3) : [];
   o.datosFaltantes = Array.isArray(o.datosFaltantes) ? o.datosFaltantes : [];
+  o.destino = recortar(o.destino, MAX.destino);
   return o;
 }
 
@@ -78,30 +101,19 @@ export async function llamarClaude({ apiKey, model, pedido, system = INSTRUCCION
 }
 
 // --- Generador de flyers: ordenar la información de un paquete ---
-export const MAX_FLYER = { texto: 8000, archivoB64: 5_500_000 };
-const TIPOS_FLYER = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
+export const MAX_FLYER = { texto: 8000, archivoB64: MAX_ARCHIVO_B64 };
 
 export function limpiarEntradaFlyer(body = {}) {
   const texto = recortar(body.texto, MAX_FLYER.texto);
-  let archivo = null;
-  if (body.archivo && body.archivo.datos) {
-    const tipo = String(body.archivo.tipo || '');
-    const datos = String(body.archivo.datos).replace(/^data:[^,]*,/, '');
-    if (!TIPOS_FLYER.includes(tipo)) return { error: 'tipo_archivo' };
-    if (datos.length > MAX_FLYER.archivoB64 || !/^[A-Za-z0-9+/=\s]+$/.test(datos.slice(0, 2000))) return { error: 'archivo_grande' };
-    archivo = { tipo, datos };
-  }
+  const { archivo, error } = limpiarArchivo(body.archivo);
+  if (error) return { error };
   if (!texto && !archivo) return { error: 'vacio' };
   return { texto, archivo };
 }
 
 export function armarPedidoFlyer({ texto, archivo }) {
   const bloques = [];
-  if (archivo) {
-    bloques.push(archivo.tipo === 'application/pdf'
-      ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: archivo.datos } }
-      : { type: 'image', source: { type: 'base64', media_type: archivo.tipo, data: archivo.datos } });
-  }
+  if (archivo) bloques.push(bloqueArchivo(archivo));
   bloques.push({ type: 'text', text: 'Ordená esta información para el flyer.' + (archivo ? ' La información principal está en el archivo adjunto.' : '') +
     (texto ? `\n\nInformación del paquete que cargó la agencia:\n${texto}` : '') });
   return bloques;
@@ -208,7 +220,10 @@ export async function manejar(body, deps) {
 
   if (accion === 'generar') {
     const form = limpiarFormulario(body.form);
-    if (!form.destino) return [400, { error: 'falta_destino' }];
+    const adj = limpiarArchivo(body.archivo);
+    if (adj.error) return [400, { error: adj.error }];
+    const archivo = adj.archivo;
+    if (!form.destino && !archivo) return [400, { error: 'falta_destino' }];
     const limite = limiteDe(datos, c, env);
     if ((c.usados || 0) >= limite) return [402, { error: 'sin_creditos', creditos: resumenCreditos(datos, c, env, mes) }];
     let anterior = null;
@@ -217,7 +232,7 @@ export async function manejar(body, deps) {
       if (prev && prev.slug === slug) anterior = prev.salida;
     }
     const ajuste = recortar(body.ajuste, MAX.ajuste);
-    const pedido = armarPedido(form, agencia, ajuste, anterior);
+    const pedido = armarPedido(form, agencia, ajuste, anterior, archivo);
     let salida, uso;
     try {
       const r = await ia(pedido);
@@ -232,12 +247,15 @@ export async function manejar(body, deps) {
     const c2 = await leerCreditos(store, slug, mes);
     c2.usados = (c2.usados || 0) + 1;
     await store.setJSON(`creditos/${slug}/${mes}`, c2);
+    // Si el destino salió del archivo, se guarda en el formulario para el historial y el panel interno
+    if (!form.destino) form.destino = salida.destino || salida.titulo || 'Paquete';
     const id = `${ahora.getTime()}-${slug}`;
     await store.setJSON(`registros/${mes}/${id}`, {
       fecha: ahora.toISOString(), slug, agencia, form, ajuste: anterior ? (ajuste || 'otra versión') : '', baseId: anterior ? body.baseId : '',
+      archivo: metaArchivo(archivo), // solo tipo y tamaño, no el archivo
       salida, modelo: env.ANTHROPIC_MODEL || '', uso: uso || {}, voto: 0, comentario: '',
     });
-    return [200, { id, resultado: salida, creditos: resumenCreditos(datos, c2, env, mes) }];
+    return [200, { id, resultado: salida, form, creditos: resumenCreditos(datos, c2, env, mes) }];
   }
 
   if (accion === 'flyer') {

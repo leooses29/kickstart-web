@@ -50,6 +50,18 @@
 .hist button:hover{border-color:rgba(255,193,7,.4);}
 .hist span{color:var(--muted-2); font-size:12px; white-space:nowrap;}
 .btn[disabled]{opacity:.5; pointer-events:none;}
+.subir{border:1.5px dashed rgba(255,193,7,.45); border-radius:var(--r-md); padding:16px; display:flex; flex-direction:column; gap:10px; background:rgba(255,193,7,.04); transition:border-color .2s, background .2s;}
+.subir [hidden]{display:none !important;}
+.subir.sobre{border-color:var(--yellow); background:rgba(255,193,7,.1);}
+.subir .t{font-size:14px; font-weight:600; color:var(--white);}
+.subir .p{font-size:13px; color:var(--muted); line-height:1.5;}
+.subir .fila{display:flex; flex-wrap:wrap; gap:10px; align-items:center;}
+.subir .prev{display:flex; gap:12px; align-items:center;}
+.subir .prev img{width:56px; height:56px; object-fit:cover; border-radius:8px; border:1px solid var(--line);}
+.subir .prev .pdf{width:56px; height:56px; border-radius:8px; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font:700 12px var(--f); color:var(--yellow);}
+.subir .prev b{font-size:13px; font-weight:600; color:var(--white); word-break:break-all;}
+.sep{display:flex; align-items:center; gap:10px; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted-2);}
+.sep::before,.sep::after{content:""; flex:1; height:1px; background:var(--line);}
 @media (max-width:900px){ .ia-grid{grid-template-columns:1fr;} .portal-main{padding:28px 16px;} }
 @media (prefers-reduced-motion:reduce){ .cargando i{animation:none;} }
 </style>
@@ -65,7 +77,7 @@
       <div>
         <div class="mono" style="color:var(--yellow); font-size:12px; letter-spacing:.1em; margin-bottom:6px;">HERRAMIENTAS IA</div>
         <h1 style="font-size:34px;">Guiones para anuncios</h1>
-        <p style="color:var(--muted); font-size:14px; max-width:60ch; margin-top:8px; line-height:1.55;">Cargá el paquete y te armamos un guion de 20 a 25 segundos con la estrategia de Kickstart: hook, destino, paquete, precio y llamada a la acción. Grabalo vos a cámara en la agencia y mandanos el video para editarlo.</p>
+        <p style="color:var(--muted); font-size:14px; max-width:60ch; margin-top:8px; line-height:1.55;">Cargá el paquete (o subí el flyer) y te armamos un guion de 20 a 25 segundos con la estrategia de Kickstart: hook, destino, paquete, precio y llamada a la acción. Grabalo vos a cámara en la agencia y mandanos el video para editarlo.</p>
       </div>
       <div class="cred" aria-live="polite">
         <div class="mono" style="font-size:11px; color:var(--muted); letter-spacing:.08em;">CRÉDITOS DE <span class="js-mes">ESTE MES</span></div>
@@ -77,9 +89,21 @@
 
     <div class="ia-grid">
       <form class="card ia-form js-form" novalidate>
+        <div class="subir js-subir">
+          <div class="t">¿Tenés el flyer del paquete?</div>
+          <div class="p">Subí el flyer, una captura del mayorista o el PDF del paquete. Leemos destino, qué incluye, fechas y precio, y armamos el guion directo. No hace falta completar los campos de abajo.</div>
+          <div class="fila js-sin-archivo">
+            <button type="button" class="btn btn-ghost sm js-elegir" style="min-height:40px;">Subir imagen o PDF</button>
+            <span class="hint" style="margin:0;">o arrastralo acá</span>
+          </div>
+          <div class="prev js-con-archivo" hidden></div>
+          <input type="file" class="js-file" accept="image/*,application/pdf" hidden>
+        </div>
+        <div class="sep js-sep">o cargalo a mano</div>
         <div>
-          <label for="f-destino">Destino *</label>
-          <input id="f-destino" name="destino" required maxlength="80" placeholder="Ej: Porto de Galinhas">
+          <label for="f-destino">Destino <span class="js-dest-req">*</span></label>
+          <input id="f-destino" name="destino" maxlength="80" placeholder="Ej: Porto de Galinhas">
+          <div class="hint js-dest-hint" hidden>Opcional: si lo completás, tiene prioridad sobre lo que diga el flyer.</div>
         </div>
         <div>
           <label for="f-paquete">Qué incluye el paquete</label>
@@ -141,6 +165,51 @@
   let creditos = null;
   let historial = [];
   let ocupado = false;
+  let adjunto = null;         // {tipo, datos, nombre, vista} — flyer, captura o PDF del paquete
+
+  // --- Archivo del paquete: la imagen se achica a 1600 px antes de mandarla; el PDF, hasta 4 MB ---
+  const leerB64 = f => new Promise((ok, mal) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1]); fr.onerror = mal; fr.readAsDataURL(f); });
+  const cargarImg = src => new Promise((ok, mal) => { const im = new Image(); im.onload = () => ok(im); im.onerror = mal; im.src = src; });
+  async function prepararImagen(f) {
+    const url = URL.createObjectURL(f);
+    try {
+      const im = await cargarImg(url);
+      const k = Math.min(1, 1600 / Math.max(im.width, im.height));
+      const c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
+      const d = c.toDataURL('image/jpeg', 0.85);
+      return { tipo: 'image/jpeg', datos: d.split(',')[1], vista: d };
+    } finally { URL.revokeObjectURL(url); }
+  }
+  function pintarAdjunto() {
+    const con = $('.js-con-archivo');
+    $('.js-sin-archivo').hidden = !!adjunto; con.hidden = !adjunto;
+    $('.js-dest-req').hidden = !!adjunto; $('.js-dest-hint').hidden = !adjunto;
+    $('.js-sep').textContent = adjunto ? 'sumá datos si querés (opcional)' : 'o cargalo a mano';
+    if (!adjunto) { con.innerHTML = ''; return; }
+    con.innerHTML = `${adjunto.vista ? `<img src="${adjunto.vista}" alt="">` : '<div class="pdf">PDF</div>'}
+      <div style="display:flex; flex-direction:column; gap:6px; min-width:0;"><b>${esc(adjunto.nombre)}</b><button type="button" class="mini js-quitar" style="align-self:flex-start;">Quitar</button></div>`;
+    $('.js-quitar').onclick = () => { adjunto = null; pintarAdjunto(); };
+  }
+  async function tomarArchivo(f) {
+    const err = $('.js-err'); err.hidden = true;
+    if (!f) return;
+    try {
+      if (f.type === 'application/pdf') {
+        if (f.size > 4 * 1024 * 1024) { err.textContent = 'El PDF pesa más de 4 MB. Probá con una captura de la página del paquete.'; err.hidden = false; return; }
+        adjunto = { tipo: 'application/pdf', datos: await leerB64(f) };
+      } else if (f.type.startsWith('image/')) adjunto = await prepararImagen(f);
+      else { err.textContent = mensajeError({ message: 'tipo_archivo' }).replace(' No se descontó ningún crédito.', ''); err.hidden = false; return; }
+      adjunto.nombre = f.name;
+      pintarAdjunto();
+    } catch (e) { err.textContent = 'No pudimos leer ese archivo. Probá con otro.'; err.hidden = false; }
+  }
+  $('.js-elegir').onclick = () => $('.js-file').click();
+  $('.js-file').onchange = e => { const f = e.target.files[0]; e.target.value = ''; tomarArchivo(f); };
+  const zona = $('.js-subir');
+  ['dragenter', 'dragover'].forEach(t => zona.addEventListener(t, e => { e.preventDefault(); zona.classList.add('sobre'); }));
+  ['dragleave', 'drop'].forEach(t => zona.addEventListener(t, e => { e.preventDefault(); zona.classList.remove('sobre'); }));
+  zona.addEventListener('drop', e => tomarArchivo(e.dataTransfer.files[0]));
 
   async function api(body) {
     const r = await fetch('/api/ia', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: s.slug, code: s.code, ...body }) });
@@ -167,7 +236,9 @@
   function mensajeError(e) {
     if (e.message === 'sin_creditos') return 'Usaste todos los créditos de este mes. Se renuevan el 1° del mes que viene. Si necesitás más, escribile a Kickstart.';
     if (e.message === 'sin_configurar') return 'La herramienta todavía se está configurando. Probá de nuevo en un rato.';
-    if (e.message === 'falta_destino') return 'Escribí el destino para generar el guion.';
+    if (e.message === 'falta_destino') return 'Escribí el destino o subí el flyer del paquete para generar el guion.';
+    if (e.message === 'tipo_archivo') return 'Ese tipo de archivo no sirve. Subí una imagen (JPG o PNG) o un PDF. No se descontó ningún crédito.';
+    if (e.message === 'archivo_grande') return 'El archivo es muy pesado. Probá con una captura más liviana. No se descontó ningún crédito.';
     if (e.message === 'ia') return 'No pudimos generar el guion esta vez. No se descontó ningún crédito: probá de nuevo.';
     return 'Hubo un problema de conexión. No se descontó ningún crédito: probá de nuevo.';
   }
@@ -243,14 +314,18 @@
   async function generar(extra) {
     if (ocupado) return;
     const err = $('.js-err'); err.hidden = true;
-    const form = extra && extra.baseId && actual ? actual.form : leerForm();
-    if (!form.destino.trim()) { err.textContent = mensajeError({ message: 'falta_destino' }); err.hidden = false; $('#f-destino').focus(); return; }
+    const esAjuste = !!(extra && extra.baseId && actual);
+    const form = esAjuste ? actual.form : leerForm();
+    // En una nueva versión se vuelve a mandar el archivo original (si sigue cargado en esta pantalla)
+    const archivo = esAjuste ? (actual.archivo || null) : adjunto;
+    if (!form.destino.trim() && !archivo) { err.textContent = mensajeError({ message: 'falta_destino' }); err.hidden = false; $('#f-destino').focus(); return; }
     ocupado = true; if (creditos) pintarCreditos(creditos);
-    $('.js-res').innerHTML = '<div class="cargando"><i></i>Escribiendo tu guion… puede tardar unos 15 segundos.</div>';
+    $('.js-res').innerHTML = `<div class="cargando"><i></i>${archivo && !esAjuste ? 'Leyendo el flyer y escribiendo tu guion…' : 'Escribiendo tu guion…'} puede tardar unos 15 segundos.</div>`;
     try {
-      const j = await api({ accion: 'generar', form, ...(extra || {}) });
-      actual = { id: j.id, resultado: j.resultado, form, voto: 0, comentario: '' };
-      historial.unshift({ id: j.id, fecha: new Date().toISOString(), destino: form.destino, form, titulo: j.resultado.titulo, resultado: j.resultado, voto: 0 });
+      const j = await api({ accion: 'generar', form, ...(archivo ? { archivo: { tipo: archivo.tipo, datos: archivo.datos } } : {}), ...(extra || {}) });
+      const formFinal = j.form || form;
+      actual = { id: j.id, resultado: j.resultado, form: formFinal, archivo, voto: 0, comentario: '' };
+      historial.unshift({ id: j.id, fecha: new Date().toISOString(), destino: formFinal.destino, form: formFinal, titulo: j.resultado.titulo, resultado: j.resultado, voto: 0 });
       ocupado = false;
       pintarResultado(); pintarHistorial();
       if (window.innerWidth < 900) $('.js-res').scrollIntoView({ behavior: 'smooth', block: 'start' });

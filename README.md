@@ -19,6 +19,10 @@ sus datos con el código nuevo y el anterior deja de funcionar.
 
 - Página: `/portal/guiones-ads.html`. La agencia carga destino, paquete y precio y recibe un guion de 20–25 s
   (hook principal, guion por bloques, 3 hooks alternativos y copy). Cada guion o nueva versión usa 1 crédito.
+- **Desde el flyer**: arriba del formulario la agencia puede subir el flyer, una captura del mayorista o el PDF del paquete
+  y la IA saca de ahí destino, qué incluye, fechas y precio para armar el guion (mismo crédito). Los campos pasan a ser
+  opcionales y lo que se escriba a mano tiene prioridad sobre el archivo. El archivo no se guarda: en Netlify Blobs queda
+  solo su tipo y tamaño. En "Otra versión" o "Ajustar" se vuelve a mandar el archivo si sigue cargado en la pantalla.
 - Funciones de Netlify: `netlify/functions/ia.mjs` (`/api/ia`) y `netlify/functions/ia-admin.mjs` (`/api/ia-admin`).
   La lógica está en `netlify/lib/ia-core.mjs`; las instrucciones de la IA en `netlify/lib/instrucciones.mjs`
   (editá ese texto para ajustar la estrategia).
